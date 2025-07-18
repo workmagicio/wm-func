@@ -21,12 +21,12 @@ func InitDB() {
 	//application.service.integration.airbyte.default.destination.mysql
 	once.Do(func() {
 
-		cfg := apollo.GetXkMysqlConfig()
+		cfg := apollo.GetMysqlConfig()
 
 		// 使用 gorm.Open() 和 mysql.Open() 连接 MySQL 数据库
 		var err error
 		db, err = gorm.Open(mysql.New(mysql.Config{
-			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.Configuration.Username, cfg.Configuration.Password, cfg.Configuration.Host, cfg.Configuration.Port, cfg.Configuration.Database),
+			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.Name, cfg.Password, cfg.Host, 3306, "platform_offline"),
 		}), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent), // 禁用所有日志
 		})

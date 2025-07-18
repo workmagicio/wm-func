@@ -1,4 +1,4 @@
-package apollo
+package config
 
 type S3Config struct {
 	AccessKeyID     string `json:"access_key_id"`
@@ -21,10 +21,4 @@ type DBConfig struct {
 		Ssl               bool   `json:"ssl"`
 		DisableTypeDedupe bool   `json:"disable_type_dedupe"`
 	} `json:"configuration"`
-}
-
-type MysqlConfig struct {
-	Host     string
-	Name     string
-	Password string
 }

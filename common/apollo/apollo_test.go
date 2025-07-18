@@ -2,18 +2,15 @@ package apollo
 
 import (
 	"fmt"
-	"github.com/philchia/agollo/v4"
 	"testing"
+
+	"github.com/philchia/agollo/v4"
 )
 
-func init() {
-	Init()
-}
-
 func TestApollo(t *testing.T) {
-	Init()
-	res := agollo.GetString("application.service.AWS_ACCESS_KEY_ID")
+	_ = GetInstance()
 
+	res := agollo.GetString("spring.datasource.api.url", agollo.WithNamespace("datasource"))
 	fmt.Println(res)
 }
 

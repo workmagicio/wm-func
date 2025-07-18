@@ -2,16 +2,34 @@ package apollo
 
 import (
 	"encoding/json"
-	"github.com/philchia/agollo/v4"
 	"log"
 	"os"
+	"sync"
+
+	"github.com/philchia/agollo/v4"
 )
 
-func init() {
-	Init()
+// ApolloClient 单例结构体
+type ApolloClient struct {
+	// 可以添加其他需要的字段
 }
 
-func Init() {
+var (
+	instance *ApolloClient
+	once     sync.Once
+)
+
+// GetInstance 获取 Apollo 单例实例
+func GetInstance() *ApolloClient {
+	once.Do(func() {
+		instance = &ApolloClient{}
+		instance.init()
+	})
+	return instance
+}
+
+// init 初始化 Apollo 连接
+func (c *ApolloClient) init() {
 	errr := agollo.Start(&agollo.Conf{
 		AppID:           "platform-api",
 		Cluster:         "UAT",
@@ -24,7 +42,8 @@ func Init() {
 	}
 }
 
-func GetS3Config() S3Config {
+// GetS3Config 获取 S3 配置
+func (c *ApolloClient) GetS3Config() S3Config {
 	key := agollo.GetString("application.service.aws.workmagicTatariS3Key")
 	secret := agollo.GetString("application.service.aws.workmagicTatariS3Secret")
 
@@ -38,7 +57,8 @@ func GetS3Config() S3Config {
 	return res
 }
 
-func GetDevelopS3Config() S3Config {
+// GetDevelopS3Config 获取开发环境 S3 配置
+func (c *ApolloClient) GetDevelopS3Config() S3Config {
 	val := agollo.GetString("application.service.aws.iam.develop")
 	res := S3Config{}
 	if err := json.Unmarshal([]byte(val), &res); err != nil {
@@ -47,7 +67,8 @@ func GetDevelopS3Config() S3Config {
 	return res
 }
 
-func GetAirbyteMysqlConfig() DBConfig {
+// GetAirbyteMysqlConfig 获取 Airbyte MySQL 配置
+func (c *ApolloClient) GetAirbyteMysqlConfig() DBConfig {
 	res := agollo.GetString("application.service.integration.airbyte.cluster.destination.mysql")
 
 	cfg := DBConfig{}
@@ -58,11 +79,13 @@ func GetAirbyteMysqlConfig() DBConfig {
 	return cfg
 }
 
-func GetPinterestSourceSetting() string {
+// GetPinterestSourceSetting 获取 Pinterest 源设置
+func (c *ApolloClient) GetPinterestSourceSetting() string {
 	return agollo.GetString("application.service.integration.airbyte.source.pinterest")
 }
 
-func GetXkMysqlConfig() DBConfig {
+// GetXkMysqlConfig 获取 XK MySQL 配置
+func (c *ApolloClient) GetXkMysqlConfig() DBConfig {
 	res := agollo.GetString("application.service.integration.xk.mysql.conf")
 
 	cfg := DBConfig{}
@@ -71,4 +94,43 @@ func GetXkMysqlConfig() DBConfig {
 		panic(err)
 	}
 	return cfg
+}
+func withDataSource() agollo.OpOption {
+	return agollo.WithNamespace("datasource")
+}
+
+func (c *ApolloClient) GetMysqlConfig() MysqlConfig {
+	host := agollo.GetString("gcs_rw.datasource.api.url", withDataSource())
+	name := agollo.GetString("gcs_rw.datasource.api.name", withDataSource())
+	password := agollo.GetString("gcs_rw.datasource.api.password", withDataSource())
+	return MysqlConfig{
+		Host:     host,
+		Name:     name,
+		Password: password,
+	}
+}
+
+// 为了保持向后兼容，提供全局函数
+func GetS3Config() S3Config {
+	return GetInstance().GetS3Config()
+}
+
+func GetDevelopS3Config() S3Config {
+	return GetInstance().GetDevelopS3Config()
+}
+
+func GetAirbyteMysqlConfig() DBConfig {
+	return GetInstance().GetAirbyteMysqlConfig()
+}
+
+func GetPinterestSourceSetting() string {
+	return GetInstance().GetPinterestSourceSetting()
+}
+
+func GetXkMysqlConfig() DBConfig {
+	return GetInstance().GetXkMysqlConfig()
+}
+
+func GetMysqlConfig() MysqlConfig {
+	return GetInstance().GetMysqlConfig()
 }
