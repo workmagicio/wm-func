@@ -15,7 +15,7 @@ func Init() {
 	errr := agollo.Start(&agollo.Conf{
 		AppID:           "platform-api",
 		Cluster:         "UAT",
-		NameSpaceNames:  []string{"feature"},
+		NameSpaceNames:  []string{"application", "datasource"},
 		MetaAddr:        "http://internal-apollo-meta-server-preview.workmagic.io",
 		AccesskeySecret: "88b67fe6bcde46e59359f41ea9f3cd07",
 	}, agollo.WithLogger(&logger{log: log.New(os.Stdout, "[agollo] ", log.LstdFlags)}))
