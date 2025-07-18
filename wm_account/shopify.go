@@ -1,4 +1,4 @@
-package account
+package wm_account
 
 import (
 	"fmt"
@@ -9,6 +9,10 @@ type ShopifyAccount struct {
 	TenantId    int64  `json:"tenant_id"`
 	ShopDomain  string `json:"shop_domain"`
 	AccessToken string `json:"access_token"`
+}
+
+func (s ShopifyAccount) GetTraceId() string {
+	return fmt.Sprintf("%d-%s", s.TenantId, s.ShopDomain)
 }
 
 func GetShopifyAccount() []ShopifyAccount {

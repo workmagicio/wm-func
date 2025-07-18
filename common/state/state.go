@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"time"
 	"wm-func/common/db/platform_db"
 )
@@ -61,6 +62,9 @@ and sub_type = '%s'
 	var result SyncInfoResult
 	client := platform_db.GetDB()
 	if err := client.Raw(sql).First(&result).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil
+		}
 		panic(err)
 	}
 	if len(result.SyncInfo) == 0 {

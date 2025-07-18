@@ -1,4 +1,4 @@
-package account
+package wm_account
 
 import (
 	"fmt"
