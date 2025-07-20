@@ -8,25 +8,16 @@ import (
 )
 
 func main() {
-	//checkApollo()
+	checkApollo()
 
 	log.Println("start run...")
 	run()
 	log.Println("end run...")
-
-	//ticker := time.NewTicker(SyncInterval * time.Second)
-	//defer ticker.Stop()
-	//
-	//for {
-	//	select {
-	//	case <-ticker.C:
-	//		run()
-	//	}
-	//}
 }
 
 func run() {
 	accounts := wm_account.GetShopifyAccount()
+	log.Printf("start total accounts: %d", len(accounts))
 	pool := t_pool.NewWorkerPool(MaxWorkers)
 	pool.Run()
 	defer pool.Close()

@@ -29,6 +29,9 @@ gcloud run jobs deploy "${JOB_NAME}" \
     --tasks 1 \
     --region "${REGION}" \
     --project "${PROJECT_ID}" \
+    --network "default" \
+    --subnet "default" \
+    --vpc-egress "private-ranges-only"
 
 
 # 【新增步骤】
