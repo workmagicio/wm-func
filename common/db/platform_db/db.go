@@ -8,7 +8,6 @@ import (
 	"log"
 	"sync"
 	"time"
-	"wm-func/common/apollo"
 )
 
 var (
@@ -21,7 +20,18 @@ func InitDB() {
 	//application.service.integration.airbyte.default.destination.mysql
 	once.Do(func() {
 
-		cfg := apollo.GetMysqlConfig()
+		//cfg := apollo.GetMysqlConfig()
+		type MysqlConfig struct {
+			Host     string
+			Name     string
+			Password string
+		}
+
+		cfg := MysqlConfig{
+			Host:     "internal-adb.workmagic.io",
+			Name:     "gcs_rw",
+			Password: "NZnSnsKQGySMvwT8Ay4w",
+		}
 
 		// 使用 gorm.Open() 和 mysql.Open() 连接 MySQL 数据库
 		var err error

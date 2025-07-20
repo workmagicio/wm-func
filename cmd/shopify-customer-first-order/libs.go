@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 	"wm-func/common/state"
 	"wm-func/wm_account"
 )
@@ -28,3 +30,21 @@ func getState(account wm_account.ShopifyAccount) (SyncState, error) {
 }
 
 // 可以在此处添加其他通用的辅助函数
+
+func checkApollo() {
+	// 【最终诊断代码】: 在一切开始前，手动测试网络连接
+	apolloMetaServer := "http://internal-apollo-meta-server-preview.workmagic.io"
+	log.Printf("正在诊断网络: 尝试连接 %s", apolloMetaServer)
+
+	// 设置一个5秒的超时
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get(apolloMetaServer)
+	if err != nil {
+		// 如果网络不通，这里会打印出决定性的错误信息
+		log.Fatalf("诊断失败: 无法连接到 Apollo Meta Server。根本错误: %v", err)
+	}
+	resp.Body.Close()
+	log.Printf("诊断成功: 成功连接到 Apollo Meta Server, 状态码: %d", resp.StatusCode)
+}

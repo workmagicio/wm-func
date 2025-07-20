@@ -36,6 +36,7 @@ func (c *ApolloClient) init() {
 		NameSpaceNames:  []string{"application", "datasource"},
 		MetaAddr:        "http://internal-apollo-meta-server-preview.workmagic.io",
 		AccesskeySecret: "88b67fe6bcde46e59359f41ea9f3cd07",
+		CacheDir:        "/tmp",
 	}, agollo.WithLogger(&logger{log: log.New(os.Stdout, "[agollo] ", log.LstdFlags)}))
 	if errr != nil {
 		panic(errr)
@@ -69,7 +70,7 @@ func (c *ApolloClient) GetDevelopS3Config() S3Config {
 
 // GetAirbyteMysqlConfig 获取 Airbyte MySQL 配置
 func (c *ApolloClient) GetAirbyteMysqlConfig() DBConfig {
-	res := agollo.GetString("application.service.integration.airbyte.cluster.destination.mysql")
+	res := agollo.GetString("application.service.integration.airbyte.cluster.destination.mysql", agollo.WithNamespace("application"))
 
 	cfg := DBConfig{}
 	err := json.Unmarshal([]byte(res), &cfg)

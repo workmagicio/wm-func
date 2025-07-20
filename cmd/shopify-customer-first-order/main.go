@@ -8,18 +8,21 @@ import (
 )
 
 func main() {
+	//checkApollo()
+
 	log.Println("start run...")
 	run()
+	log.Println("end run...")
 
-	ticker := time.NewTicker(SyncInterval * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			run()
-		}
-	}
+	//ticker := time.NewTicker(SyncInterval * time.Second)
+	//defer ticker.Stop()
+	//
+	//for {
+	//	select {
+	//	case <-ticker.C:
+	//		run()
+	//	}
+	//}
 }
 
 func run() {
@@ -31,16 +34,16 @@ func run() {
 	for _, account := range accounts {
 		// 避免闭包问题，复制account变量
 		acc := account
-		exec(acc)
-		//pool.AddTask(func() {
-		//	log.Printf("[%s] start exec account", acc.GetTraceId())
-		//	err := exec(acc)
-		//	if err != nil {
-		//		log.Printf("[%s] exec account failed: %v", acc.GetTraceId(), err)
-		//		return
-		//	}
-		//	log.Printf("[%s] end exec account", acc.GetTraceId())
-		//})
+		pool.AddTask(func() {
+			log.Printf("[%s] start exec account", acc.GetTraceId())
+			err := exec(acc)
+			if err != nil {
+				log.Printf("[%s] exec account failed: %v", acc.GetTraceId(), err)
+				return
+			}
+			log.Printf("[%s] end exec account", acc.GetTraceId())
+
+		})
 	}
 
 	pool.Wait()
@@ -54,6 +57,18 @@ func exec(account wm_account.ShopifyAccount) error {
 		return err
 	}
 
+	if syncState.UpdatedAt.Add(time.Hour).After(time.Now().UTC()) &&
+		syncState.Status == STATUS_SUCCESS {
+		log.Printf("[%s] 同步时间小于1小时，跳过", account.GetTraceId())
+		return nil
+	}
+
 	// 2. 同步客户数据
-	return syncCustomers(account, syncState)
+	err = syncCustomers(account, syncState)
+	if err != nil {
+		syncState.Status = STATUS_FAILED
+		syncState.Message = err.Error()
+		_ = updateSyncState(account, syncState)
+	}
+	return err
 }

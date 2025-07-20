@@ -12,4 +12,5 @@ on a.tenant_id = b.tenant_id
 where a.tenant_id > 0
 and access_token != ''
 and connected > 0
+and a.tenant_id in (150083, 133222, 150156, 150158, 150078, 131532, 150077, 134510, 150161, 150178)
 `

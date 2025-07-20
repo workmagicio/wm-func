@@ -53,7 +53,7 @@ func GetSyncInfo(tenantId int64, accountId, platform, subType string) []byte {
     sync_info
 from platform_offline.thirds_integration_sync_increment_info
 where tenant_id = %d
-and account_id = '%s'
+-- and account_id = '%s'
 and raw_platform = '%s'
 and sub_type = '%s'
 `

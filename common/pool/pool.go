@@ -1,7 +1,7 @@
 package t_pool
 
 import (
-	"fmt"
+	"log"
 	"sync"
 )
 
@@ -25,7 +25,7 @@ func (wp *WorkerPool) Run() {
 	for i := 0; i < wp.workerCount; i++ {
 		go func(workerID int) {
 			for task := range wp.tasks {
-				fmt.Printf("Worker %d: executing task\n", workerID)
+				log.Printf("Worker %d: executing task\n", workerID)
 				task() // 执行任务
 			}
 		}(i + 1)
