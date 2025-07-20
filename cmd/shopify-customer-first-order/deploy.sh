@@ -42,5 +42,7 @@ gcloud run jobs execute "${JOB_NAME}" \
 
 echo "STEP 6: 清理本地编译产物..."
 rm server
+docker rmi "${FULL_IMAGE_NAME}"
+echo "本地清理完成。"
 
 echo "✅ 部署并执行成功！"

@@ -3,10 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm/clause"
 	"log"
 	"time"
-	"wm-func/common/db/airbyte_db"
 	"wm-func/common/http_request"
 	"wm-func/common/state"
 	"wm-func/wm_account"
@@ -65,20 +63,6 @@ func processCustomerData(account wm_account.ShopifyAccount, gqlResponse *GraphQL
 	}
 
 	return data, lastCursor, nil
-}
-
-func saveFirstOrderCustomers(account wm_account.ShopifyAccount, customers []ShopifyCustomerFirstOrder) error {
-	if len(customers) == 0 {
-		return nil
-	}
-
-	db := airbyte_db.GetDB()
-	if err := db.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(customers, 500).Error; err != nil {
-		return err
-	}
-	log.Printf("[%s] successfully inserted %d", account.GetTraceId(), len(customers))
-
-	return nil
 }
 
 // updateSyncState 更新同步状态

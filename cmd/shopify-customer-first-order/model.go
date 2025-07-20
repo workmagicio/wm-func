@@ -1,6 +1,12 @@
 package main
 
-import "time"
+import (
+	"gorm.io/gorm/clause"
+	"log"
+	"time"
+	"wm-func/common/db/airbyte_db"
+	"wm-func/wm_account"
+)
 
 const (
 	STATUS_SUCCESS = "SUCCESS"
@@ -19,4 +25,18 @@ type ShopifyCustomerFirstOrder struct {
 func (s *ShopifyCustomerFirstOrder) TableName() string {
 	return "airbyte_destination_v2.shopify_customer_first_order"
 
+}
+
+func saveFirstOrderCustomers(account wm_account.ShopifyAccount, customers []ShopifyCustomerFirstOrder) error {
+	if len(customers) == 0 {
+		return nil
+	}
+
+	db := airbyte_db.GetDB()
+	if err := db.Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(customers, 500).Error; err != nil {
+		return err
+	}
+	log.Printf("[%s] successfully inserted %d", account.GetTraceId(), len(customers))
+
+	return nil
 }
