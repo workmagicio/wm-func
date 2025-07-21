@@ -113,7 +113,7 @@ func GetAvailableTask(tenantId int64, accountId, platform, subType string) TaskR
 	if record.IsRunning == 1 && record.CreateTime < oneHourAgo {
 		// 使用乐观锁先更新为0
 		result := conn.Model(&Records{}).
-			Where("tenant_id = ? AND account_id = ? AND raw_platform = ? AND sub_type = ? AND is_running = ? AND create_time = ?",
+			Where("tenant_id = ? AND account_id = ? AND raw_platform = ? AND sub_type = ? AND is_running = ?",
 				tenantId, accountId, platform, subType, 1, record.CreateTime).
 			Updates(map[string]interface{}{
 				"is_running":  0,
@@ -142,8 +142,8 @@ func GetAvailableTask(tenantId int64, accountId, platform, subType string) TaskR
 	// 使用乐观锁更新状态为运行中
 	currentTime := time.Now().Format("2006-01-02 15:04:05")
 	result := conn.Model(&Records{}).
-		Where("tenant_id = ? AND account_id = ? AND raw_platform = ? AND sub_type = ? AND is_running = ? AND create_time = ?",
-			tenantId, accountId, platform, subType, record.IsRunning, record.CreateTime).
+		Where("tenant_id = ? AND account_id = ? AND raw_platform = ? AND sub_type = ? AND is_running = ?",
+			tenantId, accountId, platform, subType, record.IsRunning).
 		Updates(map[string]interface{}{
 			"is_running":  1,
 			"create_time": currentTime,
