@@ -2,7 +2,7 @@ package main
 
 const (
 	Platform   = "fairing"
-	MaxWorkers = 3 // 减少worker数量，为多实例留出资源
+	MaxWorkers = 8 // 减少worker数量，为多实例留出资源
 )
 
 var subTypes = []string{"question", "response"}
