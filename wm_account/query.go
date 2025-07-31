@@ -26,5 +26,5 @@ select
              platform_offline.
 account_connection_unnest_account_level as a
 where platform = '%s'
-and (access_token is not null or refresh_token is not null)
+-- and (access_token is not null or refresh_token is not null)
 `
