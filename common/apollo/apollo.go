@@ -2,11 +2,10 @@ package apollo
 
 import (
 	"encoding/json"
+	"github.com/philchia/agollo/v4"
 	"log"
 	"os"
 	"sync"
-
-	"github.com/philchia/agollo/v4"
 )
 
 // ApolloClient 单例结构体
@@ -69,15 +68,15 @@ func (c *ApolloClient) GetDevelopS3Config() S3Config {
 }
 
 // GetAirbyteMysqlConfig 获取 Airbyte MySQL 配置
-func (c *ApolloClient) GetAirbyteMysqlConfig() DBConfig {
-	res := agollo.GetString("application.service.integration.airbyte.cluster.destination.mysql", agollo.WithNamespace("application"))
-
-	cfg := DBConfig{}
-	err := json.Unmarshal([]byte(res), &cfg)
-	if err != nil {
-		panic(err)
+func (c *ApolloClient) GetAirbyteMysqlConfig() MysqlConfig {
+	host := agollo.GetString("airbyte.datasource.api.url", withDataSource())
+	name := agollo.GetString("airbyte.datasource.api.name", withDataSource())
+	password := agollo.GetString("airbyte.datasource.api.password", withDataSource())
+	return MysqlConfig{
+		Host:     host,
+		Name:     name,
+		Password: password,
 	}
-	return cfg
 }
 
 // GetPinterestSourceSetting 获取 Pinterest 源设置
@@ -120,7 +119,7 @@ func GetDevelopS3Config() S3Config {
 	return GetInstance().GetDevelopS3Config()
 }
 
-func GetAirbyteMysqlConfig() DBConfig {
+func GetAirbyteMysqlConfig() MysqlConfig {
 	return GetInstance().GetAirbyteMysqlConfig()
 }
 
