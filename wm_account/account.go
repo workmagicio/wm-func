@@ -33,6 +33,18 @@ func GetAccountsWithPlatform(platform string) []Account {
 	return result
 }
 
+func GetAccountsWithPlatformNotNull(platform string) []Account {
+	sql := fmt.Sprintf(query_account_with_platform_not_null, platform)
+
+	var result []Account
+	client := platform_db.GetDB()
+	if err := client.Raw(sql).Scan(&result).Error; err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
 // GetFairingAccounts 获取Fairing平台账户
 func GetFairingAccounts() []Account {
 	return GetAccountsWithPlatform("fairing")
