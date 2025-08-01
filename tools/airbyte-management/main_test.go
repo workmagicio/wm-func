@@ -17,8 +17,25 @@ func TestUpdateConnectionStatus(t *testing.T) {
 			continue
 		}
 
+		if conn.Status != "inactive" {
+			continue
+		}
+
 		fmt.Println(conn)
+		UpdateConnectionStatus(conn.ConnectionId, "active")
 	}
+}
+
+func TestUpdateConnectionStatusActive(t *testing.T) {
+	// 示例：激活一个 connection
+	connectionId := "your-connection-id-here"
+	UpdateConnectionStatus(connectionId, "active")
+}
+
+func TestUpdateConnectionStatusInactive(t *testing.T) {
+	// 示例：停用一个 connection
+	connectionId := "your-connection-id-here"
+	UpdateConnectionStatus(connectionId, "inactive")
 }
 
 func TestUpdateConnectionCronExpression(t *testing.T) {
