@@ -26,5 +26,20 @@ select
              platform_offline.
 account_connection_unnest_account_level as a
 where platform = '%s'
-and (access_token is not null or refresh_token is not null)
+-- and (access_token is not null or refresh_token is not null)
+`
+
+var query_account_with_platform_not_null = `
+select
+    a.tenant_id,
+    a.account_id,
+    a.platform,
+    a.access_token,
+    a.refresh_token,
+	cast(json_extract(a.tokens, '$.secretToken') as varchar) as secret_token
+    from
+             platform_offline.
+account_connection_unnest_account_level as a
+where platform = '%s'
+-- and (access_token is not null or refresh_token is not null)
 `

@@ -25,7 +25,7 @@ func InitDB() {
 		var err error
 		// 使用 gorm.Open() 和 mysql.Open() 连接 MySQL 数据库
 		db, err = gorm.Open(mysql.New(mysql.Config{
-			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.Configuration.Username, cfg.Configuration.Password, cfg.Configuration.Host, cfg.Configuration.Port, cfg.Configuration.Database),
+			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", cfg.Name, cfg.Password, cfg.Host, 3306, "airbyte_destination_v2"),
 		}), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent), // 禁用所有日志
 		})
