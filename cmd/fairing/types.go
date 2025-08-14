@@ -360,6 +360,8 @@ func (fs *FairingSyncState) InitializeSyncRange() error {
 
 // 获取当前需要处理的时间范围
 func (fs *FairingSyncState) GetCurrentSliceRange() (since, until *time.Time) {
+	now := time.Now().UTC()
+	fs.SyncEndDate = &now
 	if fs.CurrentSliceDate == nil || fs.SyncEndDate == nil {
 		return nil, nil
 	}

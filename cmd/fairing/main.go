@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
-	"strconv"
 	"time"
 	t_pool "wm-func/common/pool"
 	"wm-func/common/state"
@@ -19,13 +17,6 @@ func main() {
 	instanceConfig := getInstanceConfig()
 	log.Printf("[%s] Fairing数据同步程序启动", instanceConfig.InstanceId)
 
-	// 检查是否是测试模式
-	if os.Getenv("FAIRING_TEST_MODE") == "true" {
-		log.Println("运行在测试模式...")
-		runTestMode()
-		return
-	}
-
 	log.Println("start run fairing data sync...")
 
 	// 确保程序结束时打印统计信息
@@ -33,157 +24,6 @@ func main() {
 
 	run()
 	log.Println("end run fairing data sync...")
-}
-
-// 测试模式 - 用于验证API逻辑
-func runTestMode() {
-	log.Println("=== Fairing API 测试模式 ===")
-
-	// 获取测试账户
-	accounts := wm_account.GetFairingAccounts()
-	if len(accounts) == 0 {
-		log.Println("没有找到Fairing账户，无法进行测试")
-		return
-	}
-
-	// 使用第一个账户进行测试
-	testAccount := accounts[0]
-	log.Printf("使用账户进行测试: %s", testAccount.GetTraceId())
-
-	// 测试 Questions API
-	log.Println("\n--- 测试 Questions API ---")
-	testQuestionsAPI(testAccount)
-
-	// 测试 Responses API
-	log.Println("\n--- 测试 Responses API ---")
-	testResponsesAPI(testAccount)
-
-	log.Println("=== 测试完成 ===")
-}
-
-// 测试 Questions API
-func testQuestionsAPI(account wm_account.Account) {
-	traceId := getTraceIdWithSubType(account, "question")
-
-	log.Printf("[%s] 开始测试 Questions API", traceId)
-
-	// 调用API
-	questions, err := callFairingQuestionsAPI(account)
-	if err != nil {
-		log.Printf("[%s] API调用失败: %v", traceId, err)
-		return
-	}
-
-	// 处理数据
-	fairingData, err := processQuestionsData(account, questions)
-	if err != nil {
-		log.Printf("[%s] 数据处理失败: %v", traceId, err)
-		return
-	}
-
-	log.Printf("[%s] 成功处理 %d 条 question 数据", traceId, len(fairingData))
-
-	// 显示数据样本
-	if len(fairingData) > 0 {
-		sample := fairingData[0]
-		log.Printf("[%s] 数据样本:", traceId)
-		log.Printf("  - TenantId: %d", sample.TenantId)
-		log.Printf("  - AirbyteRawId: %s", sample.AirbyteRawId)
-		log.Printf("  - ItemType: %s", sample.ItemType)
-		log.Printf("  - 数据长度: %d bytes", len(sample.AirbyteData))
-
-		// 显示原始问题数据
-		if len(questions) > 0 {
-			log.Printf("  - 问题ID: %d", questions[0].Id)
-			log.Printf("  - 问题内容: %s", questions[0].Prompt)
-			log.Printf("  - 问题类型: %s", questions[0].Type)
-		}
-	}
-
-	// 如果环境变量允许，可以尝试保存数据
-	if os.Getenv("FAIRING_TEST_SAVE") == "true" {
-		log.Printf("[%s] 尝试保存测试数据...", traceId)
-		if err := saveFairingData(account, fairingData, "question"); err != nil {
-			log.Printf("[%s] 保存数据失败: %v", traceId, err)
-		} else {
-			log.Printf("[%s] 测试数据保存成功", traceId)
-		}
-	}
-}
-
-// 测试 Responses API
-func testResponsesAPI(account wm_account.Account) {
-	traceId := getTraceIdWithSubType(account, "response")
-	config := getFairingConfig()
-
-	log.Printf("[%s] 开始测试 Responses API", traceId)
-
-	// 测试分页获取（第一页）
-	responsesResp, err := callFairingResponsesAPI(account, nil, "", config.ResponsesPageSize)
-	if err != nil {
-		log.Printf("[%s] API调用失败: %v", traceId, err)
-		return
-	}
-
-	log.Printf("[%s] 成功获取第一页数据，共 %d 条", traceId, len(responsesResp.Data))
-
-	// 显示分页信息
-	if responsesResp.Next != nil {
-		log.Printf("[%s] 有下一页数据: %s", traceId, *responsesResp.Next)
-	} else {
-		log.Printf("[%s] 这是最后一页", traceId)
-	}
-
-	if responsesResp.Prev != nil {
-		log.Printf("[%s] 有上一页数据: %s", traceId, *responsesResp.Prev)
-	}
-
-	// 处理数据
-	if len(responsesResp.Data) > 0 {
-		fairingData, err := processResponsesData(account, responsesResp.Data)
-		if err != nil {
-			log.Printf("[%s] 数据处理失败: %v", traceId, err)
-			return
-		}
-
-		log.Printf("[%s] 成功处理 %d 条 response 数据", traceId, len(fairingData))
-
-		// 显示数据样本
-		sample := fairingData[0]
-		log.Printf("[%s] 数据样本:", traceId)
-		log.Printf("  - TenantId: %d", sample.TenantId)
-		log.Printf("  - AirbyteRawId: %s", sample.AirbyteRawId)
-		log.Printf("  - ItemType: %s", sample.ItemType)
-		log.Printf("  - 数据长度: %d bytes", len(sample.AirbyteData))
-
-		// 显示原始响应数据
-		response := responsesResp.Data[0]
-		log.Printf("  - 响应ID: %s", response.Id)
-		log.Printf("  - 问题: %s", response.Question)
-		log.Printf("  - 回答: %s", response.Response)
-		log.Printf("  - 客户ID: %s", response.CustomerId)
-		log.Printf("  - 订单总额: %s", response.OrderTotal)
-
-		// 如果环境变量允许，可以尝试保存数据
-		if os.Getenv("FAIRING_TEST_SAVE") == "true" {
-			log.Printf("[%s] 尝试保存测试数据...", traceId)
-			if err := saveFairingData(account, fairingData, "response"); err != nil {
-				log.Printf("[%s] 保存数据失败: %v", traceId, err)
-			} else {
-				log.Printf("[%s] 测试数据保存成功", traceId)
-			}
-		}
-	} else {
-		log.Printf("[%s] 当前没有response数据", traceId)
-	}
-}
-
-// 安全的字符串处理函数
-func safeString(s *string) string {
-	if s == nil {
-		return "<nil>"
-	}
-	return *s
 }
 
 func run() {
@@ -333,6 +173,21 @@ func execTaskWithTimeRange(account wm_account.Account, subType string) error {
 	if subType == "response" {
 		log.Printf("[%s] 开始Stream Slice同步任务", traceId)
 
+		if fairingSyncState.LastSyncTime != nil {
+			tmp := fairingSyncState.LastSyncTime.Add(time.Hour * 24 * 15 * -1)
+			fairingSyncState.LastSyncTime = &tmp
+		}
+
+		if fairingSyncState.CurrentSyncDate != nil {
+			tmp := fairingSyncState.CurrentSyncDate.Add(time.Hour * 24 * 15 * -1)
+			fairingSyncState.CurrentSyncDate = &tmp
+		}
+
+		if fairingSyncState.SyncStartDate != nil {
+			tmp := fairingSyncState.SyncStartDate.Add(time.Hour * 24 * 15 * -1)
+			fairingSyncState.SyncStartDate = &tmp
+		}
+
 		// 执行同步，可能会执行多个 slice
 		err = syncFairingDataWithFairingState(account, fairingSyncState, subType)
 		if err != nil {
@@ -436,30 +291,6 @@ func createInitialFairingState(account wm_account.Account, subType string) {
 		// 获取配置
 		config := getFairingConfig()
 		initialFairingState.SliceDays = config.SliceDays
-
-		// 可以通过环境变量配置初始同步天数
-		if initialDaysStr := os.Getenv("FAIRING_INITIAL_DAYS"); initialDaysStr != "" {
-			if initialDays, err := strconv.Atoi(initialDaysStr); err == nil && initialDays > 0 {
-				initialFairingState.InitialDays = initialDays
-				log.Printf("[%s] 使用配置的初始同步天数: %d", getTraceIdWithSubType(account, subType), initialDays)
-			}
-		}
-
-		// 可以通过环境变量配置近期同步天数
-		if recentDaysStr := os.Getenv("FAIRING_RECENT_DAYS"); recentDaysStr != "" {
-			if recentDays, err := strconv.Atoi(recentDaysStr); err == nil && recentDays > 0 {
-				initialFairingState.RecentSyncDays = recentDays
-				log.Printf("[%s] 使用配置的近期同步天数: %d", getTraceIdWithSubType(account, subType), recentDays)
-			}
-		}
-
-		// 可以通过环境变量配置slice天数
-		if sliceDaysStr := os.Getenv("FAIRING_SLICE_DAYS"); sliceDaysStr != "" {
-			if sliceDays, err := strconv.Atoi(sliceDaysStr); err == nil && sliceDays > 0 {
-				initialFairingState.SliceDays = sliceDays
-				log.Printf("[%s] 使用配置的slice天数: %d", getTraceIdWithSubType(account, subType), sliceDays)
-			}
-		}
 	default:
 		initialFairingState = NewFairingSyncState()
 		initialFairingState.IsInitialSync = false

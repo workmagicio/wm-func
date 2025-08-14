@@ -1,0 +1,15 @@
+# cloudbuild.yaml
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      # 【关键修改】: 使用 $BUILD_ID 代替 $SHORT_SHA
+      - 'us-east1-docker.pkg.dev/glass-ranger-446609-p9/cloud-run-source-deploy/pinterest:$BUILD_ID'
+      - '-f'
+      - 'cmd/pinterest/Dockerfile'
+      - '.'
+
+images:
+  # 【关键修改】: 这里也要同步修改
+  - 'us-east1-docker.pkg.dev/glass-ranger-446609-p9/cloud-run-source-deploy/pinterest:$BUILD_ID'

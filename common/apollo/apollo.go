@@ -32,10 +32,10 @@ func (c *ApolloClient) init() {
 	errr := agollo.Start(&agollo.Conf{
 		AppID:           "platform-api",
 		Cluster:         "UAT",
-		NameSpaceNames:  []string{"application", "datasource"},
+		NameSpaceNames:  []string{"copilot", "application", "datasource"},
 		MetaAddr:        "http://internal-apollo-meta-server-preview.workmagic.io",
 		AccesskeySecret: "88b67fe6bcde46e59359f41ea9f3cd07",
-		CacheDir:        "/tmp",
+		//CacheDir:        "/tmp",
 	}, agollo.WithLogger(&logger{log: log.New(os.Stdout, "[agollo] ", log.LstdFlags)}))
 	if errr != nil {
 		panic(errr)
@@ -133,4 +133,20 @@ func GetXkMysqlConfig() DBConfig {
 
 func GetMysqlConfig() MysqlConfig {
 	return GetInstance().GetMysqlConfig()
+}
+
+func (c *ApolloClient) GetLLMConfig() LLMConfig {
+	key := agollo.GetString("copilot.llm.gemini.key", agollo.WithNamespace("copilot"))
+	baseUrl := agollo.GetString("copilot.llm.gemini.base.url", agollo.WithNamespace("copilot"))
+
+	if key == "" || baseUrl == "" {
+		panic("apollo: get config fail")
+	}
+	//val := agollo.GetString("application.service.aws.iam.develop")
+	res := LLMConfig{
+		Key:     key,
+		BaseUrl: baseUrl,
+	}
+
+	return res
 }

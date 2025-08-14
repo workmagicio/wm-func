@@ -108,6 +108,7 @@ func syncCustomers(account wm_account.ShopifyAccount, syncState SyncState) error
 		syncState.Status = STATUS_RUNNING
 	} else {
 		syncState.Status = STATUS_SUCCESS
+		syncState.Message = ""
 	}
 
 	syncState.UpdatedAt = time.Now().UTC().Truncate(time.Millisecond)

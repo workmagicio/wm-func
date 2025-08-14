@@ -28,3 +28,8 @@ type MysqlConfig struct {
 	Name     string
 	Password string
 }
+
+type LLMConfig struct {
+	Key     string
+	BaseUrl string
+}

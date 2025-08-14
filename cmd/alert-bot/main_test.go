@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"testing"
-	"wm-func/common/db/platform_db"
 )
 
 func TestM(t *testing.T) {
-	platform_db.GetDB()
+	f, err := ReadFileData("/Users/xukai/Downloads/cs-data/TGT Sales Data - Zip Code.xlsx")
+	fmt.Println(f, err)
 
 }

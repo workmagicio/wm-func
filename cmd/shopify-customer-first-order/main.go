@@ -8,8 +8,6 @@ import (
 )
 
 func main() {
-	checkApollo()
-
 	log.Println("start run...")
 	run()
 	log.Println("end run...")
@@ -33,7 +31,6 @@ func run() {
 				return
 			}
 			log.Printf("[%s] end exec account", acc.GetTraceId())
-
 		})
 	}
 

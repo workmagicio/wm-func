@@ -21,7 +21,8 @@ select
     a.platform,
     a.access_token,
     a.refresh_token,
-	cast(json_extract(a.tokens, '$.secretToken') as varchar) as secret_token
+	cast(json_extract(a.tokens, '$.secretToken') as varchar) as secret_token,
+	coalesce(a.cipher, json_extract(account_model, '$.cipher')) as cipher
     from
              platform_offline.
 account_connection_unnest_account_level as a

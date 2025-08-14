@@ -1,0 +1,8 @@
+services:
+  server:
+    image: alpine:latest
+    volumes:
+      - ./amazon_vendor_report:/app/amazon_vendor_report
+    working_dir: /app
+    command: ["./amazon_vendor_report"]
+    restart: always

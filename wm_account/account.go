@@ -13,6 +13,7 @@ type Account struct {
 	RefreshToken string `json:"refresh_token"`
 	SecretToken  string `json:"secret_token"`
 	Platform     string `json:"platform"` // 平台标识
+	Cipher       string `json:"cipher"`
 }
 
 // GetTraceId 获取账户跟踪ID
