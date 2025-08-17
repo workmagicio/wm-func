@@ -71,12 +71,20 @@ type CacheStats struct {
 
 // TenantInfo 租户信息
 type TenantInfo struct {
-	TenantID   int64  `json:"tenant_id"`
-	TenantName string `json:"tenant_name"`
+	TenantID     int64  `json:"tenant_id"`
+	TenantName   string `json:"tenant_name"`
+	RegisterTime string `json:"register_time,omitempty"` // 注册时间，用于最近注册租户
 }
 
 // TenantListResponse 租户列表响应
 type TenantListResponse struct {
+	Success bool         `json:"success"`
+	Data    []TenantInfo `json:"data"`
+	Message string       `json:"message"`
+}
+
+// RecentTenantsResponse 最近注册租户响应
+type RecentTenantsResponse struct {
 	Success bool         `json:"success"`
 	Data    []TenantInfo `json:"data"`
 	Message string       `json:"message"`

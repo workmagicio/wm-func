@@ -33,6 +33,7 @@ func main() {
 
 	// 租户相关API
 	apiRouter.HandleFunc("/tenants", apiHandler.GetTenants).Methods("GET")
+	apiRouter.HandleFunc("/tenants/recent", apiHandler.GetRecentTenants).Methods("GET")
 	apiRouter.HandleFunc("/tenant/{tenant_id}", apiHandler.GetTenantCrossPlatformData).Methods("GET")
 	apiRouter.HandleFunc("/tenant/{tenant_id}/refresh", apiHandler.RefreshTenantData).Methods("POST")
 
@@ -58,6 +59,7 @@ func main() {
 	fmt.Printf("   POST /api/refresh/{platform} - 刷新平台缓存\n")
 	fmt.Printf("👤 租户视图:\n")
 	fmt.Printf("   GET  /api/tenants - 获取租户列表\n")
+	fmt.Printf("   GET  /api/tenants/recent - 获取最近15天注册租户\n")
 	fmt.Printf("   GET  /api/tenant/{tenant_id} - 获取租户跨平台数据\n")
 	fmt.Printf("   GET  /api/tenant/{tenant_id}?refresh=true - 强制刷新租户数据\n")
 	fmt.Printf("   POST /api/tenant/{tenant_id}/refresh - 刷新租户缓存\n")

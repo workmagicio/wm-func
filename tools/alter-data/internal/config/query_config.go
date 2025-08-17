@@ -178,6 +178,62 @@ from
     result`,
 	},
 
+	"tiktok_ads_query": {
+		Key:         "tiktok_ads_query",
+		Name:        "TikTok Ads数据查询",
+		Description: "查询TikTok广告平台的API数据和广告数据对比",
+		SQL: `
+with
+    api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM in('tiktokMarketing', 'tiktokMarketing_gmv_max')
+          and RAW_DATE > utc_date() - interval 90 day
+        group by 1, 2
+    ),
+    ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'TikTok'
+        group by 1, 2
+    ),
+    merge as (
+        select
+            api.TENANT_ID,
+            api.RAW_DATE,
+            api.spend as api_spend,
+            coalesce(ads.ad_spend, 0) as ad_spend
+        from
+            api
+            left join ads on api.TENANT_ID = ads.TENANT_ID and api.RAW_DATE = ads.EVENT_DATE
+    ),
+    result as (
+        select
+            merge.*
+        from
+            merge
+            join platform_offline.dwd_view_analytics_non_testing_tenants as b
+            on merge.TENANT_ID = b.tenant_id
+    )
+select
+    tenant_id,
+    raw_date,
+    api_spend,
+    ad_spend
+from
+    result`,
+	},
+
 	"tenant_cross_platform_query": {
 		Key:         "tenant_cross_platform_query",
 		Name:        "租户跨平台数据查询",
@@ -298,12 +354,52 @@ with
             and applovin_api.RAW_DATE = applovin_ads.EVENT_DATE
     ),
     
+    tiktok_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM in('tiktokMarketing', 'tiktokMarketing_gmv_max')
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    tiktok_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'TikTok'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    tiktok_merge as (
+        select
+            tiktok_api.TENANT_ID,
+            'TikTok' as platform,
+            tiktok_api.RAW_DATE,
+            tiktok_api.spend as api_spend,
+            coalesce(tiktok_ads.ad_spend, 0) as ad_spend
+        from
+            tiktok_api
+            left join tiktok_ads on tiktok_api.TENANT_ID = tiktok_ads.TENANT_ID 
+            and tiktok_api.RAW_DATE = tiktok_ads.EVENT_DATE
+    ),
+    
     all_platforms as (
         select * from google_merge
         UNION ALL
         select * from meta_merge  
         UNION ALL
         select * from applovin_merge
+        UNION ALL
+        select * from tiktok_merge
     ),
     
     result as (
@@ -341,6 +437,22 @@ where RAW_DATE > utc_date() - interval 30 day
   )
 order by TENANT_ID
 limit 1000`,
+	},
+
+	"recent_registered_tenants_query": {
+		Key:         "recent_registered_tenants_query",
+		Name:        "最近注册租户查询",
+		Description: "获取最近15天注册的租户列表",
+		SQL: `
+select
+    tenant_id,
+    concat('Tenant ', tenant_id) as tenant_name,
+    register_time
+from
+    platform_offline.dwd_view_analytics_non_testing_tenants
+where register_time > utc_date() - interval 15 day
+order by register_time desc
+limit 50`,
 	},
 }
 

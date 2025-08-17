@@ -74,6 +74,18 @@ func (p *DataProcessor) ExecuteTenantListQuery(sql string) ([]models.TenantInfo,
 	return result, nil
 }
 
+// ExecuteRecentTenantsQuery 执行最近注册租户查询
+func (p *DataProcessor) ExecuteRecentTenantsQuery(sql string) ([]models.TenantInfo, error) {
+	db := platform_db.GetDB()
+	var result []models.TenantInfo
+
+	if err := db.Raw(sql).Limit(-1).Scan(&result).Error; err != nil {
+		return nil, fmt.Errorf("failed to execute recent tenants query: %w", err)
+	}
+
+	return result, nil
+}
+
 // GroupByPlatform 将跨平台数据按平台分组
 func (p *DataProcessor) GroupByPlatform(data []models.AlterData) map[string][]models.AlterData {
 	grouped := make(map[string][]models.AlterData)

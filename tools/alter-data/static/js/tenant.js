@@ -15,6 +15,9 @@ class TenantManager {
         
         // 绑定事件
         this.bindEvents();
+        
+        // 初始化最近注册租户
+        this.initRecentTenants();
     }
 
     // 绑定事件
@@ -409,5 +412,129 @@ class TenantManager {
     // 刷新租户列表
     async refresh() {
         await this.loadTenants();
+    }
+
+    // 初始化最近注册租户功能
+    async initRecentTenants() {
+        const recentTenantsSection = document.getElementById('recent-tenants-section');
+        const recentTenantsRefresh = document.getElementById('recent-tenants-refresh');
+        
+        if (!recentTenantsSection || !recentTenantsRefresh) {
+            console.warn('⚠️ 最近注册租户相关元素未找到');
+            return;
+        }
+
+        // 绑定刷新按钮事件
+        recentTenantsRefresh.addEventListener('click', () => {
+            this.loadRecentTenants(true);
+        });
+
+        // 初始加载最近注册租户
+        await this.loadRecentTenants(false);
+    }
+
+    // 加载最近注册租户
+    async loadRecentTenants(forceRefresh = false) {
+        const grid = document.getElementById('recent-tenants-grid');
+        
+        if (!grid) {
+            console.error('❌ 最近租户网格元素未找到');
+            return;
+        }
+
+        try {
+            // 显示加载状态
+            grid.innerHTML = '<div class="recent-tenants-loading"><span class="spinner"></span><span>加载中...</span></div>';
+            
+            const url = `/api/tenants/recent${forceRefresh ? '?refresh=true' : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success && data.data && data.data.length > 0) {
+                this.renderRecentTenants(data.data);
+                console.log(`✅ 加载了 ${data.data.length} 个最近注册租户`);
+            } else {
+                grid.innerHTML = '<div class="recent-tenants-empty">🔍 暂无最近注册的租户</div>';
+                console.log('ℹ️ 暂无最近注册的租户');
+            }
+        } catch (error) {
+            console.error('❌ 加载最近注册租户失败:', error);
+            grid.innerHTML = '<div class="recent-tenants-error">⚠️ 加载失败，请稍后重试</div>';
+        }
+    }
+
+    // 渲染最近注册租户
+    renderRecentTenants(recentTenants) {
+        const grid = document.getElementById('recent-tenants-grid');
+        if (!grid) return;
+
+        // 清空网格
+        grid.innerHTML = '';
+
+        // 为每个最近注册租户创建卡片
+        recentTenants.forEach(tenant => {
+            const card = document.createElement('div');
+            card.className = 'recent-tenant-card';
+            card.dataset.tenantId = tenant.tenant_id;
+            
+            // 格式化注册时间
+            const registerTime = tenant.register_time ? 
+                new Date(tenant.register_time).toLocaleDateString('zh-CN', {
+                    month: 'short',
+                    day: 'numeric'
+                }) : '未知';
+
+            // 计算注册天数
+            const daysAgo = tenant.register_time ? 
+                Math.floor((new Date() - new Date(tenant.register_time)) / (1000 * 60 * 60 * 24)) : null;
+            
+            const timeLabel = daysAgo !== null ? 
+                (daysAgo === 0 ? '今天注册' : 
+                 daysAgo === 1 ? '昨天注册' : 
+                 `${daysAgo}天前`) : '未知';
+
+            card.innerHTML = `
+                <div class="recent-tenant-id">${tenant.tenant_id}</div>
+            `;
+
+            // 添加点击事件
+            card.addEventListener('click', () => {
+                this.selectRecentTenant(tenant);
+            });
+
+            grid.appendChild(card);
+        });
+
+        console.log(`📋 渲染了 ${recentTenants.length} 个最近注册租户卡片`);
+    }
+
+    // 选择最近注册租户
+    selectRecentTenant(tenant) {
+        console.log(`🎯 选择最近注册租户: ${tenant.tenant_id}`);
+        
+        // 更新输入框
+        this.tenantInput.value = tenant.tenant_id;
+        
+        // 隐藏下拉列表
+        this.hideDropdown();
+        
+        // 更新卡片选中状态
+        this.updateRecentTenantSelection(tenant.tenant_id);
+        
+        // 切换到选中的租户
+        this.switchTenant(tenant.tenant_id);
+    }
+
+    // 更新最近租户卡片的选中状态
+    updateRecentTenantSelection(selectedTenantId) {
+        const cards = document.querySelectorAll('.recent-tenant-card');
+        cards.forEach(card => {
+            const tenantId = card.dataset.tenantId;
+            if (tenantId == selectedTenantId) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
     }
 }

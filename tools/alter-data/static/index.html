@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据监控看板 - 广告平台数据一致性监控</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/recent-tenants.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
@@ -75,18 +76,35 @@
                         🔍
                     </button>
                 </div>
-                <button id="refresh-tenant-button" class="refresh-button" onclick="dashboard.refreshCurrentSelection()" disabled>
-                    <span class="refresh-icon">🔄</span>
-                    <span class="refresh-text">刷新数据</span>
-                </button>
+                <div class="tenant-button-group">
+                    <button id="refresh-tenant-button" class="refresh-button" onclick="dashboard.refreshCurrentSelection()" disabled>
+                        <span class="refresh-icon">🔄</span>
+                        <span class="refresh-text">刷新数据</span>
+                    </button>
+                    <!-- Tenant Cache Info -->
+                    <div class="cache-info" id="tenant-cache-info" style="display: none;">
+                        <div class="cache-status">
+                            <span class="cache-label">数据状态:</span>
+                            <span class="cache-time" id="tenant-cache-time">--</span>
+                            <span class="cache-badge" id="tenant-cache-badge">--</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <!-- Tenant Cache Info -->
-            <div class="cache-info" id="tenant-cache-info" style="display: none;">
-                <div class="cache-status">
-                    <span class="cache-label">数据状态:</span>
-                    <span class="cache-time" id="tenant-cache-time">--</span>
-                    <span class="cache-badge" id="tenant-cache-badge">--</span>
+            <!-- 最近注册租户快捷选择区域 -->
+            <div class="recent-tenants-section" id="recent-tenants-section">
+                <div class="recent-tenants-header">
+                    <span class="recent-tenants-title">✨ 最近15天注册租户</span>
+                    <button class="recent-tenants-refresh" id="recent-tenants-refresh" title="刷新最近注册租户">
+                        <span>🔄 刷新</span>
+                    </button>
+                </div>
+                <div class="recent-tenants-grid" id="recent-tenants-grid">
+                    <div class="recent-tenants-loading" id="recent-tenants-loading">
+                        <span class="spinner"></span>
+                        <span>正在加载新租户...</span>
+                    </div>
                 </div>
             </div>
             

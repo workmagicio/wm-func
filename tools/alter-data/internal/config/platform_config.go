@@ -38,8 +38,8 @@ var platformConfigs = []PlatformConfig{
 		Name:        "tiktok",
 		DisplayName: "TikTok Ads",
 		QueryKey:    "tiktok_ads_query",
-		Enabled:     false,
-		Description: "TikTok广告平台数据（待实现）",
+		Enabled:     true,
+		Description: "TikTok广告平台数据监控",
 	},
 	{
 		Name:        "pinterest",

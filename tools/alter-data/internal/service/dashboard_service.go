@@ -236,6 +236,55 @@ func (s *DashboardService) GetTenantListWithRefresh(forceRefresh bool) ([]models
 	return tenantList, nil
 }
 
+// GetRecentRegisteredTenants 获取最近注册的租户列表
+func (s *DashboardService) GetRecentRegisteredTenants() ([]models.TenantInfo, error) {
+	return s.GetRecentRegisteredTenantsWithRefresh(false)
+}
+
+// GetRecentRegisteredTenantsWithRefresh 获取最近注册的租户列表，支持强制刷新
+func (s *DashboardService) GetRecentRegisteredTenantsWithRefresh(forceRefresh bool) ([]models.TenantInfo, error) {
+	cacheKey := "recent_registered_tenants"
+
+	// 检查缓存（1小时有效期，比普通租户列表更频繁更新）
+	if s.cacheManager != nil && !forceRefresh {
+		if cachedItem, exists := s.cacheManager.Get(cacheKey); exists {
+			// 检查是否在1小时内
+			if time.Since(cachedItem.UpdatedAt) < 1*time.Hour {
+				log.Printf("Using cached recent tenants (updated at %v)", cachedItem.UpdatedAt)
+				// 将缓存的TenantData转换为TenantInfo
+				if tenantInfoList := s.convertTenantDataToTenantInfo(cachedItem.Data); len(tenantInfoList) > 0 {
+					return tenantInfoList, nil
+				}
+			}
+		}
+	}
+
+	log.Printf("Fetching fresh recent registered tenants (force_refresh=%v)", forceRefresh)
+
+	sql, exists := config.GetQuerySQL("recent_registered_tenants_query")
+	if !exists {
+		return nil, fmt.Errorf("recent registered tenants query not found")
+	}
+
+	processor := data.NewDataProcessor()
+	recentTenants, err := processor.ExecuteRecentTenantsQuery(sql)
+	if err != nil {
+		return nil, err
+	}
+
+	// 缓存最近注册租户列表（转换为TenantData格式以便使用现有缓存系统）
+	if s.cacheManager != nil && len(recentTenants) > 0 {
+		tenantDataList := s.convertTenantInfoToTenantData(recentTenants)
+		if err := s.cacheManager.Set(cacheKey, tenantDataList); err != nil {
+			log.Printf("Failed to cache recent tenants: %v", err)
+		} else {
+			log.Printf("Recent tenants cached (%d tenants)", len(recentTenants))
+		}
+	}
+
+	return recentTenants, nil
+}
+
 // convertTenantDataToTenantInfo 将TenantData转换为TenantInfo
 func (s *DashboardService) convertTenantDataToTenantInfo(cachedData []models.TenantData) []models.TenantInfo {
 	var result []models.TenantInfo
@@ -298,9 +347,10 @@ func (s *DashboardService) GetTenantCrossPlatformDataWithRefresh(tenantID int64,
 		return models.CrossPlatformData{}, fmt.Errorf("tenant cross-platform query not found")
 	}
 
-	// 跨平台查询需要6个参数，每个平台的API和Ads查询各需要一个tenantID参数
+	// 跨平台查询需要8个参数，每个平台的API和Ads查询各需要一个tenantID参数
+	// Google(2) + Meta(2) + AppLovin(2) + TikTok(2) = 8个参数
 	processor := data.NewDataProcessor()
-	rawData, err := processor.ExecuteQueryWithParams(sql, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID)
+	rawData, err := processor.ExecuteQueryWithParams(sql, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID)
 	if err != nil {
 		return models.CrossPlatformData{}, fmt.Errorf("failed to fetch cross-platform data for tenant %d: %w", tenantID, err)
 	}

@@ -191,6 +191,39 @@ func (h *APIHandler) GetTenants(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// GetRecentTenants 获取最近注册的租户列表
+func (h *APIHandler) GetRecentTenants(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	// 检查是否强制刷新
+	forceRefresh := r.URL.Query().Get("refresh") == "true"
+
+	recentTenants, err := h.dashboardService.GetRecentRegisteredTenantsWithRefresh(forceRefresh)
+	if err != nil {
+		response := models.RecentTenantsResponse{
+			Success: false,
+			Data:    []models.TenantInfo{},
+			Message: err.Error(),
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	message := fmt.Sprintf("成功获取 %d 个最近注册租户", len(recentTenants))
+	if forceRefresh {
+		message = fmt.Sprintf("已刷新最近注册租户列表 (%d 个)", len(recentTenants))
+	}
+
+	response := models.RecentTenantsResponse{
+		Success: true,
+		Data:    recentTenants,
+		Message: message,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 // GetTenantCrossPlatformData 获取指定租户的跨平台数据
 func (h *APIHandler) GetTenantCrossPlatformData(w http.ResponseWriter, r *http.Request) {
 	setJSONResponse(w)
