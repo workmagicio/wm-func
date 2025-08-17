@@ -1,0 +1,179 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
+	"wm-func/tools/alter-data/internal/service"
+	"wm-func/tools/alter-data/models"
+
+	"github.com/gorilla/mux"
+)
+
+// APIHandler API请求处理器
+type APIHandler struct {
+	dashboardService *service.DashboardService
+}
+
+// NewAPIHandler 创建API处理器实例
+func NewAPIHandler() *APIHandler {
+	return &APIHandler{
+		dashboardService: service.NewDashboardService(),
+	}
+}
+
+// GetPlatforms 获取所有平台列表
+func (h *APIHandler) GetPlatforms(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	platforms := h.dashboardService.GetAvailablePlatforms()
+
+	response := models.PlatformResponse{
+		Success: true,
+		Data:    platforms,
+		Message: fmt.Sprintf("成功加载 %d 个平台", len(platforms)),
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetPlatformData 获取指定平台的所有租户数据
+func (h *APIHandler) GetPlatformData(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	vars := mux.Vars(r)
+	platformName := vars["platform"]
+
+	// 检查是否强制刷新
+	forceRefresh := r.URL.Query().Get("refresh") == "true"
+
+	tenantDataList, err := h.dashboardService.GetPlatformDataWithRefresh(platformName, forceRefresh)
+	if err != nil {
+		h.handleError(w, platformName, err, http.StatusBadRequest)
+		return
+	}
+
+	// 获取缓存信息
+	cacheInfo := h.dashboardService.GetCacheInfo(platformName)
+
+	message := "数据加载成功"
+	if forceRefresh {
+		message = "数据已强制刷新"
+	} else if cacheInfo != nil {
+		message = "数据加载成功（来自缓存）"
+	}
+
+	response := models.DashboardResponse{
+		Success:   true,
+		Platform:  platformName,
+		Data:      tenantDataList,
+		Message:   message,
+		CacheInfo: cacheInfo,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetTenantData 获取指定租户的平台数据
+func (h *APIHandler) GetTenantData(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	vars := mux.Vars(r)
+	platformName := vars["platform"]
+	tenantIDStr := vars["tenant_id"]
+
+	tenantID, err := strconv.ParseInt(tenantIDStr, 10, 64)
+	if err != nil {
+		response := models.DashboardResponse{
+			Success:  false,
+			Platform: platformName,
+			Data:     []models.TenantData{},
+			Message:  "无效的租户ID: " + tenantIDStr,
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	tenantData, err := h.dashboardService.GetTenantData(platformName, tenantID)
+	if err != nil {
+		h.handleError(w, platformName, err, http.StatusBadRequest)
+		return
+	}
+
+	response := models.DashboardResponse{
+		Success:  true,
+		Platform: platformName,
+		Data:     []models.TenantData{tenantData},
+		Message:  "数据加载成功",
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// setJSONResponse 设置JSON响应头
+func setJSONResponse(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+}
+
+// RefreshPlatformData 刷新指定平台的缓存数据
+func (h *APIHandler) RefreshPlatformData(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	vars := mux.Vars(r)
+	platformName := vars["platform"]
+
+	err := h.dashboardService.RefreshPlatformCache(platformName)
+	if err != nil {
+		h.handleError(w, platformName, err, http.StatusBadRequest)
+		return
+	}
+
+	// 获取刷新后的数据
+	tenantDataList, err := h.dashboardService.GetPlatformData(platformName)
+	if err != nil {
+		h.handleError(w, platformName, err, http.StatusBadRequest)
+		return
+	}
+
+	// 获取缓存信息
+	cacheInfo := h.dashboardService.GetCacheInfo(platformName)
+
+	response := models.DashboardResponse{
+		Success:   true,
+		Platform:  platformName,
+		Data:      tenantDataList,
+		Message:   "缓存已刷新",
+		CacheInfo: cacheInfo,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetCacheStats 获取缓存统计信息
+func (h *APIHandler) GetCacheStats(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	stats := h.dashboardService.GetCacheStats()
+
+	response := models.APIResponse{
+		Success: true,
+		Message: "缓存统计信息获取成功",
+		Data:    stats,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// handleError 统一错误处理
+func (h *APIHandler) handleError(w http.ResponseWriter, platform string, err error, statusCode int) {
+	response := models.DashboardResponse{
+		Success:  false,
+		Platform: platform,
+		Data:     []models.TenantData{},
+		Message:  err.Error(),
+	}
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(response)
+}

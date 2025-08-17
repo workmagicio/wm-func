@@ -49,16 +49,20 @@ body {
 
 /* Platform Selector 样式 */
 .platform-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
     margin-bottom: 30px;
     padding: 20px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.platform-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
     flex-wrap: wrap;
+    margin-bottom: 15px;
 }
 
 .platform-label {
@@ -90,12 +94,122 @@ body {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
+/* 刷新按钮样式 */
+.refresh-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(45deg, #3498db, #2ecc71);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+    min-width: 120px;
+}
+
+.refresh-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    background: linear-gradient(45deg, #2980b9, #27ae60);
+}
+
+.refresh-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.refresh-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 3px 10px rgba(52, 152, 219, 0.2);
+}
+
+.refresh-button.loading {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.refresh-button.loading .refresh-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.refresh-icon {
+    font-size: 1.1rem;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+/* 缓存信息样式 */
+.cache-info {
+    padding: 12px 0;
+    border-top: 1px solid #ecf0f1;
+}
+
+.cache-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cache-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.cache-time {
+    font-size: 0.9rem;
+    color: #34495e;
+    font-weight: 600;
+    background: #ecf0f1;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.cache-badge {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cache-badge.fresh {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.cache-badge.cached {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+    color: white;
+}
+
+.cache-badge.expired {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+}
+
 .loading-indicator {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
     color: #3498db;
     font-weight: 500;
+    padding: 10px 0;
 }
 
 .spinner {

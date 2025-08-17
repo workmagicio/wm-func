@@ -17,10 +17,26 @@
 
         <!-- Platform Selector -->
         <div class="platform-selector">
-            <label for="platform-select" class="platform-label">选择平台:</label>
-            <select id="platform-select" class="platform-select">
-                <option value="">加载中...</option>
-            </select>
+            <div class="platform-controls">
+                <label for="platform-select" class="platform-label">选择平台:</label>
+                <select id="platform-select" class="platform-select">
+                    <option value="">加载中...</option>
+                </select>
+                <button id="refresh-button" class="refresh-button" onclick="dashboard.refreshCurrentPlatform()" disabled>
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">刷新数据</span>
+                </button>
+            </div>
+            
+            <!-- Cache Info -->
+            <div class="cache-info" id="cache-info" style="display: none;">
+                <div class="cache-status">
+                    <span class="cache-label">数据状态:</span>
+                    <span class="cache-time" id="cache-time">--</span>
+                    <span class="cache-badge" id="cache-badge">--</span>
+                </div>
+            </div>
+            
             <div class="loading-indicator" id="loading-indicator" style="display: none;">
                 <span class="spinner"></span>
                 <span>数据加载中...</span>

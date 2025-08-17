@@ -73,7 +73,13 @@ class PlatformManager {
 
     // 切换平台
     async switchPlatform(platformName) {
-        if (!platformName) return;
+        if (!platformName) {
+            // 如果没有选择平台，禁用刷新按钮
+            if (window.dashboard) {
+                window.dashboard.updateRefreshButton(false);
+            }
+            return;
+        }
         
         try {
             this.showLoading(true);
@@ -90,6 +96,11 @@ class PlatformManager {
         } catch (error) {
             console.error('切换平台失败:', error);
             this.showError('切换平台失败: ' + error.message);
+            
+            // 出错时禁用刷新按钮
+            if (window.dashboard) {
+                window.dashboard.updateRefreshButton(false);
+            }
         } finally {
             this.showLoading(false);
         }

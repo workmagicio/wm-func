@@ -20,7 +20,7 @@ profile.cov
 .platform-api_UAT
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
+tools/alter-data/cache
 # Go workspace file
 go.work
 go.work.sum

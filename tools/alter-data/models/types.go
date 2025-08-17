@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // AlterData 原始数据模型 (数据库查询结果)
 type AlterData struct {
 	TenantId int64  `gorm:"column:tenant_id"`
@@ -41,8 +43,27 @@ type PlatformResponse struct {
 
 // DashboardResponse 仪表板数据响应
 type DashboardResponse struct {
-	Success  bool         `json:"success"`
-	Platform string       `json:"platform"`
-	Data     []TenantData `json:"data"`
-	Message  string       `json:"message"`
+	Success   bool         `json:"success"`
+	Platform  string       `json:"platform"`
+	Data      []TenantData `json:"data"`
+	Message   string       `json:"message"`
+	CacheInfo *CacheInfo   `json:"cache_info,omitempty"` // 缓存信息
+}
+
+// CacheInfo 缓存信息
+type CacheInfo struct {
+	Platform  string    `json:"platform"`
+	UpdatedAt time.Time `json:"updated_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+	IsExpired bool      `json:"is_expired"`
+	DataCount int       `json:"data_count"`
+}
+
+// CacheStats 缓存统计信息
+type CacheStats struct {
+	TotalItems   int           `json:"total_items"`
+	ExpiredItems int           `json:"expired_items"`
+	ValidItems   int           `json:"valid_items"`
+	CacheDir     string        `json:"cache_dir"`
+	TTL          time.Duration `json:"ttl"`
 }

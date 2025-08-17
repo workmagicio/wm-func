@@ -135,14 +135,14 @@ class ChartManager {
                 }
             },
             legend: {
-                data: ['API 消费', '广告消费', '差异值'],
+                data: ['API 消费', 'Overview spend', '差异值'],
                 bottom: 10,
                 textStyle: {
                     fontSize: 12
                 },
                 selected: {
                     'API 消费': true,
-                    '广告消费': true,
+                    'Overview spend': true,
                     '差异值': false  // 差异值默认隐藏
                 }
             },
@@ -241,7 +241,7 @@ class ChartManager {
                     }
                 },
                 {
-                    name: '广告消费',
+                    name: 'Overview spend',
                     type: 'line',
                     data: ad_spend,
                     smooth: true,
