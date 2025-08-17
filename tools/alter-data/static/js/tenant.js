@@ -18,6 +18,9 @@ class TenantManager {
         
         // 初始化最近注册租户
         this.initRecentTenants();
+        
+        // 初始化经常访问租户
+        this.initFrequentTenants();
     }
 
     // 绑定事件
@@ -528,6 +531,139 @@ class TenantManager {
     // 更新最近租户卡片的选中状态
     updateRecentTenantSelection(selectedTenantId) {
         const cards = document.querySelectorAll('.recent-tenant-card');
+        cards.forEach(card => {
+            const tenantId = card.dataset.tenantId;
+            if (tenantId == selectedTenantId) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+    }
+
+    // 初始化经常访问租户功能
+    async initFrequentTenants() {
+        const frequentTenantsSection = document.getElementById('frequent-tenants-section');
+        const frequentTenantsRefresh = document.getElementById('frequent-tenants-refresh');
+        
+        if (!frequentTenantsSection || !frequentTenantsRefresh) {
+            console.warn('⚠️ 经常访问租户相关元素未找到');
+            return;
+        }
+
+        // 绑定刷新按钮事件
+        frequentTenantsRefresh.addEventListener('click', () => {
+            this.loadFrequentTenants(true);
+        });
+
+        // 初始加载经常访问租户
+        await this.loadFrequentTenants(false);
+    }
+
+    // 加载经常访问租户
+    async loadFrequentTenants(forceRefresh = false) {
+        const grid = document.getElementById('frequent-tenants-grid');
+        
+        if (!grid) {
+            console.error('❌ 经常访问租户网格元素未找到');
+            return;
+        }
+
+        try {
+            // 显示加载状态
+            grid.innerHTML = '<div class="frequent-tenants-loading"><span class="spinner"></span><span>加载中...</span></div>';
+            
+            const url = `/api/tenants/frequent${forceRefresh ? '?refresh=true' : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success && data.data && data.data.length > 0) {
+                this.renderFrequentTenants(data.data);
+                console.log(`✅ 加载了 ${data.data.length} 个经常访问租户`);
+            } else {
+                grid.innerHTML = '<div class="frequent-tenants-empty">🔍 暂无经常访问的租户</div>';
+                console.log('ℹ️ 暂无经常访问的租户');
+            }
+        } catch (error) {
+            console.error('❌ 加载经常访问租户失败:', error);
+            grid.innerHTML = '<div class="frequent-tenants-error">⚠️ 加载失败，请稍后重试</div>';
+        }
+    }
+
+    // 渲染经常访问租户
+    renderFrequentTenants(frequentTenants) {
+        const grid = document.getElementById('frequent-tenants-grid');
+        if (!grid) return;
+
+        // 清空网格
+        grid.innerHTML = '';
+
+        // 为每个经常访问租户创建卡片
+        frequentTenants.forEach(tenant => {
+            const card = document.createElement('div');
+            card.className = 'frequent-tenant-card';
+            card.dataset.tenantId = tenant.tenant_id;
+            
+            // 格式化访问次数
+            const accessCount = tenant.access_count || 0;
+            const accessText = accessCount > 99 ? '99+' : accessCount.toString();
+
+            // 计算最后访问时间
+            const lastAccess = tenant.last_access ? 
+                new Date(tenant.last_access) : null;
+            
+            let timeLabel = '未知';
+            if (lastAccess) {
+                const diffHours = Math.floor((new Date() - lastAccess) / (1000 * 60 * 60));
+                if (diffHours < 1) {
+                    timeLabel = '刚访问';
+                } else if (diffHours < 24) {
+                    timeLabel = `${diffHours}h前`;
+                } else {
+                    const diffDays = Math.floor(diffHours / 24);
+                    timeLabel = `${diffDays}天前`;
+                }
+            }
+
+            card.innerHTML = `
+                <div class="frequent-tenant-id">${tenant.tenant_id}</div>
+                <div class="frequent-tenant-stats">
+                    <span class="access-count">${accessText}次</span>
+                    <span class="last-access">${timeLabel}</span>
+                </div>
+            `;
+
+            // 添加点击事件
+            card.addEventListener('click', () => {
+                this.selectFrequentTenant(tenant);
+            });
+
+            grid.appendChild(card);
+        });
+
+        console.log(`📋 渲染了 ${frequentTenants.length} 个经常访问租户卡片`);
+    }
+
+    // 选择经常访问租户
+    selectFrequentTenant(tenant) {
+        console.log(`🎯 选择经常访问租户: ${tenant.tenant_id}`);
+        
+        // 更新输入框
+        this.tenantInput.value = tenant.tenant_id;
+        
+        // 隐藏下拉列表
+        this.hideDropdown();
+        
+        // 更新卡片选中状态
+        this.updateFrequentTenantSelection(tenant.tenant_id);
+        
+        // 切换到选中的租户
+        this.switchTenant(tenant.tenant_id);
+    }
+
+    // 更新经常访问租户卡片的选中状态
+    updateFrequentTenantSelection(selectedTenantId) {
+        const cards = document.querySelectorAll('.frequent-tenant-card');
         cards.forEach(card => {
             const tenantId = card.dataset.tenantId;
             if (tenantId == selectedTenantId) {

@@ -106,3 +106,19 @@ type TenantCrossPlatformResponse struct {
 	Message    string            `json:"message"`
 	CacheInfo  *CacheInfo        `json:"cache_info,omitempty"`
 }
+
+// TenantAccessRecord 租户访问记录
+type TenantAccessRecord struct {
+	TenantID    int64     `json:"tenant_id"`
+	TenantName  string    `json:"tenant_name"`
+	AccessCount int       `json:"access_count"`
+	LastAccess  time.Time `json:"last_access"`
+	FirstAccess time.Time `json:"first_access"`
+}
+
+// FrequentTenantsResponse 经常访问租户响应
+type FrequentTenantsResponse struct {
+	Success bool                 `json:"success"`
+	Data    []TenantAccessRecord `json:"data"`
+	Message string               `json:"message"`
+}

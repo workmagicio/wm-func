@@ -34,6 +34,7 @@ func main() {
 	// 租户相关API
 	apiRouter.HandleFunc("/tenants", apiHandler.GetTenants).Methods("GET")
 	apiRouter.HandleFunc("/tenants/recent", apiHandler.GetRecentTenants).Methods("GET")
+	apiRouter.HandleFunc("/tenants/frequent", apiHandler.GetFrequentTenants).Methods("GET")
 	apiRouter.HandleFunc("/tenant/{tenant_id}", apiHandler.GetTenantCrossPlatformData).Methods("GET")
 	apiRouter.HandleFunc("/tenant/{tenant_id}/refresh", apiHandler.RefreshTenantData).Methods("POST")
 

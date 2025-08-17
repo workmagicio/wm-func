@@ -342,6 +342,21 @@ func (s *DashboardService) GetTenantCrossPlatformDataWithRefresh(tenantID int64,
 
 	log.Printf("Fetching fresh cross-platform data for tenant %d (force_refresh=%v)", tenantID, forceRefresh)
 
+	// 记录租户访问（只有在实际获取数据时才记录）
+	if s.cacheManager != nil {
+		// 先尝试从租户列表中获取租户名称
+		tenantName := fmt.Sprintf("Tenant %d", tenantID)
+		if tenantList, err := s.GetTenantList(); err == nil {
+			for _, tenant := range tenantList {
+				if tenant.TenantID == tenantID {
+					tenantName = tenant.TenantName
+					break
+				}
+			}
+		}
+		s.cacheManager.RecordTenantAccess(tenantID, tenantName)
+	}
+
 	sql, exists := config.GetQuerySQL("tenant_cross_platform_query")
 	if !exists {
 		return models.CrossPlatformData{}, fmt.Errorf("tenant cross-platform query not found")
@@ -455,4 +470,14 @@ func (s *DashboardService) RefreshTenantCache(tenantID int64) error {
 	// 强制刷新数据
 	_, err := s.GetTenantCrossPlatformDataWithRefresh(tenantID, true)
 	return err
+}
+
+// GetFrequentTenants 获取经常访问的租户列表
+func (s *DashboardService) GetFrequentTenants() ([]models.TenantAccessRecord, error) {
+	if s.cacheManager == nil {
+		return []models.TenantAccessRecord{}, fmt.Errorf("cache manager not available")
+	}
+
+	records := s.cacheManager.GetFrequentTenants()
+	return records, nil
 }

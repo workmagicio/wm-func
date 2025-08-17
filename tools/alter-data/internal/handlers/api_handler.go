@@ -224,6 +224,39 @@ func (h *APIHandler) GetRecentTenants(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// GetFrequentTenants 获取经常访问的租户列表
+func (h *APIHandler) GetFrequentTenants(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	// 检查是否强制刷新
+	forceRefresh := r.URL.Query().Get("refresh") == "true"
+
+	frequentTenants, err := h.dashboardService.GetFrequentTenants()
+	if err != nil {
+		response := models.FrequentTenantsResponse{
+			Success: false,
+			Data:    []models.TenantAccessRecord{},
+			Message: err.Error(),
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	message := fmt.Sprintf("成功获取 %d 个经常访问租户", len(frequentTenants))
+	if forceRefresh {
+		message = fmt.Sprintf("已刷新经常访问租户列表 (%d 个)", len(frequentTenants))
+	}
+
+	response := models.FrequentTenantsResponse{
+		Success: true,
+		Data:    frequentTenants,
+		Message: message,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 // GetTenantCrossPlatformData 获取指定租户的跨平台数据
 func (h *APIHandler) GetTenantCrossPlatformData(w http.ResponseWriter, r *http.Request) {
 	setJSONResponse(w)
