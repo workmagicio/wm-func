@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 	"wm-func/tools/alter-data/internal/cache"
 	"wm-func/tools/alter-data/internal/config"
@@ -184,4 +185,224 @@ func (s *DashboardService) GetCacheStats() models.CacheStats {
 	}
 
 	return s.cacheManager.GetCacheStats()
+}
+
+// GetTenantList 获取租户列表（带长期缓存，1天更新一次）
+func (s *DashboardService) GetTenantList() ([]models.TenantInfo, error) {
+	return s.GetTenantListWithRefresh(false)
+}
+
+// GetTenantListWithRefresh 获取租户列表，支持强制刷新
+func (s *DashboardService) GetTenantListWithRefresh(forceRefresh bool) ([]models.TenantInfo, error) {
+	cacheKey := "tenant_list"
+
+	// 检查缓存（1天有效期）
+	if s.cacheManager != nil && !forceRefresh {
+		if cachedItem, exists := s.cacheManager.Get(cacheKey); exists {
+			// 检查是否在1天内
+			if time.Since(cachedItem.UpdatedAt) < 24*time.Hour {
+				log.Printf("Using cached tenant list (updated at %v)", cachedItem.UpdatedAt)
+				// 将缓存的TenantData转换为TenantInfo
+				if tenantInfoList := s.convertTenantDataToTenantInfo(cachedItem.Data); len(tenantInfoList) > 0 {
+					return tenantInfoList, nil
+				}
+			}
+		}
+	}
+
+	log.Printf("Fetching fresh tenant list (force_refresh=%v)", forceRefresh)
+
+	sql, exists := config.GetQuerySQL("tenants_list_query")
+	if !exists {
+		return nil, fmt.Errorf("tenant list query not found")
+	}
+
+	processor := data.NewDataProcessor()
+	tenantList, err := processor.ExecuteTenantListQuery(sql)
+	if err != nil {
+		return nil, err
+	}
+
+	// 缓存租户列表（转换为TenantData格式以便使用现有缓存系统）
+	if s.cacheManager != nil && len(tenantList) > 0 {
+		tenantDataList := s.convertTenantInfoToTenantData(tenantList)
+		if err := s.cacheManager.Set(cacheKey, tenantDataList); err != nil {
+			log.Printf("Failed to cache tenant list: %v", err)
+		} else {
+			log.Printf("Tenant list cached (%d tenants)", len(tenantList))
+		}
+	}
+
+	return tenantList, nil
+}
+
+// convertTenantDataToTenantInfo 将TenantData转换为TenantInfo
+func (s *DashboardService) convertTenantDataToTenantInfo(cachedData []models.TenantData) []models.TenantInfo {
+	var result []models.TenantInfo
+
+	// 使用map去重
+	tenantMap := make(map[int64]string)
+	for _, data := range cachedData {
+		tenantMap[data.TenantID] = data.TenantName
+	}
+
+	for tenantID, tenantName := range tenantMap {
+		result = append(result, models.TenantInfo{
+			TenantID:   tenantID,
+			TenantName: tenantName,
+		})
+	}
+
+	return result
+}
+
+// convertTenantInfoToTenantData 将TenantInfo转换为TenantData以便缓存
+func (s *DashboardService) convertTenantInfoToTenantData(tenantList []models.TenantInfo) []models.TenantData {
+	var result []models.TenantData
+
+	for _, tenant := range tenantList {
+		result = append(result, models.TenantData{
+			TenantID:   tenant.TenantID,
+			TenantName: tenant.TenantName,
+			Platform:   "tenant_list", // 标识这是租户列表数据
+		})
+	}
+
+	return result
+}
+
+// GetTenantCrossPlatformData 获取指定租户的跨平台数据
+func (s *DashboardService) GetTenantCrossPlatformData(tenantID int64) (models.CrossPlatformData, error) {
+	return s.GetTenantCrossPlatformDataWithRefresh(tenantID, false)
+}
+
+// GetTenantCrossPlatformDataWithRefresh 获取指定租户的跨平台数据，支持强制刷新
+func (s *DashboardService) GetTenantCrossPlatformDataWithRefresh(tenantID int64, forceRefresh bool) (models.CrossPlatformData, error) {
+	cacheKey := fmt.Sprintf("tenant_%d", tenantID)
+
+	// 如果有缓存管理器且不强制刷新，先尝试从缓存获取
+	if s.cacheManager != nil && !forceRefresh {
+		if cachedItem, exists := s.cacheManager.Get(cacheKey); exists {
+			log.Printf("Using cached data for tenant %d (updated at %v)", tenantID, cachedItem.UpdatedAt)
+			// 需要转换缓存的数据格式
+			if crossPlatformData, ok := s.convertTenantDataToCrossPlatform(tenantID, cachedItem.Data); ok {
+				return crossPlatformData, nil
+			}
+		}
+	}
+
+	log.Printf("Fetching fresh cross-platform data for tenant %d (force_refresh=%v)", tenantID, forceRefresh)
+
+	sql, exists := config.GetQuerySQL("tenant_cross_platform_query")
+	if !exists {
+		return models.CrossPlatformData{}, fmt.Errorf("tenant cross-platform query not found")
+	}
+
+	// 跨平台查询需要6个参数，每个平台的API和Ads查询各需要一个tenantID参数
+	processor := data.NewDataProcessor()
+	rawData, err := processor.ExecuteQueryWithParams(sql, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID)
+	if err != nil {
+		return models.CrossPlatformData{}, fmt.Errorf("failed to fetch cross-platform data for tenant %d: %w", tenantID, err)
+	}
+
+	// 按平台分组数据
+	platformGroups := processor.GroupByPlatform(rawData)
+
+	// 转换为CrossPlatformData格式
+	result := models.CrossPlatformData{
+		TenantID:     tenantID,
+		TenantName:   fmt.Sprintf("Tenant %d", tenantID),
+		PlatformData: make(map[string][]models.TenantData),
+	}
+
+	// 为每个平台转换数据格式
+	transformer := data.NewDataTransformer()
+	for platform, platformData := range platformGroups {
+		// 将[]AlterData转换为map[int64][]AlterData格式，以便使用现有的转换器
+		groupedByTenant := make(map[int64][]models.AlterData)
+		groupedByTenant[tenantID] = platformData
+
+		// 使用现有的转换器
+		tenantDataList := transformer.TransformToTenantDataList(strings.ToLower(platform), groupedByTenant)
+		result.PlatformData[platform] = tenantDataList
+	}
+
+	// 如果有缓存管理器，保存到缓存
+	if s.cacheManager != nil {
+		// 将CrossPlatformData转换为[]TenantData格式以便缓存
+		if flatData := s.convertCrossPlatformToTenantData(result); len(flatData) > 0 {
+			if err := s.cacheManager.Set(cacheKey, flatData); err != nil {
+				log.Printf("Failed to cache data for tenant %d: %v", tenantID, err)
+			} else {
+				log.Printf("Data cached for tenant %d", tenantID)
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// convertTenantDataToCrossPlatform 将缓存的TenantData转换为CrossPlatformData
+func (s *DashboardService) convertTenantDataToCrossPlatform(tenantID int64, cachedData []models.TenantData) (models.CrossPlatformData, bool) {
+	if len(cachedData) == 0 {
+		return models.CrossPlatformData{}, false
+	}
+
+	result := models.CrossPlatformData{
+		TenantID:     tenantID,
+		TenantName:   fmt.Sprintf("Tenant %d", tenantID),
+		PlatformData: make(map[string][]models.TenantData),
+	}
+
+	// 按平台分组
+	for _, tenantData := range cachedData {
+		platform := tenantData.Platform
+		result.PlatformData[platform] = append(result.PlatformData[platform], tenantData)
+	}
+
+	return result, true
+}
+
+// convertCrossPlatformToTenantData 将CrossPlatformData转换为[]TenantData以便缓存
+func (s *DashboardService) convertCrossPlatformToTenantData(crossPlatformData models.CrossPlatformData) []models.TenantData {
+	var result []models.TenantData
+
+	for _, platformData := range crossPlatformData.PlatformData {
+		result = append(result, platformData...)
+	}
+
+	return result
+}
+
+// GetTenantCacheInfo 获取指定租户的缓存信息
+func (s *DashboardService) GetTenantCacheInfo(tenantID int64) *models.CacheInfo {
+	if s.cacheManager == nil {
+		return nil
+	}
+
+	cacheKey := fmt.Sprintf("tenant_%d", tenantID)
+	updateTime := s.cacheManager.GetLastUpdateTime(cacheKey)
+	if updateTime == nil {
+		return nil
+	}
+
+	isExpired := s.cacheManager.IsExpired(cacheKey)
+
+	return &models.CacheInfo{
+		Platform:  fmt.Sprintf("tenant_%d", tenantID),
+		UpdatedAt: *updateTime,
+		ExpiresAt: updateTime.Add(30 * time.Minute),
+		IsExpired: isExpired,
+	}
+}
+
+// RefreshTenantCache 刷新指定租户的缓存
+func (s *DashboardService) RefreshTenantCache(tenantID int64) error {
+	if s.cacheManager == nil {
+		return fmt.Errorf("cache manager not available")
+	}
+
+	// 强制刷新数据
+	_, err := s.GetTenantCrossPlatformDataWithRefresh(tenantID, true)
+	return err
 }

@@ -88,10 +88,63 @@ echo "   - GET  /api/data/{platform}?refresh=true # 强制刷新平台数据"
 echo "   - GET  /api/data/{platform}/{tenant_id}  # 获取租户数据"
 echo "   - POST /api/refresh/{platform}      # 刷新平台缓存"
 echo "   - GET  /api/cache/stats             # 获取缓存统计"
+# 测试租户功能
 echo ""
-echo "🎯 新增功能:"
+echo "🔍 测试租户视图 API..."
+echo "📋 租户列表:"
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/api/tenants)
+if [ "$RESPONSE" = "200" ]; then
+    echo "✅ 租户列表API访问成功 (HTTP $RESPONSE)"
+    TENANT_COUNT=$(curl -s http://localhost:8090/api/tenants | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data['data']) if data['success'] else 0)" 2>/dev/null || echo "0")
+    echo "📊 发现 $TENANT_COUNT 个租户"
+else
+    echo "❌ 租户列表API访问失败 (HTTP $RESPONSE)"
+fi
+
+echo "👤 租户跨平台数据:"
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/api/tenant/150075)
+if [ "$RESPONSE" = "200" ]; then
+    echo "✅ 租户跨平台数据API访问成功 (HTTP $RESPONSE)"
+    curl -s http://localhost:8090/api/tenant/150075 | python3 -c "
+import json,sys
+try:
+    data = json.load(sys.stdin)
+    if data['success']:
+        platform_count = len(data['data']['platform_data'])
+        platforms = list(data['data']['platform_data'].keys())
+        print(f'📊 租户 {data[\"tenant_id\"]} 包含 {platform_count} 个平台: {platforms}')
+        cache_status = '已过期' if data.get('cache_info', {}).get('is_expired', True) else '有效'
+        print(f'🗂️  缓存状态: {cache_status}')
+    else:
+        print('❌ 数据获取失败')
+except:
+    print('❌ 解析失败')
+    " 2>/dev/null || echo "❌ 数据解析失败"
+else
+    echo "❌ 租户跨平台数据API访问失败 (HTTP $RESPONSE)"
+fi
+
+echo ""
+echo "🎯 功能特性:"
+echo "📊 平台视图:"
 echo "   - ✅ 数据缓存（30分钟TTL）"
 echo "   - ✅ 最后更新时间显示"
-echo "   - ✅ 刷新按钮（页面右上角）"
+echo "   - ✅ 刷新按钮功能"
 echo "   - ✅ 缓存状态标识（最新/缓存/已过期）"
 echo "   - ✅ 键盘快捷键 Ctrl+R 强制刷新"
+echo "👤 租户视图 (NEW!):"
+echo "   - ✅ 租户列表选择器"
+echo "   - ✅ 跨平台数据对比展示" 
+echo "   - ✅ 独立的缓存管理"
+echo "   - ✅ 视图模式一键切换"
+echo "   - ✅ 键盘快捷键 Ctrl+T 切换视图"
+echo "🔍 租户输入预测 (NEW!):"
+echo "   - ✅ 智能输入框替代下拉选择器"
+echo "   - ✅ 实时搜索和自动完成"
+echo "   - ✅ 支持键盘导航 (↑↓ 方向键)"
+echo "   - ✅ 支持任意租户ID输入（包括不存在的）"
+echo "   - ✅ 租户列表长期缓存（1天更新）"
+echo "⚡ SQL优化:"
+echo "   - ✅ 单次查询获取租户所有平台数据"
+echo "   - ✅ 避免多次数据库调用"
+echo "   - ✅ 支持参数化查询防止SQL注入"

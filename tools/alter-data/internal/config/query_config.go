@@ -177,6 +177,171 @@ select
 from
     result`,
 	},
+
+	"tenant_cross_platform_query": {
+		Key:         "tenant_cross_platform_query",
+		Name:        "租户跨平台数据查询",
+		Description: "查询指定租户在所有广告平台的数据对比",
+		SQL: `
+with
+    google_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'googleAds'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    google_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Google'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    google_merge as (
+        select
+            google_api.TENANT_ID,
+            'Google' as platform,
+            google_api.RAW_DATE,
+            google_api.spend as api_spend,
+            coalesce(google_ads.ad_spend, 0) as ad_spend
+        from
+            google_api
+            left join google_ads on google_api.TENANT_ID = google_ads.TENANT_ID 
+            and google_api.RAW_DATE = google_ads.EVENT_DATE
+    ),
+    
+    meta_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'facebookMarketing'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    meta_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Meta'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    meta_merge as (
+        select
+            meta_api.TENANT_ID,
+            'Meta' as platform,
+            meta_api.RAW_DATE,
+            meta_api.spend as api_spend,
+            coalesce(meta_ads.ad_spend, 0) as ad_spend
+        from
+            meta_api
+            left join meta_ads on meta_api.TENANT_ID = meta_ads.TENANT_ID 
+            and meta_api.RAW_DATE = meta_ads.EVENT_DATE
+    ),
+    
+    applovin_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'applovin'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    applovin_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Applovin'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    applovin_merge as (
+        select
+            applovin_api.TENANT_ID,
+            'AppLovin' as platform,
+            applovin_api.RAW_DATE,
+            applovin_api.spend as api_spend,
+            coalesce(applovin_ads.ad_spend, 0) as ad_spend
+        from
+            applovin_api
+            left join applovin_ads on applovin_api.TENANT_ID = applovin_ads.TENANT_ID 
+            and applovin_api.RAW_DATE = applovin_ads.EVENT_DATE
+    ),
+    
+    all_platforms as (
+        select * from google_merge
+        UNION ALL
+        select * from meta_merge  
+        UNION ALL
+        select * from applovin_merge
+    ),
+    
+    result as (
+        select
+            all_platforms.*
+        from
+            all_platforms
+            join platform_offline.dwd_view_analytics_non_testing_tenants as b
+            on all_platforms.TENANT_ID = b.tenant_id
+    )
+select
+    tenant_id,
+    platform,
+    raw_date,
+    api_spend,
+    ad_spend
+from
+    result
+order by platform, raw_date`,
+	},
+
+	"tenants_list_query": {
+		Key:         "tenants_list_query",
+		Name:        "租户列表查询",
+		Description: "获取系统中所有可用租户的列表",
+		SQL: `
+select distinct
+    TENANT_ID as tenant_id,
+    concat('Tenant ', TENANT_ID) as tenant_name
+from platform_offline.integration_api_data_view
+where RAW_DATE > utc_date() - interval 30 day
+  and TENANT_ID in (
+    select tenant_id 
+    from platform_offline.dwd_view_analytics_non_testing_tenants
+  )
+order by TENANT_ID
+limit 1000`,
+	},
 }
 
 // GetQueryConfig 根据键获取查询配置

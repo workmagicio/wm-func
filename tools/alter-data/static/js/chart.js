@@ -23,7 +23,21 @@ class ChartManager {
     // 初始化图表容器
     initChart(tenantData, retryCount = 0) {
         const maxRetries = 5; // 最大重试次数
-        const chartId = `chart-${tenantData.tenant_id}`;
+        
+        // 生成唯一的图表ID，避免同一租户不同平台的ID冲突
+        const chartId = tenantData.chart_id || `chart-${tenantData.tenant_id}-${tenantData.platform || 'default'}`;
+        
+        console.log(`🎨 创建图表容器: ${chartId}`, {
+            tenant_id: tenantData.tenant_id,
+            platform: tenantData.platform,
+            tenant_name: tenantData.tenant_name
+        });
+        
+        // 检查是否已存在相同ID的图表
+        if (document.getElementById(chartId)) {
+            console.warn(`⚠️ 图表ID ${chartId} 已存在，跳过创建`);
+            return;
+        }
         
         // 创建图表容器
         const chartItem = document.createElement('div');

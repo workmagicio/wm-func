@@ -2,23 +2,101 @@
 class Dashboard {
     constructor() {
         this.platformManager = new PlatformManager();
+        this.tenantManager = new TenantManager();
         this.chartManager = new ChartManager();
         this.currentData = [];
         this.currentCacheInfo = null;
+        this.currentViewMode = 'platform'; // 'platform' or 'tenant'
         
         // DOM 元素
         this.chartsContainer = document.getElementById('charts-container');
         this.noDataMessage = document.getElementById('no-data-message');
         this.errorMessage = document.getElementById('error-message');
         this.errorText = document.getElementById('error-text');
+        
+        // 平台视图元素
         this.refreshButton = document.getElementById('refresh-button');
         this.cacheInfo = document.getElementById('cache-info');
         this.cacheTime = document.getElementById('cache-time');
         this.cacheBadge = document.getElementById('cache-badge');
+        this.platformViewContainer = document.getElementById('platform-view-container');
+        
+        // 租户视图元素
+        this.refreshTenantButton = document.getElementById('refresh-tenant-button');
+        this.tenantCacheInfo = document.getElementById('tenant-cache-info');
+        this.tenantCacheTime = document.getElementById('tenant-cache-time');
+        this.tenantCacheBadge = document.getElementById('tenant-cache-badge');
+        this.tenantViewContainer = document.getElementById('tenant-view-container');
+        
+        // 视图模式切换元素
+        this.platformViewRadio = document.getElementById('platform-view');
+        this.tenantViewRadio = document.getElementById('tenant-view');
         
         // 状态
         this.isLoading = false;
         this.isRefreshing = false;
+        
+        // 绑定事件
+        this.bindViewModeEvents();
+    }
+
+    // 绑定视图模式切换事件
+    bindViewModeEvents() {
+        this.platformViewRadio.addEventListener('change', () => {
+            if (this.platformViewRadio.checked) {
+                this.switchViewMode('platform');
+            }
+        });
+        
+        this.tenantViewRadio.addEventListener('change', () => {
+            if (this.tenantViewRadio.checked) {
+                this.switchViewMode('tenant');
+            }
+        });
+    }
+
+    // 切换视图模式
+    async switchViewMode(mode) {
+        console.log(`🔄 切换到${mode === 'platform' ? '平台' : '租户'}视图`);
+        
+        this.currentViewMode = mode;
+        
+        // 隐藏所有内容
+        this.hideMessages();
+        this.chartsContainer.style.display = 'none';
+        
+        if (mode === 'platform') {
+            // 显示平台视图，隐藏租户视图
+            this.platformViewContainer.style.display = 'block';
+            this.tenantViewContainer.style.display = 'none';
+            
+            // 检查URL中的平台参数
+            const platformFromURL = this.platformManager.getPlatformFromURL();
+            if (platformFromURL && this.platformManager.platformSelect.value !== platformFromURL) {
+                this.platformManager.platformSelect.value = platformFromURL;
+                await this.loadPlatformData(platformFromURL);
+            } else if (this.platformManager.getCurrentPlatform()) {
+                await this.loadPlatformData(this.platformManager.getCurrentPlatform());
+            } else {
+                this.updateRefreshButton(false);
+            }
+        } else {
+            // 显示租户视图，隐藏平台视图
+            this.platformViewContainer.style.display = 'none';
+            this.tenantViewContainer.style.display = 'block';
+            
+            // 加载租户列表
+            await this.tenantManager.loadTenants();
+            
+            // 检查URL中的租户参数，如果没有则使用默认租户
+            const tenantFromURL = this.tenantManager.getTenantFromURL();
+            if (tenantFromURL) {
+                // 输入框只显示租户ID
+                this.tenantManager.tenantInput.value = tenantFromURL;
+                await this.loadTenantCrossPlatformData(tenantFromURL);
+            }
+            // 注意：默认租户134301已在loadTenants()中设置
+        }
     }
 
     // 初始化应用
@@ -32,13 +110,25 @@ class Dashboard {
             // 加载平台列表
             await this.platformManager.loadPlatforms();
             
-            // 检查URL中的平台参数
+            // 检查URL参数决定初始视图模式
             const platformFromURL = this.platformManager.getPlatformFromURL();
-            if (platformFromURL) {
+            const tenantFromURL = this.tenantManager.getTenantFromURL();
+            
+            if (tenantFromURL) {
+                // 如果URL中有租户参数，切换到租户视图
+                this.tenantViewRadio.checked = true;
+                await this.switchViewMode('tenant');
+                
+                // 加载租户列表后设置租户输入框（只显示ID）
+                setTimeout(() => {
+                    this.tenantManager.tenantInput.value = tenantFromURL;
+                }, 100);
+            } else if (platformFromURL) {
+                // 如果URL中有平台参数，保持平台视图
                 this.platformManager.platformSelect.value = platformFromURL;
                 await this.loadPlatformData(platformFromURL);
             } else {
-                // 初始化时禁用刷新按钮
+                // 默认平台视图，禁用刷新按钮
                 this.updateRefreshButton(false);
             }
             
@@ -189,6 +279,15 @@ class Dashboard {
         }
     }
 
+    // 刷新当前选择的内容
+    async refreshCurrentSelection() {
+        if (this.currentViewMode === 'platform') {
+            await this.refreshCurrentPlatform();
+        } else {
+            await this.refreshCurrentTenant();
+        }
+    }
+
     // 强制刷新当前平台数据
     async refreshCurrentPlatform() {
         const currentPlatform = this.platformManager.getCurrentPlatform();
@@ -211,6 +310,31 @@ class Dashboard {
         } finally {
             this.isRefreshing = false;
             this.setRefreshButtonLoading(false);
+        }
+    }
+
+    // 强制刷新当前租户数据
+    async refreshCurrentTenant() {
+        const currentTenant = this.tenantManager.getCurrentTenant();
+        if (!currentTenant) {
+            alert('请先选择一个租户');
+            return;
+        }
+
+        if (this.isRefreshing) {
+            return; // 防止重复点击
+        }
+
+        try {
+            this.isRefreshing = true;
+            this.setRefreshTenantButtonLoading(true);
+            await this.loadTenantCrossPlatformData(currentTenant, true);
+        } catch (error) {
+            console.error('刷新失败:', error);
+            this.showTemporaryMessage('刷新失败: ' + error.message, 'error');
+        } finally {
+            this.isRefreshing = false;
+            this.setRefreshTenantButtonLoading(false);
         }
     }
 
@@ -325,12 +449,201 @@ class Dashboard {
         }, duration);
     }
 
+    // 加载租户跨平台数据
+    async loadTenantCrossPlatformData(tenantID, forceRefresh = false) {
+        if (!tenantID) {
+            this.showNoData('请选择一个租户查看数据');
+            this.updateRefreshTenantButton(false);
+            return;
+        }
+
+        try {
+            console.log(`👤 加载租户跨平台数据: ${tenantID} (强制刷新: ${forceRefresh})`);
+            this.showLoading(true);
+            this.hideMessages();
+            
+            // 构建URL
+            let url = `/api/tenant/${tenantID}`;
+            if (forceRefresh) {
+                url += '?refresh=true';
+            }
+            
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            if (result.success) {
+                this.currentData = this.convertCrossPlatformDataToTenantData(result.data);
+                this.currentCacheInfo = result.cache_info;
+                
+                // 更新租户缓存信息显示
+                this.updateTenantCacheInfo(this.currentCacheInfo, forceRefresh);
+                
+                // 启用刷新按钮
+                this.updateRefreshTenantButton(true);
+                
+                if (this.currentData.length > 0) {
+                    this.renderCrossPlatformCharts(result.data);
+                    console.log(`✅ 成功加载租户 ${tenantID} 的跨平台数据`);
+                    
+                    // 显示成功消息
+                    if (forceRefresh) {
+                        this.showTemporaryMessage('数据已刷新', 'success');
+                    }
+                } else {
+                    this.showNoData(`租户 ${result.tenant_name} 暂无数据`);
+                }
+            } else {
+                throw new Error(result.message || '加载数据失败');
+            }
+            
+        } catch (error) {
+            console.error('❌ 加载租户数据失败:', error);
+            this.showError(`加载租户数据失败: ${error.message}`);
+            this.updateRefreshTenantButton(false);
+        } finally {
+            this.showLoading(false);
+            this.setRefreshTenantButtonLoading(false);
+        }
+    }
+
+    // 将跨平台数据转换为图表数据格式
+    convertCrossPlatformDataToTenantData(crossPlatformData) {
+        const tenantDataList = [];
+        
+        for (const [platform, platformData] of Object.entries(crossPlatformData.platform_data)) {
+            tenantDataList.push(...platformData);
+        }
+        
+        return tenantDataList;
+    }
+
+    // 渲染跨平台图表
+    renderCrossPlatformCharts(crossPlatformData) {
+        // 清除现有图表
+        this.chartManager.destroyCharts();
+        
+        console.log('🎯 开始渲染跨平台图表...');
+        console.log('平台数据:', crossPlatformData.platform_data);
+        
+        // 为每个平台创建图表
+        for (const [platform, platformData] of Object.entries(crossPlatformData.platform_data)) {
+            console.log(`📊 处理平台: ${platform}, 数据数量: ${platformData.length}`);
+            
+            if (platformData.length > 0) {
+                platformData.forEach((tenantData, index) => {
+                    console.log(`  📈 创建图表 ${index + 1} for ${platform}:`, tenantData.tenant_name);
+                    
+                    // 修改图表标题以突出显示平台，并确保唯一的图表ID
+                    const modifiedTenantData = {
+                        ...tenantData,
+                        tenant_name: `${crossPlatformData.tenant_name} - ${platform}`,
+                        platform: platform,
+                        // 添加唯一标识符避免图表ID冲突
+                        chart_id: `tenant_${crossPlatformData.tenant_id}_${platform}_${index}`
+                    };
+                    
+                    this.chartManager.initChart(modifiedTenantData);
+                });
+            } else {
+                console.log(`  ⚠️ 平台 ${platform} 没有数据`);
+            }
+        }
+        
+        // 显示图表容器
+        this.chartsContainer.style.display = 'block';
+        
+        // 更新页面标题
+        const platformCount = Object.keys(crossPlatformData.platform_data).length;
+        this.updatePageTitle(`${platformCount}个平台`, 'tenant');
+        
+        console.log(`✅ 跨平台图表渲染完成，共${platformCount}个平台`);
+    }
+
+    // 更新租户缓存信息显示
+    updateTenantCacheInfo(cacheInfo, wasRefreshed = false) {
+        if (!cacheInfo) {
+            this.tenantCacheInfo.style.display = 'none';
+            return;
+        }
+
+        this.tenantCacheInfo.style.display = 'block';
+        
+        // 格式化时间
+        const updateTime = new Date(cacheInfo.updated_at);
+        const now = new Date();
+        const diffMinutes = Math.floor((now - updateTime) / 1000 / 60);
+        
+        let timeText;
+        if (diffMinutes < 1) {
+            timeText = '刚刚更新';
+        } else if (diffMinutes < 60) {
+            timeText = `${diffMinutes}分钟前更新`;
+        } else {
+            const diffHours = Math.floor(diffMinutes / 60);
+            if (diffHours < 24) {
+                timeText = `${diffHours}小时前更新`;
+            } else {
+                timeText = updateTime.toLocaleDateString();
+            }
+        }
+        
+        this.tenantCacheTime.textContent = timeText;
+        
+        // 设置状态徽章
+        this.tenantCacheBadge.className = 'cache-badge';
+        if (wasRefreshed || diffMinutes < 1) {
+            this.tenantCacheBadge.textContent = '最新';
+            this.tenantCacheBadge.classList.add('fresh');
+        } else if (cacheInfo.is_expired) {
+            this.tenantCacheBadge.textContent = '已过期';
+            this.tenantCacheBadge.classList.add('expired');
+        } else {
+            this.tenantCacheBadge.textContent = '缓存';
+            this.tenantCacheBadge.classList.add('cached');
+        }
+    }
+
+    // 更新租户刷新按钮状态
+    updateRefreshTenantButton(enabled) {
+        if (this.refreshTenantButton) {
+            this.refreshTenantButton.disabled = !enabled;
+        }
+    }
+
+    // 设置租户刷新按钮加载状态
+    setRefreshTenantButtonLoading(loading) {
+        if (!this.refreshTenantButton) return;
+        
+        if (loading) {
+            this.refreshTenantButton.classList.add('loading');
+            this.refreshTenantButton.disabled = true;
+            const textElement = this.refreshTenantButton.querySelector('.refresh-text');
+            if (textElement) {
+                textElement.textContent = '刷新中...';
+            }
+        } else {
+            this.refreshTenantButton.classList.remove('loading');
+            this.refreshTenantButton.disabled = false;
+            const textElement = this.refreshTenantButton.querySelector('.refresh-text');
+            if (textElement) {
+                textElement.textContent = '刷新数据';
+            }
+        }
+    }
+
     // 更新页面标题
-    updatePageTitle(chartCount) {
-        const platform = this.platformManager.getPlatformDisplayName(
-            this.platformManager.getCurrentPlatform()
-        );
-        document.title = `数据监控看板 - ${platform} (${chartCount}个租户)`;
+    updatePageTitle(chartCount, mode = 'platform') {
+        if (mode === 'tenant') {
+            const tenantName = this.tenantManager.getTenantDisplayName(
+                this.tenantManager.getCurrentTenant()
+            );
+            document.title = `数据监控看板 - ${tenantName} (${chartCount})`;
+        } else {
+            const platform = this.platformManager.getPlatformDisplayName(
+                this.platformManager.getCurrentPlatform()
+            );
+            document.title = `数据监控看板 - ${platform} (${chartCount}个租户)`;
+        }
     }
 
     // 获取应用统计信息
@@ -411,7 +724,7 @@ document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
         e.preventDefault();
         if (window.dashboard) {
-            window.dashboard.refreshCurrentPlatform();
+            window.dashboard.refreshCurrentSelection();
         }
     }
     
@@ -420,6 +733,19 @@ document.addEventListener('keydown', function(e) {
         e.preventDefault();
         if (window.dashboard) {
             window.dashboard.refresh();
+        }
+    }
+    
+    // Ctrl/Cmd + T: 切换视图模式
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        if (window.dashboard) {
+            const newMode = window.dashboard.currentViewMode === 'platform' ? 'tenant' : 'platform';
+            const radio = document.getElementById(`${newMode}-view`);
+            if (radio) {
+                radio.checked = true;
+                window.dashboard.switchViewMode(newMode);
+            }
         }
     }
     

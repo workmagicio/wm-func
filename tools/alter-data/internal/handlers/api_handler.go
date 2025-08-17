@@ -166,6 +166,156 @@ func (h *APIHandler) GetCacheStats(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// GetTenants 获取租户列表
+func (h *APIHandler) GetTenants(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	tenantList, err := h.dashboardService.GetTenantList()
+	if err != nil {
+		response := models.TenantListResponse{
+			Success: false,
+			Data:    []models.TenantInfo{},
+			Message: err.Error(),
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	response := models.TenantListResponse{
+		Success: true,
+		Data:    tenantList,
+		Message: fmt.Sprintf("成功加载 %d 个租户", len(tenantList)),
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetTenantCrossPlatformData 获取指定租户的跨平台数据
+func (h *APIHandler) GetTenantCrossPlatformData(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	vars := mux.Vars(r)
+	tenantIDStr := vars["tenant_id"]
+
+	tenantID, err := strconv.ParseInt(tenantIDStr, 10, 64)
+	if err != nil {
+		response := models.TenantCrossPlatformResponse{
+			Success:    false,
+			TenantID:   0,
+			TenantName: "",
+			Data:       models.CrossPlatformData{},
+			Message:    "无效的租户ID: " + tenantIDStr,
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// 检查是否强制刷新
+	forceRefresh := r.URL.Query().Get("refresh") == "true"
+
+	crossPlatformData, err := h.dashboardService.GetTenantCrossPlatformDataWithRefresh(tenantID, forceRefresh)
+	if err != nil {
+		response := models.TenantCrossPlatformResponse{
+			Success:    false,
+			TenantID:   tenantID,
+			TenantName: fmt.Sprintf("Tenant %d", tenantID),
+			Data:       models.CrossPlatformData{},
+			Message:    err.Error(),
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// 获取缓存信息
+	cacheInfo := h.dashboardService.GetTenantCacheInfo(tenantID)
+
+	message := "数据加载成功"
+	if forceRefresh {
+		message = "数据已强制刷新"
+	} else if cacheInfo != nil {
+		message = "数据加载成功（来自缓存）"
+	}
+
+	response := models.TenantCrossPlatformResponse{
+		Success:    true,
+		TenantID:   tenantID,
+		TenantName: crossPlatformData.TenantName,
+		Data:       crossPlatformData,
+		Message:    message,
+		CacheInfo:  cacheInfo,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// RefreshTenantData 刷新指定租户的缓存数据
+func (h *APIHandler) RefreshTenantData(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	vars := mux.Vars(r)
+	tenantIDStr := vars["tenant_id"]
+
+	tenantID, err := strconv.ParseInt(tenantIDStr, 10, 64)
+	if err != nil {
+		response := models.TenantCrossPlatformResponse{
+			Success:    false,
+			TenantID:   0,
+			TenantName: "",
+			Data:       models.CrossPlatformData{},
+			Message:    "无效的租户ID: " + tenantIDStr,
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err = h.dashboardService.RefreshTenantCache(tenantID)
+	if err != nil {
+		response := models.TenantCrossPlatformResponse{
+			Success:    false,
+			TenantID:   tenantID,
+			TenantName: fmt.Sprintf("Tenant %d", tenantID),
+			Data:       models.CrossPlatformData{},
+			Message:    err.Error(),
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// 获取刷新后的数据
+	crossPlatformData, err := h.dashboardService.GetTenantCrossPlatformData(tenantID)
+	if err != nil {
+		response := models.TenantCrossPlatformResponse{
+			Success:    false,
+			TenantID:   tenantID,
+			TenantName: fmt.Sprintf("Tenant %d", tenantID),
+			Data:       models.CrossPlatformData{},
+			Message:    err.Error(),
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// 获取缓存信息
+	cacheInfo := h.dashboardService.GetTenantCacheInfo(tenantID)
+
+	response := models.TenantCrossPlatformResponse{
+		Success:    true,
+		TenantID:   tenantID,
+		TenantName: crossPlatformData.TenantName,
+		Data:       crossPlatformData,
+		Message:    "缓存已刷新",
+		CacheInfo:  cacheInfo,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 // handleError 统一错误处理
 func (h *APIHandler) handleError(w http.ResponseWriter, platform string, err error, statusCode int) {
 	response := models.DashboardResponse{

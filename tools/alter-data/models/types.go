@@ -5,6 +5,7 @@ import "time"
 // AlterData 原始数据模型 (数据库查询结果)
 type AlterData struct {
 	TenantId int64  `gorm:"column:tenant_id"`
+	Platform string `gorm:"column:platform"` // 新增平台字段，用于跨平台查询
 	RawDate  string `gorm:"column:raw_date"`
 	ApiSpend int64  `gorm:"column:api_spend"`
 	AdSpend  int64  `gorm:"column:ad_spend"`
@@ -66,4 +67,34 @@ type CacheStats struct {
 	ValidItems   int           `json:"valid_items"`
 	CacheDir     string        `json:"cache_dir"`
 	TTL          time.Duration `json:"ttl"`
+}
+
+// TenantInfo 租户信息
+type TenantInfo struct {
+	TenantID   int64  `json:"tenant_id"`
+	TenantName string `json:"tenant_name"`
+}
+
+// TenantListResponse 租户列表响应
+type TenantListResponse struct {
+	Success bool         `json:"success"`
+	Data    []TenantInfo `json:"data"`
+	Message string       `json:"message"`
+}
+
+// CrossPlatformData 跨平台数据 (按平台组织的租户数据)
+type CrossPlatformData struct {
+	TenantID     int64                   `json:"tenant_id"`
+	TenantName   string                  `json:"tenant_name"`
+	PlatformData map[string][]TenantData `json:"platform_data"` // key: platform name, value: tenant data for that platform
+}
+
+// TenantCrossPlatformResponse 租户跨平台数据响应
+type TenantCrossPlatformResponse struct {
+	Success    bool              `json:"success"`
+	TenantID   int64             `json:"tenant_id"`
+	TenantName string            `json:"tenant_name"`
+	Data       CrossPlatformData `json:"data"`
+	Message    string            `json:"message"`
+	CacheInfo  *CacheInfo        `json:"cache_info,omitempty"`
 }
