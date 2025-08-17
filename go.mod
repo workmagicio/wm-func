@@ -3,6 +3,7 @@ module wm-func
 go 1.23.3
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/philchia/agollo/v4 v4.1.5
 	github.com/xuri/excelize/v2 v2.9.1
