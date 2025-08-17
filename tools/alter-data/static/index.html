@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据监控看板 - 广告平台数据一致性监控</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">📊 数据监控看板</h1>
+            <p class="header-subtitle">广告平台数据一致性监控 - API消费 vs Overview 页面展示消费对比</p>
+        </header>
+
+        <!-- Platform Selector -->
+        <div class="platform-selector">
+            <label for="platform-select" class="platform-label">选择平台:</label>
+            <select id="platform-select" class="platform-select">
+                <option value="">加载中...</option>
+            </select>
+            <div class="loading-indicator" id="loading-indicator" style="display: none;">
+                <span class="spinner"></span>
+                <span>数据加载中...</span>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-container" id="charts-container">
+            <div class="charts-grid" id="charts-grid">
+                <!-- 动态生成图表 -->
+            </div>
+        </div>
+
+        <!-- No Data Message -->
+        <div class="no-data-message" id="no-data-message" style="display: none;">
+            <div class="no-data-icon">📈</div>
+            <h3>暂无数据</h3>
+            <p>请选择一个已实现的平台查看数据，或检查数据连接是否正常。</p>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="error-message" style="display: none;">
+            <div class="error-icon">❌</div>
+            <h3>加载失败</h3>
+            <p id="error-text">网络连接错误，请稍后重试。</p>
+            <button onclick="dashboard.retryLoad()" class="retry-button">重试</button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 WorkMagic 数据监控系统 | 实时监控广告平台数据一致性</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/static/js/chart.js"></script>
+    <script src="/static/js/platform.js"></script>
+    <script src="/static/js/app.js"></script>
+    
+    <script>
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dashboard = new Dashboard();
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>

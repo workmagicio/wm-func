@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"wm-func/tools/alter-data/config"
 	"wm-func/tools/alter-data/models"
@@ -41,7 +42,12 @@ func (s *DashboardService) GetPlatformData(platformName string) ([]models.Tenant
 	}
 
 	// 转换为前端格式
-	return s.convertToTenantData(platformName, rawDataMap), nil
+	tenantDataList := s.convertToTenantData(platformName, rawDataMap)
+
+	// 按差异值排序，差异最多的排在前面
+	s.sortByDifference(tenantDataList)
+
+	return tenantDataList, nil
 }
 
 // GetTenantData 获取指定租户的平台数据
@@ -109,4 +115,32 @@ func (s *DashboardService) convertSingleTenantData(platformName string, tenantID
 // generateTenantName 生成租户名称（可以后续从数据库获取真实名称）
 func (s *DashboardService) generateTenantName(tenantID int64) string {
 	return "Tenant " + strconv.FormatInt(tenantID, 10)
+}
+
+// sortByDifference 按差异值排序租户数据，差异最多的排在前面
+func (s *DashboardService) sortByDifference(tenantDataList []models.TenantData) {
+	sort.Slice(tenantDataList, func(i, j int) bool {
+		// 计算每个租户的总差异值
+		totalDiffI := s.calculateTotalDifference(tenantDataList[i])
+		totalDiffJ := s.calculateTotalDifference(tenantDataList[j])
+
+		// 按总差异值降序排序（差异最多的在前面）
+		return totalDiffI > totalDiffJ
+	})
+}
+
+// calculateTotalDifference 计算租户的总差异值
+func (s *DashboardService) calculateTotalDifference(tenantData models.TenantData) int64 {
+	var totalDiff int64 = 0
+
+	// 计算所有差异值的绝对值之和
+	for _, diff := range tenantData.Difference {
+		if diff < 0 {
+			totalDiff += -diff // 取绝对值
+		} else {
+			totalDiff += diff
+		}
+	}
+
+	return totalDiff
 }
