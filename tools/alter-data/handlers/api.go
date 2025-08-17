@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"wm-func/tools/alter-data/models"
@@ -27,10 +28,15 @@ func (h *APIHandler) GetPlatforms(w http.ResponseWriter, r *http.Request) {
 
 	platforms := h.dashboardService.GetAvailablePlatforms()
 
+	fmt.Printf("🔍 DEBUG: API Handler got %d platforms from service\n", len(platforms))
+	for i, p := range platforms {
+		fmt.Printf("  Handler: %d: %s -> %s\n", i+1, p.Name, p.DisplayName)
+	}
+
 	response := models.PlatformResponse{
 		Success: true,
 		Data:    platforms,
-		Message: "Platforms loaded successfully",
+		Message: fmt.Sprintf("Platforms loaded successfully - Count: %d", len(platforms)),
 	}
 
 	json.NewEncoder(w).Encode(response)

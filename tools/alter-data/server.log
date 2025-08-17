@@ -1,0 +1,7 @@
+🚀 数据监控看板服务已启动
+📊 访问地址: http://localhost:8090
+🔗 API 接口:
+   GET /api/platforms
+   GET /api/data/{platform}
+   GET /api/data/{platform}/{tenant_id}
+📁 已实现平台: [google]

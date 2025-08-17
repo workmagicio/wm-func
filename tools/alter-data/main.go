@@ -13,6 +13,8 @@ import (
 func main() {
 	// 注册平台实现
 	platforms.RegisterPlatform(&platforms.GooglePlatform{})
+	platforms.RegisterPlatform(&platforms.MetaPlatform{})
+	platforms.RegisterPlatform(&platforms.AppLovinPlatform{})
 
 	// 创建处理器
 	apiHandler := handlers.NewAPIHandler()
