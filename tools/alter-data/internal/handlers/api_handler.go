@@ -281,6 +281,9 @@ func (h *APIHandler) GetTenantCrossPlatformData(w http.ResponseWriter, r *http.R
 	// 检查是否强制刷新
 	forceRefresh := r.URL.Query().Get("refresh") == "true"
 
+	// 记录租户访问（每次调用API都记录，不管是否refresh）
+	h.dashboardService.RecordTenantAccess(tenantID)
+
 	crossPlatformData, err := h.dashboardService.GetTenantCrossPlatformDataWithRefresh(tenantID, forceRefresh)
 	if err != nil {
 		response := models.TenantCrossPlatformResponse{

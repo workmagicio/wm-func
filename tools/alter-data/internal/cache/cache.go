@@ -52,6 +52,9 @@ func NewCacheManager(cacheDir string, ttl time.Duration) (*CacheManager, error) 
 		fmt.Printf("Warning: failed to load access records: %v\n", err)
 	}
 
+	// 启动定时保存访问记录的协程（每3分钟保存一次）
+	go cm.startPeriodicSave()
+
 	return cm, nil
 }
 
@@ -83,7 +86,7 @@ func (cm *CacheManager) Set(platform string, data []models.TenantData) error {
 		Platform:  platform,
 		Data:      data,
 		UpdatedAt: now,
-		ExpiresAt: now.Add(cm.cacheTTL),
+		ExpiresAt: now.Add(100 * 365 * 24 * time.Hour), // 100年后过期，实际上永不过期
 	}
 
 	// 更新内存缓存
@@ -106,17 +109,17 @@ func (cm *CacheManager) GetLastUpdateTime(platform string) *time.Time {
 	return &item.UpdatedAt
 }
 
-// IsExpired 检查缓存是否过期
+// IsExpired 检查缓存是否过期 (现在永不过期，只在手动刷新时更新)
 func (cm *CacheManager) IsExpired(platform string) bool {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
-	item, exists := cm.memoryCache[platform]
+	_, exists := cm.memoryCache[platform]
 	if !exists {
-		return true
+		return true // 如果不存在，视为过期
 	}
 
-	return time.Now().After(item.ExpiresAt)
+	return false // 缓存永不过期，只能手动刷新
 }
 
 // Delete 删除缓存
@@ -146,7 +149,7 @@ func (cm *CacheManager) GetAllPlatformsCacheInfo() map[string]models.CacheInfo {
 			Platform:  platform,
 			UpdatedAt: item.UpdatedAt,
 			ExpiresAt: item.ExpiresAt,
-			IsExpired: time.Now().After(item.ExpiresAt),
+			IsExpired: false, // 缓存永不过期
 			DataCount: len(item.Data),
 		}
 	}
@@ -235,21 +238,14 @@ func (cm *CacheManager) GetCacheStats() models.CacheStats {
 	defer cm.mu.RUnlock()
 
 	totalItems := len(cm.memoryCache)
-	expiredItems := 0
-	now := time.Now()
-
-	for _, item := range cm.memoryCache {
-		if now.After(item.ExpiresAt) {
-			expiredItems++
-		}
-	}
+	expiredItems := 0 // 现在没有过期项，因为缓存永不过期
 
 	return models.CacheStats{
 		TotalItems:   totalItems,
 		ExpiredItems: expiredItems,
-		ValidItems:   totalItems - expiredItems,
+		ValidItems:   totalItems, // 所有项都有效
 		CacheDir:     cm.cacheDir,
-		TTL:          cm.cacheTTL,
+		TTL:          cm.cacheTTL, // 保留原TTL信息（虽然不再使用）
 	}
 }
 
@@ -276,13 +272,7 @@ func (cm *CacheManager) RecordTenantAccess(tenantID int64, tenantName string) {
 		}
 	}
 
-	// 异步保存到磁盘（避免阻塞）
-	go func() {
-		if err := cm.saveAccessRecordsToDisk(); err != nil {
-			// 只记录错误，不影响主流程
-			// log.Printf("Failed to save access records: %v", err)
-		}
-	}()
+	// 不再每次访问都保存，改为定时保存（每3分钟一次）
 }
 
 // GetFrequentTenants 获取经常访问的租户（按访问次数排序，取前20个）
@@ -335,6 +325,25 @@ func (cm *CacheManager) saveAccessRecordsToDisk() error {
 	}
 
 	return nil
+}
+
+// startPeriodicSave 启动定时保存访问记录的协程（每3分钟保存一次）
+func (cm *CacheManager) startPeriodicSave() {
+	ticker := time.NewTicker(3 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			// 定时保存访问记录
+			if err := cm.saveAccessRecordsToDisk(); err != nil {
+				// 保存失败只记录日志，不影响程序运行
+				fmt.Printf("Warning: failed to save access records: %v\n", err)
+			} else {
+				fmt.Printf("Access records saved successfully at %v\n", time.Now().Format("2006-01-02 15:04:05"))
+			}
+		}
+	}
 }
 
 // loadAccessRecordsFromDisk 从磁盘加载访问记录

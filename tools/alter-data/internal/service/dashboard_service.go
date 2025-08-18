@@ -20,7 +20,8 @@ type DashboardService struct {
 
 // NewDashboardService 创建仪表板服务实例
 func NewDashboardService() *DashboardService {
-	// 创建缓存管理器，缓存30分钟
+	// 创建缓存管理器，缓存永不过期（只在手动刷新时更新）
+	// TTL参数保留但不再使用，实际缓存时间设为100年
 	cacheManager, err := cache.NewCacheManager("./cache", 30*time.Minute)
 	if err != nil {
 		log.Printf("Failed to initialize cache manager: %v", err)
@@ -138,8 +139,8 @@ func (s *DashboardService) GetCacheInfo(platformName string) *models.CacheInfo {
 	return &models.CacheInfo{
 		Platform:  platformName,
 		UpdatedAt: *updateTime,
-		ExpiresAt: updateTime.Add(30 * time.Minute), // TTL是30分钟
-		IsExpired: isExpired,
+		ExpiresAt: updateTime.Add(100 * 365 * 24 * time.Hour), // 100年后过期，实际上永不过期
+		IsExpired: isExpired,                                  // 现在总是false（除非缓存不存在）
 	}
 }
 
@@ -342,20 +343,7 @@ func (s *DashboardService) GetTenantCrossPlatformDataWithRefresh(tenantID int64,
 
 	log.Printf("Fetching fresh cross-platform data for tenant %d (force_refresh=%v)", tenantID, forceRefresh)
 
-	// 记录租户访问（只有在实际获取数据时才记录）
-	if s.cacheManager != nil {
-		// 先尝试从租户列表中获取租户名称
-		tenantName := fmt.Sprintf("Tenant %d", tenantID)
-		if tenantList, err := s.GetTenantList(); err == nil {
-			for _, tenant := range tenantList {
-				if tenant.TenantID == tenantID {
-					tenantName = tenant.TenantName
-					break
-				}
-			}
-		}
-		s.cacheManager.RecordTenantAccess(tenantID, tenantName)
-	}
+	// 访问记录已移到API层，这里不再记录
 
 	sql, exists := config.GetQuerySQL("tenant_cross_platform_query")
 	if !exists {
@@ -480,4 +468,24 @@ func (s *DashboardService) GetFrequentTenants() ([]models.TenantAccessRecord, er
 
 	records := s.cacheManager.GetFrequentTenants()
 	return records, nil
+}
+
+// RecordTenantAccess 记录租户访问（每次API调用都记录）
+func (s *DashboardService) RecordTenantAccess(tenantID int64) {
+	if s.cacheManager == nil {
+		return
+	}
+
+	// 获取租户名称
+	tenantName := fmt.Sprintf("Tenant %d", tenantID)
+	if tenantList, err := s.GetTenantList(); err == nil {
+		for _, tenant := range tenantList {
+			if tenant.TenantID == tenantID {
+				tenantName = tenant.TenantName
+				break
+			}
+		}
+	}
+
+	s.cacheManager.RecordTenantAccess(tenantID, tenantName)
 }
