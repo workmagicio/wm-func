@@ -9,11 +9,38 @@
    POST /api/refresh/{platform} - 刷新平台缓存
 👤 租户视图:
    GET  /api/tenants - 获取租户列表
+   GET  /api/tenants/recent - 获取最近15天注册租户
    GET  /api/tenant/{tenant_id} - 获取租户跨平台数据
    GET  /api/tenant/{tenant_id}?refresh=true - 强制刷新租户数据
    POST /api/tenant/{tenant_id}/refresh - 刷新租户缓存
 🔧 系统:
    GET  /api/cache/stats - 获取缓存统计
-📁 已实现平台: [google meta applovin tiktok pinterest]
-2025/08/17 12:57:15 listen tcp :8090: bind: address already in use
-exit status 1
+📁 已实现平台: [google meta applovin tiktok pinterest shopify]
+2025/08/17 16:52:08 Using cached recent tenants (updated at 2025-08-17 16:22:49.815726 +0800 CST)
+2025/08/17 16:52:08 Using cached data for platform google (updated at 2025-08-17 16:22:53.708482 +0800 CST)
+2025/08/17 16:52:08 Using cached tenant list (updated at 2025-08-17 16:22:55.067508 +0800 CST)
+2025/08/17 16:52:08 Using cached data for tenant 134301 (updated at 2025-08-17 16:43:30.306097 +0800 CST)
+2025/08/17 16:52:08 Using cached data for tenant 134301 (updated at 2025-08-17 16:43:30.306097 +0800 CST)
+2025/08/17 16:52:13 Fetching fresh cross-platform data for tenant 134301 (force_refresh=true)
+2025/08/17 16:52:13 Using cached tenant list (updated at 2025-08-17 16:22:55.067508 +0800 CST)
+2025/08/17 16:52:28 Data cached for tenant 134301
+2025/08/17 16:52:43 Using cached data for platform google (updated at 2025-08-17 16:22:53.708482 +0800 CST)
+2025/08/17 16:52:45 Using cached data for platform shopify (updated at 2025-08-17 16:22:59.986619 +0800 CST)
+2025/08/17 17:02:59 Fetching fresh tenant list (force_refresh=false)
+2025/08/17 17:03:04 Tenant list cached (96 tenants)
+2025/08/17 17:03:04 Using cached data for tenant 134301 (updated at 2025-08-17 16:52:28.927663 +0800 CST m=+54.359993168)
+2025/08/18 08:45:39 Fetching fresh data for platform shopify (force_refresh=false)
+2025/08/18 08:45:42 Fetching fresh recent registered tenants (force_refresh=false)
+2025/08/18 08:45:42 Fetching fresh data for platform google (force_refresh=false)
+2025/08/18 08:45:43 Data cached for platform shopify
+2025/08/18 08:45:44 Recent tenants cached (2 tenants)
+2025/08/18 08:45:48 Data cached for platform google
+2025/08/18 08:45:48 Fetching fresh tenant list (force_refresh=false)
+2025/08/18 08:45:50 Tenant list cached (96 tenants)
+2025/08/18 08:45:50 Fetching fresh cross-platform data for tenant 134301 (force_refresh=false)
+2025/08/18 08:45:50 Using cached tenant list (updated at 2025-08-18 08:45:50.130281 +0800 CST m=+55067.176615418)
+2025/08/18 08:45:51 Using cached data for platform google (updated at 2025-08-18 08:45:48.83553 +0800 CST m=+55065.881865876)
+2025/08/18 08:45:57 Data cached for tenant 134301
+2025/08/18 08:45:57 Using cached data for tenant 134301 (updated at 2025-08-18 08:45:57.375198 +0800 CST m=+55074.421520543)
+2025/08/18 08:46:00 Fetching fresh data for platform google (force_refresh=true)
+2025/08/18 08:46:02 Data cached for platform google

@@ -523,27 +523,34 @@ class Dashboard {
         this.chartManager.destroyCharts();
         
         console.log('🎯 开始渲染跨平台图表...');
-        console.log('平台数据:', crossPlatformData.platform_data);
+        console.log('租户:', crossPlatformData.tenant_name, '平台数量:', Object.keys(crossPlatformData.platform_data).length);
         
         // 为每个平台创建图表
         for (const [platform, platformData] of Object.entries(crossPlatformData.platform_data)) {
             console.log(`📊 处理平台: ${platform}, 数据数量: ${platformData.length}`);
             
             if (platformData.length > 0) {
-                platformData.forEach((tenantData, index) => {
-                    console.log(`  📈 创建图表 ${index + 1} for ${platform}:`, tenantData.tenant_name);
-                    
-                    // 修改图表标题以突出显示平台，并确保唯一的图表ID
-                    const modifiedTenantData = {
-                        ...tenantData,
-                        tenant_name: `${crossPlatformData.tenant_name} - ${platform}`,
-                        platform: platform,
-                        // 添加唯一标识符避免图表ID冲突
-                        chart_id: `tenant_${crossPlatformData.tenant_id}_${platform}_${index}`
-                    };
-                    
-                    this.chartManager.initChart(modifiedTenantData);
-                });
+                // 租户视图中每个平台只应该有一个数据项，取第一个
+                const tenantData = platformData[0];
+                
+                // 验证数据是否属于当前租户
+                if (tenantData.tenant_id !== crossPlatformData.tenant_id) {
+                    console.warn(`⚠️ 数据不匹配: 期望租户 ${crossPlatformData.tenant_id}, 实际 ${tenantData.tenant_id}`);
+                    continue;
+                }
+                
+                console.log(`  📈 创建图表 for ${platform}:`, tenantData.tenant_name);
+                
+                // 修改图表标题以突出显示平台，并确保唯一的图表ID
+                const modifiedTenantData = {
+                    ...tenantData,
+                    tenant_name: `${crossPlatformData.tenant_name} - ${platform}`,
+                    platform: platform,
+                    // 简化图表ID，每个平台一个
+                    chart_id: `tenant_${crossPlatformData.tenant_id}_${platform}`
+                };
+                
+                this.chartManager.initChart(modifiedTenantData);
             } else {
                 console.log(`  ⚠️ 平台 ${platform} 没有数据`);
             }

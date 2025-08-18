@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  my-go-app:
+    image: alpine:latest
+    volumes:
+      - ./alter-data:/app/alter-data  # 挂载二进制文件
+      - ./static:/app/static          # 挂载静态文件目录
+      - ./cache:/app/cache           # 挂载缓存目录（如果需要持久化缓存）
+    working_dir: /app
+    restart: always
+    command: ["./alter-data"]
+    ports:
+      - "8090:8090"  # 暴露端口，方便外部访问
+    environment:
+      - TZ=Asia/Shanghai  # 设置时区

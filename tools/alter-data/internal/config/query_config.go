@@ -392,6 +392,42 @@ with
             and tiktok_api.RAW_DATE = tiktok_ads.EVENT_DATE
     ),
     
+    shopify_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(orders), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'shopify'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    shopify_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            sum(total_orders) as ad_spend
+        from platform_offline.ads_view_overview_sales_and_profit_latest
+        where event_date >= utc_date() - interval 90 day
+          and sales_platform = 'shopify'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    shopify_merge as (
+        select
+            shopify_api.TENANT_ID,
+            'Shopify' as platform,
+            shopify_api.RAW_DATE,
+            shopify_api.spend as api_spend,
+            coalesce(shopify_ads.ad_spend, 0) as ad_spend
+        from
+            shopify_api
+            left join shopify_ads on shopify_api.TENANT_ID = shopify_ads.TENANT_ID 
+            and shopify_api.RAW_DATE = shopify_ads.EVENT_DATE
+    ),
+    
     all_platforms as (
         select * from google_merge
         UNION ALL
@@ -400,6 +436,8 @@ with
         select * from applovin_merge
         UNION ALL
         select * from tiktok_merge
+        UNION ALL
+        select * from shopify_merge
     ),
     
     result as (
@@ -453,6 +491,61 @@ from
 where register_time > utc_date() - interval 15 day
 order by register_time desc
 limit 50`,
+	},
+
+	"shopify_query": {
+		Key:         "shopify_query",
+		Name:        "Shopify订单数据查询",
+		Description: "查询Shopify电商平台的API订单数据和概览订单数据对比",
+		SQL: `
+with
+    api as (
+        select
+            tenant_id,
+            RAW_DATE,
+            round(sum(orders), 0) as api_data
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'shopify'
+          and RAW_DATE > utc_date() - interval 70 day
+        group by 1, 2
+    ),
+    ads as (
+        select
+            tenant_id,
+            event_date,
+            sum(total_orders) as overview_data
+        from platform_offline.ads_view_overview_sales_and_profit_latest
+        where ((event_date >= utc_date() - interval 70 day) and
+               sales_platform = 'shopify')
+        group by tenant_id, event_date
+    ),
+    merge as (
+        select
+            api.TENANT_ID,
+            api.RAW_DATE,
+            api.api_data as api_spend,
+            coalesce(ads.overview_data, 0) as ad_spend
+        from
+            api
+            left join ads
+                      on api.TENANT_ID = ads.TENANT_ID and api.RAW_DATE = ads.EVENT_DATE
+    ),
+    result as (
+        select
+            merge.*
+        from
+            merge
+            join platform_offline.dwd_view_analytics_non_testing_tenants as b
+                 on merge.TENANT_ID = b.tenant_id
+    )
+select
+    tenant_id,
+    raw_date,
+    api_spend,
+    ad_spend
+from
+    result`,
 	},
 }
 

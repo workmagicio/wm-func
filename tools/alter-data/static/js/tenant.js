@@ -280,6 +280,15 @@ class TenantManager {
             this.showLoading(true);
             this.currentTenant = tenantID;
             
+            // 强制清除所有现有图表
+            if (window.dashboard && window.dashboard.chartManager) {
+                console.log('🧹 租户切换：强制清除现有图表');
+                window.dashboard.chartManager.destroyCharts();
+                
+                // 等待图表清除完成
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
             // 通知主应用程序租户已切换
             if (window.dashboard) {
                 await window.dashboard.loadTenantCrossPlatformData(tenantID);

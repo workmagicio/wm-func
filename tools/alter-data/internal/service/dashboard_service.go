@@ -362,10 +362,10 @@ func (s *DashboardService) GetTenantCrossPlatformDataWithRefresh(tenantID int64,
 		return models.CrossPlatformData{}, fmt.Errorf("tenant cross-platform query not found")
 	}
 
-	// 跨平台查询需要8个参数，每个平台的API和Ads查询各需要一个tenantID参数
-	// Google(2) + Meta(2) + AppLovin(2) + TikTok(2) = 8个参数
+	// 跨平台查询需要10个参数，每个平台的API和Ads查询各需要一个tenantID参数
+	// Google(2) + Meta(2) + AppLovin(2) + TikTok(2) + Shopify(2) = 10个参数
 	processor := data.NewDataProcessor()
-	rawData, err := processor.ExecuteQueryWithParams(sql, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID)
+	rawData, err := processor.ExecuteQueryWithParams(sql, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID, tenantID)
 	if err != nil {
 		return models.CrossPlatformData{}, fmt.Errorf("failed to fetch cross-platform data for tenant %d: %w", tenantID, err)
 	}

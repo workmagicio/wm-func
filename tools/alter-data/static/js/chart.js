@@ -333,11 +333,26 @@ class ChartManager {
 
     // 销毁所有图表
     destroyCharts() {
-        this.charts.forEach((chart) => {
-            chart.dispose();
+        console.log('🧹 开始清除所有图表...');
+        
+        // 销毁ECharts实例
+        this.charts.forEach((chart, chartId) => {
+            console.log(`  🗑️ 销毁图表: ${chartId}`);
+            if (chart && typeof chart.dispose === 'function') {
+                chart.dispose();
+            }
         });
         this.charts.clear();
-        this.chartsContainer.innerHTML = '';
+        
+        // 强制清空容器
+        if (this.chartsContainer) {
+            this.chartsContainer.innerHTML = '';
+        }
+        
+        // 等待DOM更新完成
+        setTimeout(() => {
+            console.log('✅ 图表清除完成，当前容器内容:', this.chartsContainer?.innerHTML || 'empty');
+        }, 100);
     }
 
     // 重新渲染所有图表（窗口大小变化时使用）

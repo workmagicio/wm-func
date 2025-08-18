@@ -48,6 +48,13 @@ var platformConfigs = []PlatformConfig{
 		Enabled:     false,
 		Description: "Pinterest广告平台数据（待实现）",
 	},
+	{
+		Name:        "shopify",
+		DisplayName: "Shopify",
+		QueryKey:    "shopify_query",
+		Enabled:     true,
+		Description: "Shopify电商平台订单数据",
+	},
 }
 
 // GetAllPlatformConfigs 获取所有平台配置
