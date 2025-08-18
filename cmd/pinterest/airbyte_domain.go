@@ -105,22 +105,19 @@ func TransformCampaignToAirbyte(campaign Campaign, tenantId int64) OdsCampaignCa
 
 // 批量转换并保存 Campaign 数据到 Airbyte
 func SaveCampaignsToAirbyte(campaigns []Campaign, tenantId int64) error {
-	// TODO 标记一下，开发完之后去掉 ai 你不要动这里
-	return nil
-
 	// 以下代码暂时被注释，等开发完成后启用
-	// if len(campaigns) == 0 {
-	//	return nil
-	// }
-	//
-	// // 转换为 Airbyte 格式
-	// airbyteData := make([]OdsCampaignCache, len(campaigns))
-	// for i, campaign := range campaigns {
-	//	airbyteData[i] = TransformCampaignToAirbyte(campaign, tenantId)
-	// }
-	//
-	// // 保存到数据库
-	// return Save(airbyteData)
+	if len(campaigns) == 0 {
+		return nil
+	}
+
+	// 转换为 Airbyte 格式
+	airbyteData := make([]OdsCampaignCache, len(campaigns))
+	for i, campaign := range campaigns {
+		airbyteData[i] = TransformCampaignToAirbyte(campaign, tenantId)
+	}
+
+	// 保存到数据库
+	return Save(airbyteData)
 }
 
 // 生成唯一的 AdGroup Raw ID
@@ -188,8 +185,6 @@ func TransformAdGroupToAirbyte(adGroup AdGroup, tenantId int64) RawPinterestAdGr
 
 // 批量转换并保存 AdGroup 数据到 Airbyte
 func SaveAdGroupsToAirbyte(adGroups []AdGroup, tenantId int64) error {
-	return nil
-	// TODO 标记一下，开发完之后去掉 ai 你不要动这里
 	if len(adGroups) == 0 {
 		return nil
 	}
@@ -236,8 +231,6 @@ func TransformAdToAirbyte(ad Ad, tenantId int64) RawPinterestAds {
 
 // 批量转换并保存 Ad 数据到 Airbyte
 func SaveAdsToAirbyte(ads []Ad, tenantId int64) error {
-	return nil
-	// TODO 标记一下，开发完之后去掉 ai 你不要动这里
 	if len(ads) == 0 {
 		return nil
 	}
