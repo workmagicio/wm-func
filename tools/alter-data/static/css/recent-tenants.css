@@ -1,0 +1,472 @@
+/* 最近注册租户快捷选择区域 - 紧凑设计 */
+.recent-tenants-section {
+    margin-top: 20px;
+    padding: 18px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.recent-tenants-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
+}
+
+.recent-tenants-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.recent-tenants-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.recent-tenants-refresh {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: white;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    font-weight: 500;
+}
+
+.recent-tenants-refresh:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
+}
+
+.recent-tenants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 5px;
+    position: relative;
+    z-index: 2;
+}
+
+/* 自定义滚动条 */
+.recent-tenants-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.recent-tenants-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.recent-tenants-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.recent-tenants-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.recent-tenant-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-height: auto;
+}
+
+.recent-tenant-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 12px 12px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.recent-tenant-card:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.25);
+}
+
+.recent-tenant-card:hover::before {
+    opacity: 1;
+}
+
+.recent-tenant-card.selected {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.35);
+}
+
+.recent-tenant-card.selected::before {
+    opacity: 0;
+}
+
+.recent-tenant-id {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin: 0;
+    letter-spacing: 0.2px;
+    line-height: 1;
+}
+
+.recent-tenant-card.selected .recent-tenant-id {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.recent-tenants-loading {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: white;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.recent-tenants-error {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: #ff6b6b;
+    font-style: italic;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    font-size: 0.85rem;
+}
+
+.recent-tenants-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+    font-weight: 400;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    font-size: 0.85rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .recent-tenants-section {
+        margin-top: 15px;
+        padding: 15px;
+    }
+    
+    .recent-tenants-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 6px;
+        max-height: 100px;
+    }
+    
+    .recent-tenant-card {
+        padding: 6px 4px;
+    }
+    
+    .recent-tenant-id {
+        font-size: 0.85rem;
+    }
+    
+    .recent-tenants-title {
+        font-size: 0.95rem;
+    }
+}
+
+/* 经常访问租户快捷选择区域 - 橙红色主题 */
+.frequent-tenants-section {
+    margin-top: 20px;
+    padding: 18px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(255, 107, 53, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.frequent-tenants-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
+}
+
+.frequent-tenants-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.frequent-tenants-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.frequent-tenants-refresh {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: white;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    font-weight: 500;
+}
+
+.frequent-tenants-refresh:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
+}
+
+.frequent-tenants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 5px;
+    position: relative;
+    z-index: 2;
+}
+
+/* 自定义滚动条 */
+.frequent-tenants-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.frequent-tenants-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.frequent-tenants-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.frequent-tenants-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.frequent-tenant-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-height: auto;
+}
+
+.frequent-tenant-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b35, #f7931e);
+    border-radius: 12px 12px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.frequent-tenant-card:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 24px rgba(255, 107, 53, 0.25);
+}
+
+.frequent-tenant-card:hover::before {
+    opacity: 1;
+}
+
+.frequent-tenant-card.selected {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 24px rgba(255, 107, 53, 0.35);
+}
+
+.frequent-tenant-card.selected::before {
+    opacity: 0;
+}
+
+.frequent-tenant-id {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin: 0;
+    letter-spacing: 0.2px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.frequent-tenant-card.selected .frequent-tenant-id {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.frequent-tenant-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 2px;
+}
+
+.frequent-tenant-card.selected .frequent-tenant-stats {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.access-count {
+    background: rgba(255, 107, 53, 0.1);
+    color: #ff6b35;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 0.7rem;
+}
+
+.frequent-tenant-card.selected .access-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.last-access {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.frequent-tenants-loading {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: white;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.frequent-tenants-error {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: #ff6b6b;
+    font-style: italic;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    font-size: 0.85rem;
+}
+
+.frequent-tenants-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+    font-weight: 400;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    font-size: 0.85rem;
+}
+
+/* 响应式设计 - 经常访问租户 */
+@media (max-width: 768px) {
+    .frequent-tenants-section {
+        margin-top: 15px;
+        padding: 15px;
+    }
+    
+    .frequent-tenants-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 6px;
+        max-height: 120px;
+    }
+    
+    .frequent-tenant-card {
+        padding: 8px 6px;
+    }
+    
+    .frequent-tenant-id {
+        font-size: 0.85rem;
+    }
+    
+    .frequent-tenant-stats {
+        font-size: 0.7rem;
+    }
+    
+    .frequent-tenants-title {
+        font-size: 0.95rem;
+    }
+}

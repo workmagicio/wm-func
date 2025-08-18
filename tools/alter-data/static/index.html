@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据监控看板 - 广告平台数据一致性监控</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/recent-tenants.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">📊 数据监控看板（持续更新中......）(有的客户存在filter、汇率等情况未处理) </h1>
+            <p class="header-subtitle">广告平台数据一致性监控 - API消费 vs Overview 页面展示消费对比</p>
+        </header>
+
+        <!-- View Mode Selector -->
+        <div class="view-mode-selector">
+            <div class="view-toggle">
+                <label class="view-mode-label">查看模式:</label>
+                <div class="toggle-switch">
+                    <input type="radio" id="platform-view" name="view-mode" value="platform" checked>
+                    <label for="platform-view" class="toggle-option">📊 平台视图</label>
+                    <input type="radio" id="tenant-view" name="view-mode" value="tenant">
+                    <label for="tenant-view" class="toggle-option">👤 租户视图</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform View -->
+        <div class="platform-selector" id="platform-view-container">
+            <div class="platform-controls">
+                <label for="platform-select" class="platform-label">选择平台:</label>
+                <select id="platform-select" class="platform-select">
+                    <option value="">加载中...</option>
+                </select>
+                <button id="refresh-button" class="refresh-button" onclick="dashboard.refreshCurrentSelection()" disabled>
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">刷新数据</span>
+                </button>
+            </div>
+            
+            <!-- Cache Info -->
+            <div class="cache-info" id="cache-info" style="display: none;">
+                <div class="cache-status">
+                    <span class="cache-label">数据状态:</span>
+                    <span class="cache-time" id="cache-time">--</span>
+                    <span class="cache-badge" id="cache-badge">--</span>
+                </div>
+            </div>
+            
+            <div class="loading-indicator" id="loading-indicator" style="display: none;">
+                <span class="spinner"></span>
+                <span>数据加载中...</span>
+            </div>
+        </div>
+
+        <!-- Tenant View -->
+        <div class="tenant-selector" id="tenant-view-container" style="display: none;">
+            <div class="tenant-controls">
+                <label for="tenant-input" class="tenant-label">租户ID:</label>
+                <div class="tenant-input-wrapper">
+                    <input type="text" 
+                           id="tenant-input" 
+                           class="tenant-input" 
+                           placeholder="输入或搜索租户ID..."
+                           autocomplete="off">
+                    <div class="tenant-dropdown" id="tenant-dropdown" style="display: none;">
+                        <div class="tenant-dropdown-content" id="tenant-dropdown-content">
+                            <!-- 动态生成的租户选项 -->
+                        </div>
+                    </div>
+                    <button type="button" class="tenant-search-button" id="tenant-search-button">
+                        🔍
+                    </button>
+                </div>
+                <div class="tenant-button-group">
+                    <button id="refresh-tenant-button" class="refresh-button" onclick="dashboard.refreshCurrentSelection()" disabled>
+                        <span class="refresh-icon">🔄</span>
+                        <span class="refresh-text">刷新数据</span>
+                    </button>
+                    <!-- Tenant Cache Info -->
+                    <div class="cache-info" id="tenant-cache-info" style="display: none;">
+                        <div class="cache-status">
+                            <span class="cache-label">数据状态:</span>
+                            <span class="cache-time" id="tenant-cache-time">--</span>
+                            <span class="cache-badge" id="tenant-cache-badge">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最近注册租户快捷选择区域 -->
+            <div class="recent-tenants-section" id="recent-tenants-section">
+                <div class="recent-tenants-header">
+                    <span class="recent-tenants-title">✨ 最近15天注册租户</span>
+                    <button class="recent-tenants-refresh" id="recent-tenants-refresh" title="刷新最近注册租户">
+                        <span>🔄 刷新</span>
+                    </button>
+                </div>
+                <div class="recent-tenants-grid" id="recent-tenants-grid">
+                    <div class="recent-tenants-loading" id="recent-tenants-loading">
+                        <span class="spinner"></span>
+                        <span>正在加载新租户...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 经常访问租户快捷选择区域 -->
+            <div class="frequent-tenants-section" id="frequent-tenants-section">
+                <div class="frequent-tenants-header">
+                    <span class="frequent-tenants-title">🔥 经常访问租户</span>
+                    <button class="frequent-tenants-refresh" id="frequent-tenants-refresh" title="刷新经常访问租户">
+                        <span>🔄 刷新</span>
+                    </button>
+                </div>
+                <div class="frequent-tenants-grid" id="frequent-tenants-grid">
+                    <div class="frequent-tenants-loading" id="frequent-tenants-loading">
+                        <span class="spinner"></span>
+                        <span>正在加载经常访问的租户...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loading-indicator" id="tenant-loading-indicator" style="display: none;">
+                <span class="spinner"></span>
+                <span>数据加载中...</span>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-container" id="charts-container">
+            <div class="charts-grid" id="charts-grid">
+                <!-- 动态生成图表 -->
+            </div>
+        </div>
+
+        <!-- No Data Message -->
+        <div class="no-data-message" id="no-data-message" style="display: none;">
+            <div class="no-data-icon">📈</div>
+            <h3>暂无数据</h3>
+            <p>请选择一个已实现的平台查看数据，或检查数据连接是否正常。</p>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="error-message" style="display: none;">
+            <div class="error-icon">❌</div>
+            <h3>加载失败</h3>
+            <p id="error-text">网络连接错误，请稍后重试。</p>
+            <button onclick="dashboard.retryLoad()" class="retry-button">重试</button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 WorkMagic 数据监控系统 | 实时监控广告平台数据一致性</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/static/js/chart.js"></script>
+    <script src="/static/js/platform.js"></script>
+    <script src="/static/js/tenant.js"></script>
+    <script src="/static/js/app.js"></script>
+    
+    <script>
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dashboard = new Dashboard();
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>

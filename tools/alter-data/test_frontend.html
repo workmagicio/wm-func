@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>前端功能测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🧪 数据监控看板前端功能测试</h1>
+    
+    <div id="test-results"></div>
+    
+    <h2>📋 测试步骤</h2>
+    <ol>
+        <li>页面加载后，检查刷新按钮状态（应该禁用）</li>
+        <li>选择平台后，检查刷新按钮状态（应该启用）</li>
+        <li>检查缓存信息显示</li>
+        <li>测试刷新功能</li>
+    </ol>
+    
+    <h2>🎯 期望结果</h2>
+    <ul>
+        <li>✅ 刷新按钮在选择平台后启用</li>
+        <li>✅ 显示数据最后更新时间</li>
+        <li>✅ 显示缓存状态标识（最新/缓存/已过期）</li>
+        <li>✅ 点击刷新按钮可以强制更新数据</li>
+    </ul>
+    
+    <h2>🔗 测试链接</h2>
+    <p><a href="http://localhost:8090/" target="_blank" style="font-size: 18px; color: #007bff;">
+        🚀 打开数据监控看板进行测试
+    </a></p>
+    
+    <script>
+        const results = document.getElementById('test-results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        // 测试API连接
+        async function testAPI() {
+            try {
+                addResult('🔍 正在测试API连接...', 'info');
+                
+                const response = await fetch('http://localhost:8090/api/platforms');
+                const data = await response.json();
+                
+                if (data.success) {
+                    addResult(`✅ API连接正常，发现 ${data.data.length} 个平台`, 'success');
+                    
+                    // 测试Google平台数据
+                    const googleResponse = await fetch('http://localhost:8090/api/data/google');
+                    const googleData = await googleResponse.json();
+                    
+                    if (googleData.success && googleData.cache_info) {
+                        const cacheInfo = googleData.cache_info;
+                        const updateTime = new Date(cacheInfo.updated_at).toLocaleString();
+                        addResult(`✅ 缓存功能正常，数据更新时间: ${updateTime}`, 'success');
+                        addResult(`📊 缓存状态: ${cacheInfo.is_expired ? '已过期' : '有效'}`, 'success');
+                    } else {
+                        addResult('⚠️ 缓存信息缺失', 'error');
+                    }
+                } else {
+                    addResult('❌ API连接失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                addResult('❌ 网络错误: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载后自动测试
+        window.addEventListener('load', testAPI);
+    </script>
+</body>
+</html>
