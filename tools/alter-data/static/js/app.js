@@ -61,6 +61,9 @@ class Dashboard {
         
         this.currentViewMode = mode;
         
+        // 清理URL参数，确保不同视图的参数不会相互干扰
+        this.cleanupURLForViewMode(mode);
+        
         // 隐藏所有内容
         this.hideMessages();
         this.chartsContainer.style.display = 'none';
@@ -651,6 +654,23 @@ class Dashboard {
             );
             document.title = `数据监控看板 - ${platform} (${chartCount}个租户)`;
         }
+    }
+
+    // 清理URL参数以避免视图模式间的参数混乱
+    cleanupURLForViewMode(mode) {
+        const url = new URL(window.location);
+        
+        if (mode === 'platform') {
+            // 平台视图：保留平台参数，移除租户参数
+            url.searchParams.delete('tenant');
+        } else if (mode === 'tenant') {
+            // 租户视图：保留租户参数，移除平台参数
+            url.searchParams.delete('platform');
+        }
+        
+        // 更新URL但不触发页面重新加载
+        window.history.replaceState({}, '', url);
+        console.log(`🧹 已清理URL参数，当前模式: ${mode}`);
     }
 
     // 获取应用统计信息

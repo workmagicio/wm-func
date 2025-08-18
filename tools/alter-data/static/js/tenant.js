@@ -369,10 +369,13 @@ class TenantManager {
         const url = new URL(window.location);
         if (tenantID) {
             url.searchParams.set('tenant', tenantID);
+            // 租户视图：清除平台参数，避免参数混乱
+            url.searchParams.delete('platform');
         } else {
             url.searchParams.delete('tenant');
         }
         window.history.replaceState({}, '', url);
+        console.log(`🔗 Tenant URL updated: tenant=${tenantID || 'null'}`);
     }
 
     // 从URL获取租户参数

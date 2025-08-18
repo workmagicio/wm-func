@@ -45,8 +45,8 @@ var platformConfigs = []PlatformConfig{
 		Name:        "pinterest",
 		DisplayName: "Pinterest Ads",
 		QueryKey:    "pinterest_ads_query",
-		Enabled:     false,
-		Description: "Pinterest广告平台数据（待实现）",
+		Enabled:     true,
+		Description: "Pinterest广告平台数据",
 	},
 	{
 		Name:        "shopify",
@@ -54,6 +54,20 @@ var platformConfigs = []PlatformConfig{
 		QueryKey:    "shopify_query",
 		Enabled:     true,
 		Description: "Shopify电商平台订单数据",
+	},
+	{
+		Name:        "snapchat",
+		DisplayName: "Snapchat Ads",
+		QueryKey:    "snapchat_ads_query",
+		Enabled:     true,
+		Description: "Snapchat广告平台数据",
+	},
+	{
+		Name:        "tiktokshop",
+		DisplayName: "TikTok Shop",
+		QueryKey:    "tiktokshop_query",
+		Enabled:     true,
+		Description: "TikTok Shop电商平台订单数据",
 	},
 }
 

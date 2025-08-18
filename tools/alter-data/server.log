@@ -44,3 +44,16 @@
 2025/08/18 08:45:57 Using cached data for tenant 134301 (updated at 2025-08-18 08:45:57.375198 +0800 CST m=+55074.421520543)
 2025/08/18 08:46:00 Fetching fresh data for platform google (force_refresh=true)
 2025/08/18 08:46:02 Data cached for platform google
+2025/08/18 09:24:49 Fetching fresh recent registered tenants (force_refresh=false)
+2025/08/18 09:24:49 Fetching fresh data for platform google (force_refresh=false)
+2025/08/18 09:24:51 Recent tenants cached (2 tenants)
+2025/08/18 09:24:54 Data cached for platform google
+2025/08/18 09:24:54 Fetching fresh tenant list (force_refresh=false)
+2025/08/18 09:24:55 Tenant list cached (96 tenants)
+2025/08/18 09:24:55 Fetching fresh cross-platform data for tenant 134301 (force_refresh=false)
+2025/08/18 09:24:55 Using cached tenant list (updated at 2025-08-18 09:24:55.417137 +0800 CST m=+57412.458015376)
+2025/08/18 09:24:55 Using cached data for platform google (updated at 2025-08-18 09:24:54.145333 +0800 CST m=+57411.186213709)
+2025/08/18 09:25:02 Data cached for tenant 134301
+2025/08/18 09:25:02 Using cached data for tenant 134301 (updated at 2025-08-18 09:25:02.239305 +0800 CST m=+57419.280171793)
+2025/08/18 09:25:06 Fetching fresh data for platform google (force_refresh=true)
+2025/08/18 09:25:07 Data cached for platform google

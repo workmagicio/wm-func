@@ -170,10 +170,13 @@ class PlatformManager {
         const url = new URL(window.location);
         if (platformName) {
             url.searchParams.set('platform', platformName);
+            // 平台视图：清除租户参数，避免参数混乱
+            url.searchParams.delete('tenant');
         } else {
             url.searchParams.delete('platform');
         }
         window.history.replaceState({}, '', url);
+        console.log(`🔗 Platform URL updated: platform=${platformName || 'null'}`);
     }
 
     // 从URL获取平台参数

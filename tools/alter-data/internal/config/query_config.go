@@ -428,6 +428,118 @@ with
             and shopify_api.RAW_DATE = shopify_ads.EVENT_DATE
     ),
     
+    snapchat_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'snapchatMarketing'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    snapchat_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Snapchat'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    snapchat_merge as (
+        select
+            snapchat_api.TENANT_ID,
+            'Snapchat' as platform,
+            snapchat_api.RAW_DATE,
+            snapchat_api.spend as api_spend,
+            coalesce(snapchat_ads.ad_spend, 0) as ad_spend
+        from
+            snapchat_api
+            left join snapchat_ads on snapchat_api.TENANT_ID = snapchat_ads.TENANT_ID 
+            and snapchat_api.RAW_DATE = snapchat_ads.EVENT_DATE
+    ),
+    
+    tiktokshop_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(ORDERS), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'tiktokShopPartner'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    tiktokshop_ads as (
+        select
+            tenant_id,
+            event_date,
+            sum(total_orders) as ad_spend
+        from platform_offline.ads_view_overview_sales_and_profit_latest
+        where event_date >= utc_date() - interval 90 day
+          and sales_platform = 'tiktok'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    tiktokshop_merge as (
+        select
+            tiktokshop_api.TENANT_ID,
+            'TikTok Shop' as platform,
+            tiktokshop_api.RAW_DATE,
+            tiktokshop_api.spend as api_spend,
+            coalesce(tiktokshop_ads.ad_spend, 0) as ad_spend
+        from
+            tiktokshop_api
+            left join tiktokshop_ads on tiktokshop_api.TENANT_ID = tiktokshop_ads.TENANT_ID 
+            and tiktokshop_api.RAW_DATE = tiktokshop_ads.EVENT_DATE
+    ),
+    
+    pinterest_api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'pinterest'
+          and RAW_DATE > utc_date() - interval 90 day
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    pinterest_ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Pinterest'
+          and TENANT_ID = ?
+        group by 1, 2
+    ),
+    pinterest_merge as (
+        select
+            pinterest_api.TENANT_ID,
+            'Pinterest' as platform,
+            pinterest_api.RAW_DATE,
+            pinterest_api.spend as api_spend,
+            coalesce(pinterest_ads.ad_spend, 0) as ad_spend
+        from
+            pinterest_api
+            left join pinterest_ads on pinterest_api.TENANT_ID = pinterest_ads.TENANT_ID 
+            and pinterest_api.RAW_DATE = pinterest_ads.EVENT_DATE
+    ),
+    
     all_platforms as (
         select * from google_merge
         UNION ALL
@@ -438,6 +550,12 @@ with
         select * from tiktok_merge
         UNION ALL
         select * from shopify_merge
+        UNION ALL
+        select * from snapchat_merge
+        UNION ALL
+        select * from tiktokshop_merge
+        UNION ALL
+        select * from pinterest_merge
     ),
     
     result as (
@@ -538,6 +656,173 @@ with
             merge
             join platform_offline.dwd_view_analytics_non_testing_tenants as b
                  on merge.TENANT_ID = b.tenant_id
+    )
+select
+    tenant_id,
+    raw_date,
+    api_spend,
+    ad_spend
+from
+    result`,
+	},
+
+	"snapchat_ads_query": {
+		Key:         "snapchat_ads_query",
+		Name:        "Snapchat Ads数据查询",
+		Description: "查询Snapchat广告平台的API数据和广告数据对比",
+		SQL: `
+with
+    api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'snapchatMarketing'
+          and RAW_DATE > utc_date() - interval 90 day
+        group by 1, 2
+    ),
+    ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Snapchat'
+        group by 1, 2
+    ),
+    merge as (
+        select
+            api.TENANT_ID,
+            api.RAW_DATE,
+            api.spend as api_spend,
+            coalesce(ads.ad_spend, 0) as ad_spend
+        from
+            api
+            left join ads on api.TENANT_ID = ads.TENANT_ID and api.RAW_DATE = ads.EVENT_DATE
+    ),
+    result as (
+        select
+            merge.*
+        from
+            merge
+            join platform_offline.dwd_view_analytics_non_testing_tenants as b
+            on merge.TENANT_ID = b.tenant_id
+    )
+select
+    tenant_id,
+    raw_date,
+    api_spend,
+    ad_spend
+from
+    result`,
+	},
+
+	"tiktokshop_query": {
+		Key:         "tiktokshop_query",
+		Name:        "TikTok Shop订单数据查询",
+		Description: "查询TikTok Shop电商平台的API订单数据和概览订单数据对比",
+		SQL: `
+with
+    api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(ORDERS), 0) as api_data
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'tiktokShopPartner'
+          and RAW_DATE > utc_date() - interval 90 day
+        group by 1, 2
+    ),
+    ads as (
+        select
+            tenant_id,
+            event_date,
+            sum(total_orders) as overview_data
+        from platform_offline.ads_view_overview_sales_and_profit_latest
+        where event_date >= utc_date() - interval 90 day
+          and sales_platform = 'tiktok'
+        group by tenant_id, event_date
+    ),
+    merge as (
+        select
+            api.TENANT_ID,
+            api.RAW_DATE,
+            api.api_data as api_spend,
+            coalesce(ads.overview_data, 0) as ad_spend
+        from
+            api
+            left join ads
+                      on api.TENANT_ID = ads.TENANT_ID and api.RAW_DATE = ads.EVENT_DATE
+    ),
+    result as (
+        select
+            merge.*
+        from
+            merge
+            join platform_offline.dwd_view_analytics_non_testing_tenants as b
+                 on merge.TENANT_ID = b.tenant_id
+    )
+select
+    tenant_id,
+    raw_date,
+    api_spend,
+    ad_spend
+from
+    result`,
+	},
+
+	"pinterest_ads_query": {
+		Key:         "pinterest_ads_query",
+		Name:        "Pinterest Ads数据查询",
+		Description: "查询Pinterest广告平台的API数据和广告数据对比",
+		SQL: `
+with
+    api as (
+        select
+            TENANT_ID,
+            RAW_DATE,
+            round(sum(AD_SPEND), 0) as spend
+        from
+            platform_offline.integration_api_data_view
+        where RAW_PLATFORM = 'pinterest'
+          and RAW_DATE > utc_date() - interval 90 day
+        group by 1, 2
+    ),
+    ads as (
+        select
+            TENANT_ID,
+            event_date,
+            round(sum(ad_spend), 0) as ad_spend
+        from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+        where event_date > utc_date() - interval 90 day
+          and json_overlaps(attr_model_array, json_array(0, 3))
+          and attr_enhanced in (1, 4)
+          and ADS_PLATFORM = 'Pinterest'
+        group by 1, 2
+    ),
+    merge as (
+        select
+            api.TENANT_ID,
+            api.RAW_DATE,
+            api.spend as api_spend,
+            coalesce(ads.ad_spend, 0) as ad_spend
+        from
+            api
+            left join ads on api.TENANT_ID = ads.TENANT_ID and api.RAW_DATE = ads.EVENT_DATE
+    ),
+    result as (
+        select
+            merge.*
+        from
+            merge
+            join platform_offline.dwd_view_analytics_non_testing_tenants as b
+            on merge.TENANT_ID = b.tenant_id
     )
 select
     tenant_id,
