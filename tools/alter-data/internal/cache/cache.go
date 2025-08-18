@@ -186,6 +186,9 @@ func (cm *CacheManager) loadCacheFromDisk() error {
 		return err
 	}
 
+	loadedCount := 0
+	updatedCount := 0
+
 	for _, file := range files {
 		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" {
 			filePath := filepath.Join(cm.cacheDir, file.Name())
@@ -200,14 +203,30 @@ func (cm *CacheManager) loadCacheFromDisk() error {
 				continue // 忽略解析失败的文件
 			}
 
-			// 只加载未过期的缓存
-			if time.Now().Before(item.ExpiresAt) {
-				cm.memoryCache[item.Platform] = &item
-			} else {
-				// 删除过期的缓存文件
-				os.Remove(filePath)
+			// 加载所有缓存，并更新为永不过期
+			// 如果是旧的过期缓存，更新过期时间为100年后
+			now := time.Now()
+			if now.After(item.ExpiresAt) {
+				// 更新过期时间为永不过期
+				item.ExpiresAt = now.Add(100 * 365 * 24 * time.Hour)
+				// 保存更新后的缓存到磁盘
+				if err := cm.saveToDisk(item.Platform, &item); err != nil {
+					// 保存失败只记录日志，不影响加载
+					fmt.Printf("Warning: failed to update cache file %s: %v\n", file.Name(), err)
+				} else {
+					updatedCount++
+				}
 			}
+			cm.memoryCache[item.Platform] = &item
+			loadedCount++
 		}
+	}
+
+	// 输出加载统计信息
+	if loadedCount > 0 {
+		fmt.Printf("Cache startup: loaded %d platforms, updated %d expired caches to never-expire\n", loadedCount, updatedCount)
+	} else {
+		fmt.Printf("Cache startup: no cache files found, starting with empty cache\n")
 	}
 
 	return nil
