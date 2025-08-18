@@ -247,7 +247,7 @@ func isLetter(c byte) bool {
 }
 
 // 执行分组查询
-func (s *SQLiteService) ExecuteGroupQuery(groupByFields []string, sumFields []string) ([][]string, error) {
+func (s *SQLiteService) ExecuteGroupQuery(groupByFields []string, sumFields []string, responseMap map[string]interface{}) ([][]string, error) {
 	// 构建GROUP BY查询，按照标准字段顺序
 	var selectFields []string
 	var groupFields []string
@@ -279,7 +279,16 @@ func (s *SQLiteService) ExecuteGroupQuery(groupByFields []string, sumFields []st
 		} else if sumFieldsMap[fieldName] {
 			// 聚合字段
 			if fieldName == "orders" {
-				selectFields = append(selectFields, fmt.Sprintf("COUNT(*) as %s", columnName))
+				// 检查是否配置了order_id字段，如果配置了则使用COUNT(DISTINCT)
+				orderIDValue := getMapValue(responseMap, "order_id")
+				if orderIDValue != "" && orderIDValue != "VIRTUAL_COUNT" {
+					// 获取order_id列名
+					orderIDColumnName := s.sanitizeColumnName(getFieldDisplayName("order_id"))
+					selectFields = append(selectFields, fmt.Sprintf("COUNT(DISTINCT %s) as %s", orderIDColumnName, columnName))
+				} else {
+					// 使用默认的行数统计
+					selectFields = append(selectFields, fmt.Sprintf("COUNT(*) as %s", columnName))
+				}
 			} else {
 				selectFields = append(selectFields, fmt.Sprintf("SUM(%s) as %s", columnName, columnName))
 			}

@@ -15,6 +15,7 @@ var requered_fields_map = map[string]bool{
 	"sales_platform":      true,
 	"sales_platform_type": true,
 	"country_code":        true,
+	"order_id":            false, // 可选字段，仅在需要精确订单统计时配置
 	"orders":              true,
 	"sales":               true,
 }

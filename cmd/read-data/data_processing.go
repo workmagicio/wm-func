@@ -469,11 +469,21 @@ func (dpm *DataProcessingManager) askForGrouping(responseMap map[string]interfac
 		fmt.Println("")
 	}
 
+	// 检查是否配置了order_id字段
+	orderIDValue := getMapValue(responseMap, "order_id")
+	hasOrderID := orderIDValue != "" && orderIDValue != "VIRTUAL_COUNT"
+
 	fmt.Println("   Grouping configuration:")
 	fmt.Println("   • Group by: date_type, date_code, geo_type, geo_code,")
 	fmt.Println("             sales_platform, sales_platform_type, country_code")
 	fmt.Println("   • Sum: sales, profit")
-	fmt.Println("   • Count: orders (number of rows in each group)")
+	if hasOrderID {
+		fmt.Printf("   • Count: orders (unique Order IDs from '%s' column)\n", cleanInferredValue(orderIDValue))
+		fmt.Println("             📊 Using COUNT(DISTINCT order_id) for accurate order counting")
+	} else {
+		fmt.Println("   • Count: orders (number of rows in each group)")
+		fmt.Println("             📊 Using COUNT(*) - each row counts as one order")
+	}
 	fmt.Println("   • Keep: All other fields (first non-empty value per group)")
 	fmt.Println("")
 
@@ -520,7 +530,7 @@ func (dpm *DataProcessingManager) processWithSQLiteGrouping(data [][]string, res
 
 	// 执行分组操作
 	fmt.Println("🔍 Executing grouping operation...")
-	result, err := sqliteService.ExecuteGroupQuery(groupByFields, sumFields)
+	result, err := sqliteService.ExecuteGroupQuery(groupByFields, sumFields, responseMap)
 	if err != nil {
 		return nil, fmt.Errorf("执行分组操作失败: %v", err)
 	}

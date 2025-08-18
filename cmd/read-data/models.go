@@ -16,6 +16,7 @@ type FieldMappingResponse struct {
 	SalesPlatform     string `json:"sales_platform"`
 	SalesPlatformType string `json:"sales_platform_type"`
 	CountryCode       string `json:"country_code"`
+	OrderID           string `json:"order_id"`
 	Orders            string `json:"orders"`
 	Sales             string `json:"sales"`
 	Profit            string `json:"profit"`
@@ -84,6 +85,7 @@ type ResponseJson struct {
 	HeaderRow         int    `json:"header_row"`
 	NewCustomerOrders string `json:"new_customer_orders"`
 	NewCustomerSales  string `json:"new_customer_sales"`
+	OrderID           string `json:"order_id"`
 	Orders            string `json:"orders"`
 	Profit            string `json:"profit"`
 	Sales             string `json:"sales"`
@@ -133,7 +135,7 @@ type ProductLevelDetection struct {
 var allMappableFields = []string{
 	"date_type", "date_code", "geo_type", "geo_code", "geo_name",
 	"sales_platform", "sales_platform_type", "country_code",
-	"orders", "sales", "profit", "new_customer_orders", "new_customer_sales",
+	"order_id", "orders", "sales", "profit", "new_customer_orders", "new_customer_sales",
 	"data_start_row",
 }
 

@@ -54,6 +54,7 @@ func getFieldDisplayName(field string) string {
 		"sales_platform":      "Sales Platform",
 		"sales_platform_type": "Platform Type",
 		"country_code":        "Country Code",
+		"order_id":            "Order ID",
 		"orders":              "Orders",
 		"sales":               "Sales",
 		"profit":              "Profit",
