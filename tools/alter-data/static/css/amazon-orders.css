@@ -1,0 +1,322 @@
+/* Amazon订单分析样式 */
+
+/* 预警级别样式 */
+.critical-marker {
+    color: #dc3545;
+    font-weight: 600;
+    background: rgba(220, 53, 69, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.warning-marker {
+    color: #ffc107;
+    font-weight: 600;
+    background: rgba(255, 193, 7, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.normal-marker {
+    color: #28a745;
+    font-weight: 600;
+    background: rgba(40, 167, 69, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+/* 异常标记样式 */
+.zero-marker {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.concave-marker {
+    background: linear-gradient(45deg, #ffa726, #ff9800);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* 缓存信息样式 */
+.cache-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(13, 110, 253, 0.1);
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.cache-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.cache-time {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.cache-badge {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.data-date-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.data-date-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.data-date-value {
+    font-weight: 600;
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+/* 统计信息样式扩展 */
+.stat-value.critical-marker {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 16px;
+    border: none;
+}
+
+.stat-value.warning-marker {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529;
+    padding: 4px 12px;
+    border-radius: 16px;
+    border: none;
+}
+
+/* 图表容器样式增强 */
+.tenant-chart-card {
+    position: relative;
+}
+
+.tenant-chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(13, 110, 253, 0.3) 25%, 
+        rgba(13, 110, 253, 0.6) 50%, 
+        rgba(13, 110, 253, 0.3) 75%, 
+        transparent 100%
+    );
+    border-radius: 8px 8px 0 0;
+}
+
+.tenant-chart-card.critical::before {
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(220, 53, 69, 0.3) 25%, 
+        rgba(220, 53, 69, 0.8) 50%, 
+        rgba(220, 53, 69, 0.3) 75%, 
+        transparent 100%
+    );
+}
+
+.tenant-chart-card.warning::before {
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 193, 7, 0.3) 25%, 
+        rgba(255, 193, 7, 0.8) 50%, 
+        rgba(255, 193, 7, 0.3) 75%, 
+        transparent 100%
+    );
+}
+
+/* 租户标题样式增强 */
+.chart-tenant-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    margin-bottom: 8px;
+}
+
+.tenant-warning-badge {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.tenant-warning-badge.critical {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.tenant-warning-badge.warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.tenant-warning-badge.normal {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* 租户统计信息样式 */
+.chart-tenant-stats {
+    display: flex;
+    gap: 16px;
+    padding: 8px 20px 12px;
+    font-size: 12px;
+    color: #6c757d;
+    flex-wrap: wrap;
+}
+
+.tenant-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.tenant-stat-label {
+    font-weight: 500;
+}
+
+.tenant-stat-value {
+    font-weight: 600;
+    color: #212529;
+}
+
+.tenant-stat-value.highlight-critical {
+    color: #dc3545;
+}
+
+.tenant-stat-value.highlight-warning {
+    color: #ffc107;
+}
+
+/* 最近掉0日期样式 */
+.recent-zero-dates {
+    margin-left: 8px;
+    font-size: 11px;
+    color: #6c757d;
+    background: rgba(220, 53, 69, 0.1);
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    font-weight: normal;
+}
+
+/* 响应式设计增强 */
+@media (max-width: 768px) {
+    .cache-info {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .cache-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .chart-tenant-stats {
+        font-size: 11px;
+        gap: 12px;
+    }
+}
+
+/* 加载状态样式增强 */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(13, 110, 253, 0.05);
+    border: 2px dashed rgba(13, 110, 253, 0.2);
+    border-radius: 12px;
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.loading-indicator .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(13, 110, 253, 0.3);
+    border-top: 2px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 数据规则样式增强 */
+.data-rules-content .rule-desc div {
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 工具提示样式 */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 300px;
+    line-height: 1.4;
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}

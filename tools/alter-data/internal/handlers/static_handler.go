@@ -17,3 +17,15 @@ func ServeIndex(w http.ResponseWriter, r *http.Request) {
 	indexPath := filepath.Join("static", "index.html")
 	http.ServeFile(w, r, indexPath)
 }
+
+// ServeAttributionPage 提供归因订单分析页面
+func ServeAttributionPage(w http.ResponseWriter, r *http.Request) {
+	attributionPath := filepath.Join("static", "attribution.html")
+	http.ServeFile(w, r, attributionPath)
+}
+
+// ServeAmazonOrdersPage 提供Amazon订单分析页面
+func ServeAmazonOrdersPage(w http.ResponseWriter, r *http.Request) {
+	amazonOrdersPath := filepath.Join("static", "amazon-orders.html")
+	http.ServeFile(w, r, amazonOrdersPath)
+}

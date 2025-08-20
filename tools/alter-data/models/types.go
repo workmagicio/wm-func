@@ -122,3 +122,66 @@ type FrequentTenantsResponse struct {
 	Data    []TenantAccessRecord `json:"data"`
 	Message string               `json:"message"`
 }
+
+// === 归因订单分析相关数据模型 ===
+
+// AttributionOrderRawData 归因订单原始数据模型 (数据库查询结果)
+type AttributionOrderRawData struct {
+	TenantId    int64  `gorm:"column:tenant_id"`
+	EventDate   string `gorm:"column:event_date"`
+	AdsPlatform string `gorm:"column:ads_platform"`
+	AttrOrders  int64  `gorm:"column:attr_orders"`
+}
+
+// AttributionOrderData 归因订单租户数据 (API响应格式)
+type AttributionOrderData struct {
+	TenantID     int64              `json:"tenant_id"`
+	TenantName   string             `json:"tenant_name"`
+	DateRange    []string           `json:"date_range"`
+	PlatformData map[string][]int64 `json:"platform_data"` // platform -> orders array
+	Platforms    []string           `json:"platforms"`     // 该tenant涉及的所有平台
+	TotalOrders  map[string]int64   `json:"total_orders"`  // 每个平台的订单总数
+	HasConcave   bool               `json:"has_concave"`   // 是否存在凹字形异常
+	ConcaveCount int                `json:"concave_count"` // 凹字形异常数量
+}
+
+// AttributionOrderResponse 归因订单分析响应
+type AttributionOrderResponse struct {
+	Success   bool                   `json:"success"`
+	Data      []AttributionOrderData `json:"data"`
+	Message   string                 `json:"message"`
+	CacheInfo *CacheInfo             `json:"cache_info,omitempty"`
+}
+
+// === Amazon订单分析相关数据模型 ===
+
+// AmazonOrderRawData Amazon订单原始数据模型 (数据库查询结果)
+type AmazonOrderRawData struct {
+	TenantId int64  `gorm:"column:tenant_id"`
+	StatDate string `gorm:"column:stat_date"`
+	Orders   int64  `gorm:"column:orders"`
+}
+
+// AmazonOrderData Amazon订单租户数据 (API响应格式)
+type AmazonOrderData struct {
+	TenantID        int64    `json:"tenant_id"`
+	TenantName      string   `json:"tenant_name"`
+	DateRange       []string `json:"date_range"`
+	OrdersData      []int64  `json:"orders_data"`      // 订单数量数组
+	DailyAverage    float64  `json:"daily_average"`    // 90天日平均值
+	WarningLevel    string   `json:"warning_level"`    // 预警级别：normal, warning, critical
+	TotalOrders     int64    `json:"total_orders"`     // 总订单数
+	ZeroDaysCount   int      `json:"zero_days_count"`  // 掉0天数
+	ConcaveCount    int      `json:"concave_count"`    // 凹形问题数量
+	HasAnomalies    bool     `json:"has_anomalies"`    // 是否存在异常
+	ProcessedOrders []int64  `json:"processed_orders"` // 处理后的订单数（异常标记）
+	CacheTimestamp  int64    `json:"cache_timestamp"`  // 缓存时间戳
+}
+
+// AmazonOrderResponse Amazon订单分析响应
+type AmazonOrderResponse struct {
+	Success   bool              `json:"success"`
+	Data      []AmazonOrderData `json:"data"`
+	Message   string            `json:"message"`
+	CacheInfo *CacheInfo        `json:"cache_info,omitempty"`
+}

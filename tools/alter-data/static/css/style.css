@@ -665,3 +665,33 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* 导航样式 */
+.navigation {
+    margin-top: 10px;
+    padding: 8px 0;
+    border-top: 1px solid #e1e5e9;
+}
+
+.nav-link {
+    color: #007bff;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    text-decoration: none;
+}
+
+.nav-separator {
+    margin: 0 8px;
+    color: #6c757d;
+}
+
+.nav-current {
+    color: #28a745;
+    font-weight: 500;
+}

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Vendor分析 - 90天订单趋势监控预警</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/amazon-orders.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">🛒 Amazon Vendor分析</h1>
+            <p class="header-subtitle">90天Amazon Vendor订单趋势监控预警 - 智能检测掉0和凹形异常</p>
+            <div class="navigation">
+                <a href="/" class="nav-link">🏠 数据监控看板</a>
+                <span class="nav-separator">|</span>
+                <a href="/attribution" class="nav-link">📈 归因订单分析</a>
+                <span class="nav-separator">|</span>
+                <span class="nav-current">🛒 Amazon Vendor分析</span>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <div class="control-group">
+                <button id="refresh-button" class="refresh-button" onclick="amazonOrdersApp.refreshData()">
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">刷新数据</span>
+                </button>
+                
+                <div class="cache-info" id="cache-info">
+                    <div class="cache-status">
+                        <span class="cache-label">缓存时间:</span>
+                        <span class="cache-time" id="cache-time">--</span>
+                        <span class="cache-badge" id="cache-badge">永久缓存</span>
+                    </div>
+                    <div class="data-date-info" id="data-date-info" style="margin-left: 20px;">
+                        <span class="data-date-label">数据截止:</span>
+                        <span class="data-date-value" id="data-end-date">--</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loading-indicator" id="loading-indicator" style="display: none;">
+                <span class="spinner"></span>
+                <span>数据加载中...</span>
+            </div>
+        </div>
+
+        <!-- Data Processing Rules -->
+        <div class="data-rules-section">
+            <div class="data-rules-header">
+                <h3>📋 数据处理规则</h3>
+                <span class="rules-toggle" onclick="toggleRules()">🔽</span>
+            </div>
+            <div class="data-rules-content" id="data-rules-content">
+                <div class="rules-grid">
+                    <div class="rule-item">
+                        <div class="rule-icon">🎯</div>
+                        <div class="rule-content">
+                            <div class="rule-title">固定90天分析</div>
+                            <div class="rule-desc">固定分析最近90天的Amazon Vendor订单数据，计算日平均值和预警阈值</div>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon">⚠️</div>
+                        <div class="rule-content">
+                            <div class="rule-title">智能预警系统</div>
+                            <div class="rule-desc">
+                                <div>🔴 <span class="critical-marker">Critical</span>: 存在凹形异常</div>
+                                <div>🟡 <span class="warning-marker">Warning</span>: 存在掉0天数</div>
+                                <div>🟢 <span class="normal-marker">Normal</span>: 数据正常，无异常</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon">🚨</div>
+                        <div class="rule-content">
+                            <div class="rule-title">异常检测</div>
+                            <div class="rule-desc">
+                                <div>🚨 <span class="zero-marker">掉0</span>: 前面连续2天有订单，然后突然变成0</div>
+                                <div>🔶 <span class="concave-marker">凹形</span>: 正常数据→连续低值(低于平均30%)→正常数据</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon">📊</div>
+                        <div class="rule-content">
+                            <div class="rule-title">永久缓存</div>
+                            <div class="rule-desc">数据永久缓存，显示最后缓存时间，支持手动刷新获取最新数据</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Summary -->
+        <div class="stats-summary" id="stats-summary" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-label">总租户数:</span>
+                <span class="stat-value" id="total-tenants">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">异常租户:</span>
+                <span class="stat-value" id="anomaly-tenants">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Critical级别:</span>
+                <span class="stat-value critical-marker" id="critical-count">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Warning级别:</span>
+                <span class="stat-value warning-marker" id="warning-count">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">总订单数:</span>
+                <span class="stat-value" id="total-orders">--</span>
+            </div>
+        </div>
+
+        <!-- Charts Container -->
+        <div class="charts-container" id="charts-container">
+            <div class="no-data-message" id="no-data-message" style="display: none;">
+                <h3>🛒 暂无数据</h3>
+                <p>未找到Amazon Vendor订单数据，请检查数据源或刷新数据</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/amazon-orders-charts.js"></script>
+    <script src="/static/js/amazon-orders-app.js"></script>
+    <script>
+        // 初始化应用
+        const amazonOrdersApp = new AmazonOrdersApp();
+        amazonOrdersApp.init();
+
+        // 数据规则展开/收起
+        function toggleRules() {
+            const content = document.getElementById('data-rules-content');
+            const toggle = document.querySelector('.rules-toggle');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '🔼';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '🔽';
+            }
+        }
+
+        // 默认收起规则说明
+        document.addEventListener('DOMContentLoaded', function() {
+            const content = document.getElementById('data-rules-content');
+            content.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>归因订单趋势分析 - 多平台订单归因监控</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/attribution.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">📈 归因订单趋势分析</h1>
+            <p class="header-subtitle">多平台订单归因监控 - 实时跟踪各租户不同广告平台的订单归因表现</p>
+            <div class="navigation">
+                <a href="/" class="nav-link">🏠 数据监控看板</a>
+                <span class="nav-separator">|</span>
+                <span class="nav-current">📈 归因订单分析</span>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <div class="control-group">
+                <label for="days-select" class="control-label">查询天数:</label>
+                <select id="days-select" class="control-select">
+                    <option value="30">最近30天</option>
+                    <option value="60">最近60天</option>
+                    <option value="100" selected>最近100天</option>
+                    <option value="180">最近180天</option>
+                </select>
+
+                <label for="chart-mode-select" class="control-label">图表模式:</label>
+                <select id="chart-mode-select" class="control-select">
+                    <option value="segmented" selected>分段坐标</option>
+                </select>
+
+                <button id="refresh-button" class="refresh-button" onclick="attributionDashboard.refreshData()">
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">刷新数据</span>
+                </button>
+            </div>
+            
+            <!-- Cache Info -->
+            <div class="cache-info" id="cache-info" style="display: none;">
+                <div class="cache-status">
+                    <span class="cache-time" id="cache-time">--</span>
+                    <span class="cache-badge" id="cache-badge">--</span>
+                </div>
+            </div>
+            
+            <div class="loading-indicator" id="loading-indicator" style="display: none;">
+                <span class="spinner"></span>
+                <span>数据加载中...</span>
+            </div>
+        </div>
+
+        <!-- Data Processing Rules -->
+        <div class="data-rules-section">
+            <div class="data-rules-header">
+                <h3>📋 数据处理规则</h3>
+                <span class="rules-toggle" onclick="toggleRules()">🔽</span>
+            </div>
+            <div class="data-rules-content" id="data-rules-content">
+                <div class="rules-grid">
+                    <div class="rule-item">
+                        <div class="rule-icon">🎯</div>
+                        <div class="rule-content">
+                            <div class="rule-title">双列展示</div>
+                            <div class="rule-desc">每行显示两个租户，提高浏览效率，便于对比分析</div>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon">🚨</div>
+                        <div class="rule-content">
+                            <div class="rule-title">智能异常检测</div>
+                            <div class="rule-desc">
+                                <div>🚨 <span class="zero-marker">掉0</span>：前面连续2天有订单，然后突然变成0</div>
+                                <div>🔶 <span class="concave-marker">凹形</span>：有数据→连续0→又恢复数据的异常模式</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon">📊</div>
+                        <div class="rule-content">
+                            <div class="rule-title">分段坐标</div>
+                            <div class="rule-desc">使用分段坐标轴，纵坐标显示整数值，提供最佳的数据可读性</div>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon">📈</div>
+                        <div class="rule-content">
+                            <div class="rule-title">智能排序</div>
+                            <div class="rule-desc">⚠️ 数据缺失异常租户优先显示，然后按总订单量降序排列</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Summary -->
+        <div class="stats-summary" id="stats-summary" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-label">总租户数:</span>
+                <span class="stat-value" id="total-tenants">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">总订单数:</span>
+                <span class="stat-value" id="total-orders">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">活跃平台:</span>
+                <span class="stat-value" id="active-platforms">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">图表模式:</span>
+                <span class="stat-value" id="current-chart-mode">分段坐标</span>
+            </div>
+        </div>
+
+        <!-- Charts Container -->
+        <div class="charts-container" id="charts-container">
+            <div class="no-data-message" id="no-data-message" style="display: none;">
+                <h3>📊 暂无数据</h3>
+                <p>未找到归因订单数据，请检查数据源或调整查询条件</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/attribution-charts.js"></script>
+    <script src="/static/js/attribution-app.js"></script>
+    <script>
+        // 初始化应用
+        const attributionDashboard = new AttributionDashboard();
+        attributionDashboard.init();
+
+        // 数据规则展开/收起
+        function toggleRules() {
+            const content = document.getElementById('data-rules-content');
+            const toggle = document.querySelector('.rules-toggle');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '🔼';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '🔽';
+            }
+        }
+
+        // 默认收起规则说明
+        document.addEventListener('DOMContentLoaded', function() {
+            const content = document.getElementById('data-rules-content');
+            content.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

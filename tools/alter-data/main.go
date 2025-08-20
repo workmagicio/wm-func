@@ -41,11 +41,25 @@ func main() {
 	// 系统API
 	apiRouter.HandleFunc("/cache/stats", apiHandler.GetCacheStats).Methods("GET")
 
+	// 归因订单分析API
+	apiRouter.HandleFunc("/attribution-orders", apiHandler.GetAttributionOrders).Methods("GET")
+	apiRouter.HandleFunc("/attribution-orders/{tenant_id}", apiHandler.GetTenantAttributionOrders).Methods("GET")
+	apiRouter.HandleFunc("/attribution-orders/refresh", apiHandler.RefreshAttributionOrders).Methods("POST")
+
+	// Amazon订单分析API
+	apiRouter.HandleFunc("/amazon-orders", apiHandler.GetAllAmazonOrders).Methods("GET")
+	apiRouter.HandleFunc("/amazon-orders/{tenant_id}", apiHandler.GetTenantAmazonOrders).Methods("GET")
+	apiRouter.HandleFunc("/amazon-orders/refresh", apiHandler.RefreshAmazonOrders).Methods("POST")
+
 	// 静态文件路由
 	router.PathPrefix("/static/").Handler(handlers.ServeStatic())
 
 	// 主页路由
 	router.HandleFunc("/", handlers.ServeIndex).Methods("GET")
+	// 归因订单分析页面
+	router.HandleFunc("/attribution", handlers.ServeAttributionPage).Methods("GET")
+	// Amazon订单分析页面
+	router.HandleFunc("/amazon-orders", handlers.ServeAmazonOrdersPage).Methods("GET")
 
 	// 启动服务器
 	port := ":8090"
@@ -66,6 +80,16 @@ func main() {
 	fmt.Printf("   POST /api/tenant/{tenant_id}/refresh - 刷新租户缓存\n")
 	fmt.Printf("🔧 系统:\n")
 	fmt.Printf("   GET  /api/cache/stats - 获取缓存统计\n")
+	fmt.Printf("📈 归因订单分析:\n")
+	fmt.Printf("   GET  /attribution - 归因订单分析页面\n")
+	fmt.Printf("   GET  /api/attribution-orders - 获取所有租户归因订单数据\n")
+	fmt.Printf("   GET  /api/attribution-orders/{tenant_id} - 获取指定租户归因订单数据\n")
+	fmt.Printf("   POST /api/attribution-orders/refresh - 刷新归因订单缓存\n")
+	fmt.Printf("🛒 Amazon Vendor分析:\n")
+	fmt.Printf("   GET  /amazon-orders - Amazon Vendor分析页面\n")
+	fmt.Printf("   GET  /api/amazon-orders - 获取所有租户Amazon Vendor订单数据\n")
+	fmt.Printf("   GET  /api/amazon-orders/{tenant_id} - 获取指定租户Amazon Vendor订单数据\n")
+	fmt.Printf("   POST /api/amazon-orders/refresh - 刷新Amazon Vendor订单缓存\n")
 	fmt.Printf("📁 已实现平台: %v\n", platform.GetImplementedPlatformNames())
 
 	log.Fatal(http.ListenAndServe(port, router))
