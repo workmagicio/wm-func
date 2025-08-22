@@ -31,6 +31,48 @@ class AmazonOrdersChartManager {
         const processedOrders = tenantData.processed_orders;
         const averageLine = Array(dates.length).fill(tenantData.daily_average);
 
+        // 找出掉0的日期索引，用于添加竖线标记
+        const zeroMarkLines = [];
+        processedOrders.forEach((processedValue, index) => {
+            if (processedValue === -100) { // 掉0异常
+                const date = dates[index];
+                let displayDate = date;
+                if (typeof date === 'string') {
+                    displayDate = date.split('T')[0].split(' ')[0];
+                    if (displayDate.includes('+')) {
+                        displayDate = displayDate.split('+')[0];
+                    }
+                }
+                // 格式化为月-日格式 (MM-DD)
+                const dateObj = new Date(displayDate);
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const shortDate = `${month}-${day}`;
+                
+                zeroMarkLines.push({
+                    xAxis: index,
+                    label: {
+                        show: true,
+                        position: 'insideEndTop',
+                        formatter: shortDate,
+                        fontSize: 11,
+                        color: '#dc3545',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        padding: [3, 6],
+                        borderColor: '#dc3545',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        rotate: 0  // 确保标签水平显示
+                    },
+                    lineStyle: {
+                        color: '#dc3545',
+                        type: 'dashed',
+                        width: 2
+                    }
+                });
+            }
+        });
+
         // 构建系列数据
         const series = [
             {
@@ -93,7 +135,12 @@ class AmazonOrdersChartManager {
                     lineStyle: {
                         width: 3
                     }
-                }
+                },
+                markLine: zeroMarkLines.length > 0 ? {
+                    data: zeroMarkLines,
+                    symbol: 'none',
+                    silent: false
+                } : undefined
             },
             {
                 name: '平均值',

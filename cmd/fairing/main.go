@@ -40,6 +40,9 @@ func run() {
 
 	for _, account := range accounts {
 		// 避免闭包问题，复制account变量
+		if account.TenantId != 150102 {
+			continue
+		}
 		acc := account
 		pool.AddTask(func() {
 			log.Printf("[%s] start process account", acc.GetTraceId())
