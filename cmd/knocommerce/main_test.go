@@ -14,6 +14,13 @@ func TestRunning(t *testing.T) {
 			panic(err)
 		}
 		fmt.Println(res)
+
+		state, err := GetState(account, "question")
+		if err != nil {
+			panic(err)
+		}
+
+		SaveState(account, state)
 	}
 
 	fmt.Println(accounts)

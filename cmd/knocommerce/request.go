@@ -210,7 +210,7 @@ func GetKnoCommerceResponsesCount(accessToken, startDate, endDate string) (int, 
 	return responseCount.Count, nil
 }
 
-func GetKnoCommerceBenchmarks(accessToken string) (*BenchmarkResponse, error) {
+func GetKnoCommerceQuestion(accessToken string) (*BenchmarkResponse, error) {
 	// 1. 定义 API URL
 	apiURL := "https://app-api.knocommerce.com/api/rest/questions/benchmarks"
 

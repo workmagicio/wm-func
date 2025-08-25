@@ -50,6 +50,10 @@ type SyncInfoResult struct {
 	SyncInfo []byte `gorm:"column:sync_info"`
 }
 
+func (s *SyncInfoResult) TableName() string {
+	return "platform_offline.thirds_integration_sync_increment_info"
+}
+
 func GetSyncInfo(tenantId int64, accountId, platform, subType string) []byte {
 	sql := `select
     sync_info
