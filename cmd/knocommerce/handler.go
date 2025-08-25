@@ -34,8 +34,7 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 			Count:    count,
 			StatDate: v.Start,
 		})
-		time.Sleep(time.Second * 3)
-
+		time.Sleep(time.Second * 5)
 		count, err = GetKnoCommerceResponsesCount(accessToken, v.End, v.End)
 		if err != nil {
 			panic(err)
@@ -44,7 +43,7 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 			Count:    count,
 			StatDate: v.End,
 		})
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 5)
 	}
 
 	var airbyteData []AirbyteData

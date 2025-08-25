@@ -15,4 +15,4 @@ var timeStepDailyMap = map[string]int{
 	SUBTYPE_RESPONSE_COUNT: 1,
 }
 
-var preDays = 1
+var preDays = 365
