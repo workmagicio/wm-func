@@ -75,7 +75,17 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 	SaveAirbyteData(account, airbyteData, SUBTYPE_RESPONSE_COUNT)
 
 	log.Printf("[%s] 更新同步状态", traceId)
-	st.LastSync = lastSyncTime.Add(Day * -30)
+
+	// 判断lastSyncTime是否在最近7天内，如果是才减去30天
+	sevenDaysAgo := time.Now().UTC().Add(Day * -7)
+	if lastSyncTime.After(sevenDaysAgo) {
+		st.LastSync = lastSyncTime.Add(Day * -30)
+		log.Printf("[%s] lastSyncTime在最近7天内，减去30天后设置为: %v", traceId, st.LastSync)
+	} else {
+		st.LastSync = lastSyncTime
+		log.Printf("[%s] lastSyncTime不在最近7天内，直接设置为: %v", traceId, st.LastSync)
+	}
+
 	SaveState(account, st)
 	log.Printf("[%s] RequestResponseCount完成", traceId)
 }
@@ -132,7 +142,17 @@ func RequestResponse(account wm_account.Account, accessToken string) {
 	}
 
 	log.Printf("[%s] 更新同步状态", traceId)
-	st.LastSync = lastSyncTime.Add(Day * -30)
+
+	// 判断lastSyncTime是否在最近7天内，如果是才减去30天
+	sevenDaysAgo := time.Now().UTC().Add(Day * -7)
+	if lastSyncTime.After(sevenDaysAgo) {
+		st.LastSync = lastSyncTime.Add(Day * -30)
+		log.Printf("[%s] lastSyncTime在最近7天内，减去30天后设置为: %v", traceId, st.LastSync)
+	} else {
+		st.LastSync = lastSyncTime
+		log.Printf("[%s] lastSyncTime不在最近7天内，直接设置为: %v", traceId, st.LastSync)
+	}
+
 	SaveState(account, st)
 	log.Printf("[%s] RequestResponse完成", traceId)
 }
