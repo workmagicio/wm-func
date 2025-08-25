@@ -252,3 +252,86 @@ func GetKnoCommerceQuestion(accessToken string) (*BenchmarkResponse, error) {
 	// 8. 返回解析后的数据
 	return &benchmarkResponse, nil
 }
+func GetAllKnoCommerceSurveys(accessToken string) ([]Survey, error) {
+	var allSurveys []Survey
+	page := 1
+	const pageSize = 50 // 使用一个合理的页面大小以减少API调用次数
+
+	for {
+		fmt.Printf("正在获取第 %d 页的调查问卷...\n", page)
+		response, err := GetKnoCommerceSurveys(accessToken, page, pageSize)
+		if err != nil {
+			return allSurveys, fmt.Errorf("获取第 %d 页调查问卷时出错: %w", page, err)
+		}
+
+		// 如果当前页没有结果，说明已经获取完毕
+		if len(response.Results) == 0 {
+			break
+		}
+
+		// 将当前页的结果追加到总结果列表中
+		allSurveys = append(allSurveys, response.Results...)
+
+		// 如果已获取的结果数量大于或等于总数，说明已经获取完毕
+		if response.Total > 0 && len(allSurveys) >= response.Total {
+			break
+		}
+
+		// 准备获取下一页
+		page++
+	}
+
+	return allSurveys, nil
+}
+
+// GetKnoCommerceSurveys 函数用于获取调查问卷列表
+func GetKnoCommerceSurveys(accessToken string, page, pageSize int) (*SurveysResponse, error) {
+	// 1. 定义 API 基础 URL
+	baseURL := "https://app-api.knocommerce.com/api/rest/surveys"
+
+	// 2. 准备 URL 查询参数
+	params := url.Values{}
+	params.Add("page", fmt.Sprintf("%d", page))
+	params.Add("pageSize", fmt.Sprintf("%d", pageSize))
+
+	// 3. 构造完整的请求 URL
+	fullURL := baseURL + "?" + params.Encode()
+
+	// 4. 创建一个新的 GET 请求
+	req, err := http.NewRequest("GET", fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("创建 surveys 请求失败: %w", err)
+	}
+
+	// 5. 设置 Authorization 请求头
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+
+	// 6. 发送 HTTP 请求
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("发送 surveys 请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// 7. 检查 HTTP 响应状态码
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("surveys API 返回非 200 状态码: %d, 响应: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	// 8. 读取响应体
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取 surveys 响应体失败: %w", err)
+	}
+
+	// 9. 将 JSON 响应体解析到 SurveysResponse 结构体中
+	var surveysResponse SurveysResponse
+	if err := json.Unmarshal(body, &surveysResponse); err != nil {
+		return nil, fmt.Errorf("解析 surveys JSON 失败: %w", err)
+	}
+
+	// 10. 返回解析后的数据
+	return &surveysResponse, nil
+}

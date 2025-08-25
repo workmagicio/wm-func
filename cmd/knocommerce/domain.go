@@ -1,9 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
+	"wm-func/wm_account"
 )
+
+type Key interface {
+	GetKey(account wm_account.Account) string
+}
 
 const (
 	SUBTYPE_QUESTION       = "questions"
@@ -12,7 +18,7 @@ const (
 	SUBTYPE_SURVEY         = "surveys"
 )
 
-func GetAirbyteDbNameWithSubType(subType string) string {
+func GetAirbyteTableNameWithSubType(subType string) string {
 	return fmt.Sprintf("airbyte_destination_v2.raw_knocommerce_%s", subType)
 }
 
@@ -59,6 +65,30 @@ type BenchmarkQuestion struct {
 	Title string `json:"title"`
 }
 
+func (b BenchmarkQuestion) GetKey(account wm_account.Account) string {
+	return fmt.Sprintf("%d|%s", account.TenantId, b.ID)
+}
+
+func TransToAirbyte(account wm_account.Account, data Key) (*AirbyteData, error) {
+	var err error
+	var byteData []byte
+	if byteData, err = json.Marshal(data); err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC().Format("2006-01-02 15:04:05")
+
+	return &AirbyteData{
+		TenantId:            account.TenantId,
+		AirbyteRawId:        data.GetKey(account),
+		AirbyteData:         byteData,
+		AirbyteExtractedAt:  now,
+		AirbyteLoadedAt:     now,
+		AirbyteMeta:         `{}`,
+		AirbyteGenerationId: 0,
+		ItemType:            "-",
+	}, nil
+}
+
 type QuestionResponse struct {
 	Data []Questions `json:"data"`
 }
@@ -86,8 +116,6 @@ type Result struct {
 	CreatedAt              time.Time   `json:"created_at"`
 	CompletedAt            time.Time   `json:"completed_at"`
 	CustomerID             string      `json:"customer_id"`
-	CustomerEmail          string      `json:"customer_email"`
-	CustomerPhone          interface{} `json:"customer_phone"` // 使用 interface{} 因为它可能是 null
 	CustomerShop           string      `json:"customer_shop"`
 	CustomerLifetimeSpent  int         `json:"customer_lifetime_spent"`
 	CustomerLifetimeOrders int         `json:"customer_lifetime_orders"`
@@ -115,3 +143,39 @@ type Response struct {
 	Label      string `json:"label"`
 	QuestionID string `json:"question_id"`
 }
+
+// --- Structures for /surveys endpoint ---
+// SurveysResponse 是 /surveys 端点的顶层响应结构
+type SurveysResponse struct {
+	Total   int      `json:"total"`
+	Results []Survey `json:"results"`
+}
+
+// Survey 代表一个调查问卷
+type Survey struct {
+	ID        string           `json:"id"`
+	AccountID string           `json:"accountId"`
+	CreatedAt time.Time        `json:"createdAt"`
+	UpdatedAt time.Time        `json:"updatedAt"`
+	Title     string           `json:"title"`
+	Questions []SurveyQuestion `json:"questions"`
+	Status    string           `json:"status"`
+}
+
+func (s Survey) GetKey(account wm_account.Account) string {
+	return fmt.Sprintf("%d|%s|%s", account.TenantId, s.AccountID, s.ID)
+}
+
+// SurveyQuestion 代表调查问卷中的一个问题
+type SurveyQuestion struct {
+	ID     string      `json:"id"`
+	Label  string      `json:"label"`
+	Type   string      `json:"type"`
+	Values interface{} `json:"values"`
+}
+
+//// QuestionValue 代表问题的一个可选项
+//type QuestionValue struct {
+//	ID    string `json:"id"`
+//	Label string `json:"label"`
+//}
