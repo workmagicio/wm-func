@@ -1,44 +1,63 @@
 package main
 
 import (
-	"gorm.io/gorm/clause"
 	"log"
 	"time"
 	"wm-func/common/db/airbyte_db"
 	"wm-func/wm_account"
+
+	"gorm.io/gorm/clause"
 )
 
 var dateFormatDate = "2006-01-02"
 
 func RequestResponseCount(account wm_account.Account, accessToken string) {
+	traceId := account.GetTraceId()
+	log.Printf("[%s] 开始RequestResponseCount，获取回复统计数据", traceId)
+
 	st, err := GetState(account, SUBTYPE_RESPONSE_COUNT)
 	if err != nil {
+		log.Printf("[%s] GetState失败: %v", traceId, err)
 		panic(err)
 	}
 
 	if time.Now().Before(st.NextRunningTime) {
-		log.Println("")
+		log.Printf("[%s] 还未到执行时间，跳过本次运行", traceId)
 		return
 	}
 
 	insertData := []Count{}
 	lastSyncTime := time.Now().UTC()
 	slice := GetStreamSlice(st.LastSync, time.Now().UTC(), dateFormatDate, SUBTYPE_RESPONSE_COUNT)
-	for _, v := range slice {
+
+	log.Printf("[%s] 需要处理的时间分片数量: %d", traceId, len(slice))
+
+	for i, v := range slice {
+		log.Printf("[%s] 正在处理第%d个分片，时间范围: %s - %s", traceId, i+1, v.Start, v.End)
+
+		// 获取开始日期的count
 		var count int64
 		count, err = GetKnoCommerceResponsesCount(accessToken, v.Start, v.Start)
 		if err != nil {
+			log.Printf("[%s] GetKnoCommerceResponsesCount失败(开始日期%s): %v", traceId, v.Start, err)
 			panic(err)
 		}
+		log.Printf("[%s] 获取到%s的回复数量: %d", traceId, v.Start, count)
+
 		insertData = append(insertData, Count{
 			Count:    count,
 			StatDate: v.Start,
 		})
 		time.Sleep(time.Second * 5)
+
+		// 获取结束日期的count
 		count, err = GetKnoCommerceResponsesCount(accessToken, v.End, v.End)
 		if err != nil {
+			log.Printf("[%s] GetKnoCommerceResponsesCount失败(结束日期%s): %v", traceId, v.End, err)
 			panic(err)
 		}
+		log.Printf("[%s] 获取到%s的回复数量: %d", traceId, v.End, count)
+
 		insertData = append(insertData, Count{
 			Count:    count,
 			StatDate: v.End,
@@ -46,80 +65,120 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 		time.Sleep(time.Second * 5)
 	}
 
+	log.Printf("[%s] 总共收集到统计数据条数: %d", traceId, len(insertData))
+	log.Printf("[%s] 开始保存统计数据到Airbyte", traceId)
+
 	var airbyteData []AirbyteData
 	for _, v := range insertData {
 		airbyteData = append(airbyteData, *TransToAirbyte(account, v))
 	}
 	SaveAirbyteData(account, airbyteData, SUBTYPE_RESPONSE_COUNT)
 
+	log.Printf("[%s] 更新同步状态", traceId)
 	st.LastSync = lastSyncTime.Add(Day * -30)
 	SaveState(account, st)
-
+	log.Printf("[%s] RequestResponseCount完成", traceId)
 }
 
 func RequestResponse(account wm_account.Account, accessToken string) {
+	traceId := account.GetTraceId()
+	log.Printf("[%s] 开始RequestResponse，获取回复数据", traceId)
+
 	st, err := GetState(account, SUBTYPE_RESPONSE)
 	if err != nil {
+		log.Printf("[%s] GetState失败: %v", traceId, err)
 		panic(err)
 	}
 
 	if time.Now().Before(st.NextRunningTime) {
-		log.Println("")
+		log.Printf("[%s] 还未到执行时间，跳过本次运行", traceId)
 		return
 	}
 
 	insertData := []Result{}
 	lastSyncTime := time.Now().UTC()
 	slice := GetStreamSlice(st.LastSync, time.Now().UTC(), dateFormatDate, SUBTYPE_RESPONSE)
+
+	log.Printf("[%s] 需要处理的时间分片数量: %d", traceId, len(slice))
+
 	for i, v := range slice {
+		log.Printf("[%s] 正在处理第%d个分片，时间范围: %s - %s", traceId, i+1, v.Start, v.End)
+
 		var tmp []Result
 		tmp, err = GetAllKnoCommerceResponses(accessToken, v.Start, v.End)
 		if err != nil {
+			log.Printf("[%s] GetAllKnoCommerceResponses失败: %v", traceId, err)
 			panic(err)
 		}
 
-		lastSyncTime = tmp[len(tmp)-1].CreatedAt
+		log.Printf("[%s] 第%d个分片获取到回复数量: %d", traceId, i+1, len(tmp))
 
-		insertData = append(insertData, tmp...)
+		if len(tmp) > 0 {
+			lastSyncTime = tmp[len(tmp)-1].CreatedAt
+			insertData = append(insertData, tmp...)
+		}
 
-		if len(insertData) == 500 || i == len(slice)-1 {
-			airbyteData := []AirbyteData{}
-			for _, d := range insertData {
-				airbyteData = append(airbyteData, *TransToAirbyte(account, d))
+		if len(insertData) >= 500 || i == len(slice)-1 {
+			if len(insertData) > 0 {
+				log.Printf("[%s] 开始保存批次数据到Airbyte，数据量: %d", traceId, len(insertData))
+				airbyteData := []AirbyteData{}
+				for _, d := range insertData {
+					airbyteData = append(airbyteData, *TransToAirbyte(account, d))
+				}
+				SaveAirbyteData(account, airbyteData, SUBTYPE_RESPONSE)
+				insertData = []Result{}
 			}
-			SaveAirbyteData(account, airbyteData, SUBTYPE_RESPONSE)
-			insertData = []Result{}
 		}
 	}
 
+	log.Printf("[%s] 更新同步状态", traceId)
 	st.LastSync = lastSyncTime.Add(Day * -30)
 	SaveState(account, st)
+	log.Printf("[%s] RequestResponse完成", traceId)
 }
 
 func RequestQuestion(account wm_account.Account, accessToken string) {
+	traceId := account.GetTraceId()
+	log.Printf("[%s] 开始RequestQuestion，获取问题基准数据", traceId)
+
 	res, err := GetKnoCommerceQuestion(accessToken)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[%s] GetKnoCommerceQuestion失败: %v", traceId, err)
+		return
 	}
+
+	log.Printf("[%s] 成功获取到问题数据，问题数量: %d", traceId, len(res.Data.Questions))
 
 	var data []AirbyteData
 	for _, d := range res.Data.Questions {
 		data = append(data, *TransToAirbyte(account, d))
 	}
+
+	log.Printf("[%s] 开始保存问题数据到Airbyte", traceId)
 	SaveAirbyteData(account, data, SUBTYPE_QUESTION)
+	log.Printf("[%s] RequestQuestion完成", traceId)
 }
 
 func RequestSurvey(account wm_account.Account, accessToken string) {
+	traceId := account.GetTraceId()
+	log.Printf("[%s] 开始RequestSurvey，获取调查问卷数据", traceId)
+
 	res, err := GetAllKnoCommerceSurveys(accessToken)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[%s] GetAllKnoCommerceSurveys失败: %v", traceId, err)
+		return
 	}
+
+	log.Printf("[%s] 成功获取到调查问卷数据，问卷数量: %d", traceId, len(res))
 
 	var data []AirbyteData
 	for _, d := range res {
 		data = append(data, *TransToAirbyte(account, d))
 	}
+
+	log.Printf("[%s] 开始保存调查问卷数据到Airbyte", traceId)
 	SaveAirbyteData(account, data, SUBTYPE_SURVEY)
+	log.Printf("[%s] RequestSurvey完成", traceId)
 }
 
 func SaveAirbyteData(account wm_account.Account, data []AirbyteData, subType string) error {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -12,6 +13,9 @@ import (
 )
 
 func RefreshToken(account wm_account.Account) (*RefreshTokenResponse, error) {
+	traceId := account.GetTraceId()
+	log.Printf("[%s] 开始RefreshToken，请求授权token", traceId)
+
 	// 1. 定义 API 的基础 URL
 	apiURL := "https://app-api.knocommerce.com/api/oauth2/token"
 
@@ -22,11 +26,13 @@ func RefreshToken(account wm_account.Account) (*RefreshTokenResponse, error) {
 
 	// 3. 构造完整的请求 URL
 	fullURL := apiURL + "?" + params.Encode()
+	log.Printf("[%s] 构建请求URL: %s", traceId, fullURL)
 
 	// 4. 创建一个新的 POST 请求
 	// 第三个参数是请求体，这里我们没有请求体，所以是 nil
 	req, err := http.NewRequest("POST", fullURL, nil)
 	if err != nil {
+		log.Printf("[%s] 创建HTTP请求失败: %v", traceId, err)
 		return nil, fmt.Errorf("创建请求失败: %w", err)
 	}
 
@@ -35,35 +41,46 @@ func RefreshToken(account wm_account.Account) (*RefreshTokenResponse, error) {
 
 	// 6. 设置 Authorization 请求头
 	req.Header.Add("Authorization", "Basic "+auth)
+	log.Printf("[%s] 设置Authorization请求头完成", traceId)
 
 	// 7. 发送 HTTP 请求
+	log.Printf("[%s] 开始发送HTTP请求到Knocommerce API", traceId)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("[%s] 发送HTTP请求失败: %v", traceId, err)
 		return nil, fmt.Errorf("发送请求失败: %w", err)
 	}
 	// 确保在函数结束时关闭响应体
 	defer resp.Body.Close()
 
+	log.Printf("[%s] 收到HTTP响应，状态码: %d", traceId, resp.StatusCode)
+
 	// 8. 检查 HTTP 响应状态码
 	if resp.StatusCode != http.StatusOK {
 		// 如果状态码不是 200 OK，读取响应体并返回错误
 		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("[%s] API返回错误状态码: %d, 响应内容: %s", traceId, resp.StatusCode, string(bodyBytes))
 		return nil, fmt.Errorf("API 返回非 200 状态码: %d, 响应: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	// 9. 读取响应体
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf("[%s] 读取响应体失败: %v", traceId, err)
 		return nil, fmt.Errorf("读取响应体失败: %w", err)
 	}
+
+	log.Printf("[%s] 开始解析JSON响应", traceId)
 
 	// 10. 将 JSON 格式的响应体解析到 RefreshToken 结构体中
 	var token RefreshTokenResponse
 	if err := json.Unmarshal(body, &token); err != nil {
+		log.Printf("[%s] JSON解析失败: %v", traceId, err)
 		return nil, fmt.Errorf("解析 JSON 失败: %w", err)
 	}
 
+	log.Printf("[%s] RefreshToken成功，获得access_token", traceId)
 	// 11. 返回解析后的 token
 	return &token, nil
 }
@@ -153,7 +170,6 @@ func GetKnoCommerceResponses(accessToken, startDate, endDate string, page, pageS
 	// 9. 将 JSON 响应体解析到 APIResponse 结构体中
 	var apiResponse APIResponse
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
-		panic(err)
 		return nil, fmt.Errorf("解析 responses JSON 失败: %w", err)
 	}
 
