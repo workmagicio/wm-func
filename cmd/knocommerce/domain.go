@@ -22,23 +22,8 @@ func GetAirbyteTableNameWithSubType(subType string) string {
 	return fmt.Sprintf("airbyte_destination_v2.raw_knocommerce_%s", subType)
 }
 
-var subTypeList = []string{SUBTYPE_QUESTION, SUBTYPE_RESPONSE, SUBTYPE_RESPONSE_COUNT, SUBTYPE_SURVEY}
-
-var timeRageHourMap = map[string]int{
-	SUBTYPE_RESPONSE:       1,
-	SUBTYPE_SURVEY:         1,
-	SUBTYPE_RESPONSE_COUNT: 12,
-	SUBTYPE_QUESTION:       1,
-}
-
-var timeStepDailyMap = map[string]int{
-	SUBTYPE_RESPONSE:       -1,
-	SUBTYPE_SURVEY:         -1,
-	SUBTYPE_RESPONSE_COUNT: 1,
-}
-
 type ResponseCount struct {
-	Count int `json:"count"`
+	Count int64 `json:"count"`
 }
 
 type RefreshTokenResponse struct {
@@ -69,11 +54,11 @@ func (b BenchmarkQuestion) GetKey(account wm_account.Account) string {
 	return fmt.Sprintf("%d|%s", account.TenantId, b.ID)
 }
 
-func TransToAirbyte(account wm_account.Account, data Key) (*AirbyteData, error) {
+func TransToAirbyte(account wm_account.Account, data Key) *AirbyteData {
 	var err error
 	var byteData []byte
 	if byteData, err = json.Marshal(data); err != nil {
-		return nil, err
+		panic(err)
 	}
 	now := time.Now().UTC().Format("2006-01-02 15:04:05")
 
@@ -86,7 +71,7 @@ func TransToAirbyte(account wm_account.Account, data Key) (*AirbyteData, error) 
 		AirbyteMeta:         `{}`,
 		AirbyteGenerationId: 0,
 		ItemType:            "-",
-	}, nil
+	}
 }
 
 type QuestionResponse struct {
@@ -117,12 +102,16 @@ type Result struct {
 	CompletedAt            time.Time   `json:"completed_at"`
 	CustomerID             string      `json:"customer_id"`
 	CustomerShop           string      `json:"customer_shop"`
-	CustomerLifetimeSpent  int         `json:"customer_lifetime_spent"`
-	CustomerLifetimeOrders int         `json:"customer_lifetime_orders"`
+	CustomerLifetimeSpent  float64     `json:"customer_lifetime_spent"`
+	CustomerLifetimeOrders float64     `json:"customer_lifetime_orders"`
 	TimeSpent              interface{} `json:"time_spent"` // 使用 interface{} 因为它可能是 null
 	SurveyID               string      `json:"survey_id"`
 	Order                  Order       `json:"order"`
 	Response               []Response  `json:"response"`
+}
+
+func (r Result) GetKey(account wm_account.Account) string {
+	return fmt.Sprintf("%d|%s|%s", account.TenantId, r.AccountID, r.ID)
 }
 
 // Order 结构代表与调查回复关联的订单信息
@@ -138,10 +127,10 @@ type Order struct {
 
 // Response 结构代表调查问卷中的具体问题和答案
 type Response struct {
-	Value      string `json:"value"`
-	Type       string `json:"type"`
-	Label      string `json:"label"`
-	QuestionID string `json:"question_id"`
+	Value      interface{} `json:"value"`
+	Type       string      `json:"type"`
+	Label      string      `json:"label"`
+	QuestionID string      `json:"question_id"`
 }
 
 // --- Structures for /surveys endpoint ---
@@ -174,8 +163,17 @@ type SurveyQuestion struct {
 	Values interface{} `json:"values"`
 }
 
-//// QuestionValue 代表问题的一个可选项
-//type QuestionValue struct {
-//	ID    string `json:"id"`
-//	Label string `json:"label"`
-//}
+// // QuestionValue 代表问题的一个可选项
+//
+//	type QuestionValue struct {
+//		ID    string `json:"id"`
+//		Label string `json:"label"`
+//	}
+type Count struct {
+	Count    int64  `json:"count"`
+	StatDate string `json:"stat_date"`
+}
+
+func (c Count) GetKey(account wm_account.Account) string {
+	return fmt.Sprintf("%d|%s", account.TenantId, c.StatDate)
+}

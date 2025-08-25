@@ -19,7 +19,7 @@ func GetState(account wm_account.Account, subType string) (*State, error) {
 	syncInfo := state.GetSyncInfo(account.TenantId, account.AccountId, Platform, subType)
 
 	if syncInfo == nil {
-		lastYear := time.Now().Add(time.Hour * 24 * 366 * -1)
+		lastYear := time.Now().Add(Day * -1 * time.Duration(preDays))
 		return &State{
 			Name:            subType,
 			LastSync:        lastYear,

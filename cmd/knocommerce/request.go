@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 	"wm-func/wm_account"
 )
 
@@ -72,7 +73,7 @@ func GetAllKnoCommerceResponses(accessToken, startDate, endDate string) ([]Resul
 	var allResults []Result
 	page := 1
 	// 设定一个合理的页面大小，例如 50，以减少 API 调用次数
-	const pageSize = 50
+	const pageSize = 250
 
 	for {
 		fmt.Printf("正在获取第 %d 页数据...\n", page)
@@ -97,6 +98,7 @@ func GetAllKnoCommerceResponses(accessToken, startDate, endDate string) ([]Resul
 
 		// 准备获取下一页
 		page++
+		time.Sleep(time.Second * 3)
 	}
 
 	return allResults, nil
@@ -114,6 +116,7 @@ func GetKnoCommerceResponses(accessToken, startDate, endDate string, page, pageS
 	params.Add("pageSize", fmt.Sprintf("%d", pageSize))
 	params.Add("startDate", startDate)
 	params.Add("endDate", endDate)
+	params.Add("expand[]", "order")
 
 	// 3. 构造完整的请求 URL
 	fullURL := baseURL + "?" + params.Encode()
@@ -150,6 +153,7 @@ func GetKnoCommerceResponses(accessToken, startDate, endDate string, page, pageS
 	// 9. 将 JSON 响应体解析到 APIResponse 结构体中
 	var apiResponse APIResponse
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
+		panic(err)
 		return nil, fmt.Errorf("解析 responses JSON 失败: %w", err)
 	}
 
@@ -158,7 +162,9 @@ func GetKnoCommerceResponses(accessToken, startDate, endDate string, page, pageS
 }
 
 // GetKnoCommerceResponsesCount 函数用于获取指定日期范围内的回复总数
-func GetKnoCommerceResponsesCount(accessToken, startDate, endDate string) (int, error) {
+func GetKnoCommerceResponsesCount(accessToken, startDate, endDate string) (int64, error) {
+	startDate = fmt.Sprintf("%sT00:00:00.000Z", startDate)
+	endDate = fmt.Sprintf("%sT23:59:59.999Z", endDate)
 	// 1. 定义 API 基础 URL
 	baseURL := "https://app-api.knocommerce.com/api/rest/responses/count"
 
@@ -279,6 +285,7 @@ func GetAllKnoCommerceSurveys(accessToken string) ([]Survey, error) {
 
 		// 准备获取下一页
 		page++
+		time.Sleep(time.Second * 3)
 	}
 
 	return allSurveys, nil

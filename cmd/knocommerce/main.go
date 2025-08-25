@@ -22,9 +22,8 @@ func run(account wm_account.Account) {
 		return
 	}
 
-	//RequestQuestion(account, token.AccessToken)
+	RequestQuestion(account, token.AccessToken)
 	RequestSurvey(account, token.AccessToken)
-	//for _, subType := range subTypeList {
-	//
-	//}
+	RequestResponse(account, token.AccessToken)
+	RequestResponseCount(account, token.AccessToken)
 }
