@@ -21,6 +21,7 @@ select
     a.platform,
     a.access_token,
     a.refresh_token,
+	cast(json_extract(a.tokens, '$.accessKeyId') as varchar) as access_key_id,
 	cast(json_extract(a.tokens, '$.secretToken') as varchar) as secret_token,
 	coalesce(a.cipher, json_extract(account_model, '$.cipher')) as cipher
     from

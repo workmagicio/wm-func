@@ -12,6 +12,7 @@ type Account struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	SecretToken  string `json:"secret_token"`
+	AccessKeyId  string `json:"access_key_id"`
 	Platform     string `json:"platform"` // 平台标识
 	Cipher       string `json:"cipher"`
 }
