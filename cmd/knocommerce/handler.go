@@ -48,7 +48,7 @@ func RequestResponseCount(account wm_account.Account, token *TokenManager) {
 			Count:    count,
 			StatDate: v.Start,
 		})
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 2)
 
 		// 获取结束日期的count
 		count, err = GetKnoCommerceResponsesCount(token, v.End, v.End)
@@ -62,7 +62,7 @@ func RequestResponseCount(account wm_account.Account, token *TokenManager) {
 			Count:    count,
 			StatDate: v.End,
 		})
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 2)
 	}
 
 	log.Printf("[%s] 总共收集到统计数据条数: %d", traceId, len(insertData))

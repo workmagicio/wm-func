@@ -39,7 +39,7 @@ func GetAllKnoCommerceResponses(token *TokenManager, startDate, endDate string) 
 
 		// 准备获取下一页
 		page++
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 2)
 	}
 
 	return allResults, nil
@@ -225,7 +225,7 @@ func GetAllKnoCommerceSurveys(token *TokenManager) ([]Survey, error) {
 
 		// 准备获取下一页
 		page++
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 2)
 	}
 
 	return allSurveys, nil

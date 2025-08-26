@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	t_pool "wm-func/common/pool"
 	"wm-func/wm_account"
 )
 
@@ -13,9 +14,17 @@ func main() {
 	accounts := wm_account.GetAccountsWithPlatform(Platform)
 	log.Printf("[%s] 获取到账户数量: %d", Platform, len(accounts))
 
+	pool := t_pool.NewWorkerPool(10)
+	pool.Run()
+
 	for _, account := range accounts {
-		run(account)
+		ac := account
+		pool.AddTask(func() {
+			run(ac)
+		})
+
 	}
+	pool.Wait()
 
 	log.Printf("[%s] Knocommerce数据同步程序结束", Platform)
 }
