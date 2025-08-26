@@ -4,36 +4,65 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
 )
 
 // GetAllKnoCommerceResponses 函数会自动处理分页，获取指定日期范围内的所有回复
-func GetAllKnoCommerceResponses(token *TokenManager, startDate, endDate string) ([]Result, error) {
+func GetAllKnoCommerceResponses(account KAccount, token *TokenManager, startDate, endDate string) ([]Result, error) {
+	traceId := account.GetTraceIdWithSubType(SUBTYPE_RESPONSE)
 	var allResults []Result
 	page := 1
 	// 设定一个合理的页面大小，例如 50，以减少 API 调用次数
 	const pageSize = 250
+	var totalCount int = 0
+
+	log.Printf("[%s] 开始分页获取回复数据，日期范围: %s 至 %s", traceId, startDate, endDate)
 
 	for {
-		fmt.Printf("正在获取第 %d 页数据...\n", page)
 		response, err := GetKnoCommerceResponses(token, startDate, endDate, page, pageSize)
 		if err != nil {
 			// 如果在获取某一页时出错，返回已获取的数据和错误
 			return allResults, fmt.Errorf("获取第 %d 页数据时出错: %w", page, err)
 		}
 
+		// 第一页时记录总数
+		if page == 1 {
+			totalCount = response.Total
+			var estimatedPages int
+			if totalCount > 0 && pageSize > 0 {
+				estimatedPages = (totalCount + pageSize - 1) / pageSize
+			} else {
+				estimatedPages = 1
+			}
+			log.Printf("[%s] API返回总计数量: %d，预计页数: %d",
+				traceId, totalCount, estimatedPages)
+		}
+
 		// 如果当前页没有结果，说明已经获取完毕
 		if len(response.Results) == 0 {
+			log.Printf("[%s] 第 %d 页无数据，获取完毕", traceId, page)
 			break
 		}
 
 		// 将当前页的结果追加到总结果列表中
 		allResults = append(allResults, response.Results...)
 
+		var progressText string
+		if totalCount > 0 {
+			progressText = fmt.Sprintf("累计获取: %d/%d 条 (%.1f%%)",
+				len(allResults), totalCount, float64(len(allResults))/float64(totalCount)*100)
+		} else {
+			progressText = fmt.Sprintf("累计获取: %d 条", len(allResults))
+		}
+		log.Printf("[%s] 成功获取第 %d 页，当前页数据: %d 条，%s",
+			traceId, page, len(response.Results), progressText)
+
 		// 如果已获取的结果数量大于或等于总数，说明已经获取完毕
 		if response.Total > 0 && len(allResults) >= response.Total {
+			log.Printf("[%s] 已获取全部数据，总共: %d 条", traceId, len(allResults))
 			break
 		}
 
@@ -42,6 +71,7 @@ func GetAllKnoCommerceResponses(token *TokenManager, startDate, endDate string) 
 		time.Sleep(time.Second * 2)
 	}
 
+	log.Printf("[%s] 分页获取完成，最终获得 %d 条回复数据", traceId, len(allResults))
 	return allResults, nil
 }
 
@@ -198,28 +228,56 @@ func GetKnoCommerceQuestion(accessToken string) (*BenchmarkResponse, error) {
 	// 8. 返回解析后的数据
 	return &benchmarkResponse, nil
 }
-func GetAllKnoCommerceSurveys(token *TokenManager) ([]Survey, error) {
+func GetAllKnoCommerceSurveys(account KAccount, token *TokenManager) ([]Survey, error) {
+	traceId := account.GetTraceIdWithSubType(SUBTYPE_SURVEY)
 	var allSurveys []Survey
 	page := 1
 	const pageSize = 50 // 使用一个合理的页面大小以减少API调用次数
+	var totalCount int = 0
+
+	log.Printf("[%s] 开始分页获取调查问卷数据", traceId)
 
 	for {
-		fmt.Printf("正在获取第 %d 页的调查问卷...\n", page)
 		response, err := GetKnoCommerceSurveys(token.GetAccessToken(), page, pageSize)
 		if err != nil {
 			return allSurveys, fmt.Errorf("获取第 %d 页调查问卷时出错: %w", page, err)
 		}
 
+		// 第一页时记录总数
+		if page == 1 {
+			totalCount = response.Total
+			var estimatedPages int
+			if totalCount > 0 && pageSize > 0 {
+				estimatedPages = (totalCount + pageSize - 1) / pageSize
+			} else {
+				estimatedPages = 1
+			}
+			log.Printf("[%s] API返回调查问卷总数: %d，每页大小: %d，预计页数: %d",
+				traceId, totalCount, pageSize, estimatedPages)
+		}
+
 		// 如果当前页没有结果，说明已经获取完毕
 		if len(response.Results) == 0 {
+			log.Printf("[%s] 第 %d 页无数据，获取完毕", traceId, page)
 			break
 		}
 
 		// 将当前页的结果追加到总结果列表中
 		allSurveys = append(allSurveys, response.Results...)
 
+		var progressText string
+		if totalCount > 0 {
+			progressText = fmt.Sprintf("累计获取: %d/%d 条 (%.1f%%)",
+				len(allSurveys), totalCount, float64(len(allSurveys))/float64(totalCount)*100)
+		} else {
+			progressText = fmt.Sprintf("累计获取: %d 条", len(allSurveys))
+		}
+		log.Printf("[%s] 成功获取第 %d 页，当前页数据: %d 条，%s",
+			traceId, page, len(response.Results), progressText)
+
 		// 如果已获取的结果数量大于或等于总数，说明已经获取完毕
 		if response.Total > 0 && len(allSurveys) >= response.Total {
+			log.Printf("[%s] 已获取全部调查问卷数据，总共: %d 条", traceId, len(allSurveys))
 			break
 		}
 
@@ -228,6 +286,7 @@ func GetAllKnoCommerceSurveys(token *TokenManager) ([]Survey, error) {
 		time.Sleep(time.Second * 2)
 	}
 
+	log.Printf("[%s] 分页获取完成，最终获得 %d 条调查问卷数据", traceId, len(allSurveys))
 	return allSurveys, nil
 }
 

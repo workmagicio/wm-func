@@ -114,7 +114,7 @@ func RequestResponse(account KAccount, token *TokenManager) {
 		log.Printf("[%s] 正在处理第%d个分片，时间范围: %s - %s", traceId, i+1, v.Start, v.End)
 
 		var tmp []Result
-		tmp, err = GetAllKnoCommerceResponses(token, v.Start, v.End)
+		tmp, err = GetAllKnoCommerceResponses(account, token, v.Start, v.End)
 		if err != nil {
 			log.Printf("[%s] GetAllKnoCommerceResponses失败: %v", traceId, err)
 			panic(err)
@@ -136,23 +136,24 @@ func RequestResponse(account KAccount, token *TokenManager) {
 				}
 				SaveAirbyteData(account, airbyteData, SUBTYPE_RESPONSE)
 				insertData = []Result{}
+
+				log.Printf("[%s] 更新同步状态", traceId)
+
+				// 判断lastSyncTime是否在最近7天内，如果是才减去30天
+				sevenDaysAgo := time.Now().UTC().Add(Day * -7)
+				if lastSyncTime.After(sevenDaysAgo) {
+					st.LastSync = lastSyncTime.Add(Day * -30)
+					log.Printf("[%s] lastSyncTime在最近7天内，减去30天后设置为: %v", traceId, st.LastSync)
+				} else {
+					st.LastSync = lastSyncTime
+					log.Printf("[%s] lastSyncTime不在最近7天内，直接设置为: %v", traceId, st.LastSync)
+				}
+
+				SaveState(account, st)
 			}
 		}
 	}
 
-	log.Printf("[%s] 更新同步状态", traceId)
-
-	// 判断lastSyncTime是否在最近7天内，如果是才减去30天
-	sevenDaysAgo := time.Now().UTC().Add(Day * -7)
-	if lastSyncTime.After(sevenDaysAgo) {
-		st.LastSync = lastSyncTime.Add(Day * -30)
-		log.Printf("[%s] lastSyncTime在最近7天内，减去30天后设置为: %v", traceId, st.LastSync)
-	} else {
-		st.LastSync = lastSyncTime
-		log.Printf("[%s] lastSyncTime不在最近7天内，直接设置为: %v", traceId, st.LastSync)
-	}
-
-	SaveState(account, st)
 	log.Printf("[%s] RequestResponse完成", traceId)
 }
 
@@ -182,7 +183,7 @@ func RequestSurvey(account KAccount, token *TokenManager) {
 	traceId := account.GetTraceIdWithSubType(SUBTYPE_SURVEY)
 	log.Printf("[%s] 开始RequestSurvey，获取调查问卷数据", traceId)
 
-	res, err := GetAllKnoCommerceSurveys(token)
+	res, err := GetAllKnoCommerceSurveys(account, token)
 	if err != nil {
 		log.Printf("[%s] GetAllKnoCommerceSurveys失败: %v", traceId, err)
 		return

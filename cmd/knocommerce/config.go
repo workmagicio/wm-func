@@ -10,7 +10,7 @@ var timeRageHourMap = map[string]int{
 }
 
 var timeStepDailyMap = map[string]int{
-	SUBTYPE_RESPONSE:       5,
+	SUBTYPE_RESPONSE:       3,
 	SUBTYPE_SURVEY:         -1,
 	SUBTYPE_RESPONSE_COUNT: 1,
 }
