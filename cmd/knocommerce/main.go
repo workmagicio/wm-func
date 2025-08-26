@@ -47,7 +47,7 @@ func main() {
 			})
 		} else {
 			// 获取锁失败
-			log.Printf("[%s] 无法获取锁，跳过该账户: %v", ac.GetTraceId(), err)
+			log.Printf("[%s] 无法获取锁，跳过该账户: %v", ac.GetSimpleTraceId(), err)
 		}
 	}
 	pool.Wait()
@@ -56,7 +56,7 @@ func main() {
 }
 
 func run(account KAccount) {
-	traceId := account.GetTraceId()
+	traceId := account.GetSimpleTraceId()
 	log.Printf("[%s] 开始处理账户", traceId)
 
 	token := NewTokenManager(account)
@@ -67,21 +67,25 @@ func run(account KAccount) {
 	//}
 	//log.Printf("[%s] RefreshToken成功", traceId)
 
-	log.Printf("[%s] 开始RequestQuestion", traceId)
+	questionTraceId := account.GetTraceIdWithSubType(SUBTYPE_QUESTION)
+	log.Printf("[%s] 开始RequestQuestion", questionTraceId)
 	RequestQuestion(account, token)
-	log.Printf("[%s] RequestQuestion完成", traceId)
+	log.Printf("[%s] RequestQuestion完成", questionTraceId)
 
-	log.Printf("[%s] 开始RequestSurvey", traceId)
+	surveyTraceId := account.GetTraceIdWithSubType(SUBTYPE_SURVEY)
+	log.Printf("[%s] 开始RequestSurvey", surveyTraceId)
 	RequestSurvey(account, token)
-	log.Printf("[%s] RequestSurvey完成", traceId)
+	log.Printf("[%s] RequestSurvey完成", surveyTraceId)
 
-	log.Printf("[%s] 开始RequestResponseCount", traceId)
+	responseCountTraceId := account.GetTraceIdWithSubType(SUBTYPE_RESPONSE_COUNT)
+	log.Printf("[%s] 开始RequestResponseCount", responseCountTraceId)
 	RequestResponseCount(account, token)
-	log.Printf("[%s] RequestResponseCount完成", traceId)
+	log.Printf("[%s] RequestResponseCount完成", responseCountTraceId)
 
-	log.Printf("[%s] 开始RequestResponse", traceId)
+	responseTraceId := account.GetTraceIdWithSubType(SUBTYPE_RESPONSE)
+	log.Printf("[%s] 开始RequestResponse", responseTraceId)
 	RequestResponse(account, token)
-	log.Printf("[%s] RequestResponse完成", traceId)
+	log.Printf("[%s] RequestResponse完成", responseTraceId)
 
 	log.Printf("[%s] 账户处理完成", traceId)
 }

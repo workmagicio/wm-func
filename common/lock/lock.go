@@ -114,7 +114,7 @@ func (m *MySQLLocker) TryLock(key, ownerID string, duration time.Duration) error
 	}
 
 	now := time.Now()
-	expiresAt := now.Add(duration)
+	expiresAt := now.Add(duration).Truncate(time.Millisecond)
 
 	// 先尝试清理过期的锁
 	m.db.Where("lock_key = ? AND expires_at < ?", key, now).Delete(&DistributedLock{})
@@ -161,7 +161,7 @@ func (m *MySQLLocker) Renew(key, ownerID string, duration time.Duration) error {
 	}
 
 	now := time.Now()
-	newExpiresAt := now.Add(duration)
+	newExpiresAt := now.Add(duration).Truncate(time.Millisecond)
 
 	result := m.db.
 		Where("lock_key = ? AND owner_id = ? AND expires_at > ?", key, ownerID, now).
@@ -220,7 +220,7 @@ func (m *MySQLLocker) IsLocked(key string) (bool, error) {
 	var count int64
 	err := m.db.
 		Model(&DistributedLock{}).
-		Where("lock_key = ? AND expires_at > ?", key, time.Now()).
+		Where("lock_key = ? AND expires_at > ?", key, time.Now().Truncate(time.Millisecond)).
 		Count(&count).Error
 
 	if err != nil {
@@ -234,7 +234,7 @@ func (m *MySQLLocker) IsLocked(key string) (bool, error) {
 func (m *MySQLLocker) GetOwner(key string) (string, error) {
 	var lock DistributedLock
 	err := m.db.
-		Where("lock_key = ? AND expires_at > ?", key, time.Now()).
+		Where("lock_key = ? AND expires_at > ?", key, time.Now().Truncate(time.Millisecond)).
 		First(&lock).Error
 
 	if err != nil {
@@ -250,7 +250,7 @@ func (m *MySQLLocker) GetOwner(key string) (string, error) {
 // CleanExpiredLocks 清理过期的锁
 func (m *MySQLLocker) CleanExpiredLocks() (int64, error) {
 	result := m.db.
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().Truncate(time.Millisecond)).
 		Delete(&DistributedLock{})
 
 	if result.Error != nil {
