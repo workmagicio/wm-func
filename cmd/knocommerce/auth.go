@@ -109,7 +109,7 @@ func (tm *TokenManager) GetValidToken() (*RefreshTokenResponse, error) {
 	if tm.token != nil && tm.isTokenValid() {
 		token := tm.token
 		tm.mutex.RUnlock()
-		log.Printf("[%s] 使用缓存的有效token", traceId)
+		//log.Printf("[%s] 使用缓存的有效token", traceId)
 		return token, nil
 	}
 	tm.mutex.RUnlock()
