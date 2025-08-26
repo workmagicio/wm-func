@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"wm-func/wm_account"
 )
 
 type Key interface {
-	GetKey(account wm_account.Account) string
+	GetKey(account KAccount) string
 }
 
 const (
@@ -50,11 +49,11 @@ type BenchmarkQuestion struct {
 	Title string `json:"title"`
 }
 
-func (b BenchmarkQuestion) GetKey(account wm_account.Account) string {
+func (b BenchmarkQuestion) GetKey(account KAccount) string {
 	return fmt.Sprintf("%d|%s", account.TenantId, b.ID)
 }
 
-func TransToAirbyte(account wm_account.Account, data Key) *AirbyteData {
+func TransToAirbyte(account KAccount, data Key) *AirbyteData {
 	var err error
 	var byteData []byte
 	if byteData, err = json.Marshal(data); err != nil {
@@ -110,7 +109,7 @@ type Result struct {
 	Response               []Response  `json:"response"`
 }
 
-func (r Result) GetKey(account wm_account.Account) string {
+func (r Result) GetKey(account KAccount) string {
 	return fmt.Sprintf("%d|%s|%s", account.TenantId, r.AccountID, r.ID)
 }
 
@@ -151,7 +150,7 @@ type Survey struct {
 	Status    string           `json:"status"`
 }
 
-func (s Survey) GetKey(account wm_account.Account) string {
+func (s Survey) GetKey(account KAccount) string {
 	return fmt.Sprintf("%d|%s|%s", account.TenantId, s.AccountID, s.ID)
 }
 
@@ -174,6 +173,6 @@ type Count struct {
 	StatDate string `json:"stat_date"`
 }
 
-func (c Count) GetKey(account wm_account.Account) string {
+func (c Count) GetKey(account KAccount) string {
 	return fmt.Sprintf("%d|%s", account.TenantId, c.StatDate)
 }

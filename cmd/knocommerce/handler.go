@@ -1,17 +1,15 @@
 package main
 
 import (
+	"gorm.io/gorm/clause"
 	"log"
 	"time"
 	"wm-func/common/db/airbyte_db"
-	"wm-func/wm_account"
-
-	"gorm.io/gorm/clause"
 )
 
 var dateFormatDate = "2006-01-02"
 
-func RequestResponseCount(account wm_account.Account, token *TokenManager) {
+func RequestResponseCount(account KAccount, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestResponseCount，获取回复统计数据", traceId)
 
@@ -90,7 +88,7 @@ func RequestResponseCount(account wm_account.Account, token *TokenManager) {
 	log.Printf("[%s] RequestResponseCount完成", traceId)
 }
 
-func RequestResponse(account wm_account.Account, token *TokenManager) {
+func RequestResponse(account KAccount, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestResponse，获取回复数据", traceId)
 
@@ -157,7 +155,7 @@ func RequestResponse(account wm_account.Account, token *TokenManager) {
 	log.Printf("[%s] RequestResponse完成", traceId)
 }
 
-func RequestQuestion(account wm_account.Account, token *TokenManager) {
+func RequestQuestion(account KAccount, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestQuestion，获取问题基准数据", traceId)
 
@@ -179,7 +177,7 @@ func RequestQuestion(account wm_account.Account, token *TokenManager) {
 	log.Printf("[%s] RequestQuestion完成", traceId)
 }
 
-func RequestSurvey(account wm_account.Account, token *TokenManager) {
+func RequestSurvey(account KAccount, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestSurvey，获取调查问卷数据", traceId)
 
@@ -201,7 +199,7 @@ func RequestSurvey(account wm_account.Account, token *TokenManager) {
 	log.Printf("[%s] RequestSurvey完成", traceId)
 }
 
-func SaveAirbyteData(account wm_account.Account, data []AirbyteData, subType string) error {
+func SaveAirbyteData(account KAccount, data []AirbyteData, subType string) error {
 	if len(data) == 0 {
 		return nil
 	}

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"time"
+	lock2 "wm-func/common/lock"
 	t_pool "wm-func/common/pool"
 	"wm-func/wm_account"
 )
@@ -14,22 +18,44 @@ func main() {
 	accounts := wm_account.GetAccountsWithPlatform(Platform)
 	log.Printf("[%s] 获取到账户数量: %d", Platform, len(accounts))
 
+	lock := lock2.NewMySQLLocker()
+	var kaccounts = []KAccount{}
+	for _, account := range accounts {
+		kaccounts = append(kaccounts, KAccount{
+			account,
+			lock,
+		})
+	}
+
 	pool := t_pool.NewWorkerPool(10)
 	pool.Run()
 
-	for _, account := range accounts {
+	for _, account := range kaccounts {
 		ac := account
-		pool.AddTask(func() {
-			run(ac)
-		})
+		lockKey := fmt.Sprintf("knocommerce:%d:%s", ac.TenantId, ac.AccountId)
+		ownerID := fmt.Sprintf("process-%d", os.Getpid())
+		// 先写死180分钟
+		lockDuration := 180 * time.Minute
 
+		err := ac.TryLock(lockKey, ownerID, lockDuration)
+		if err == nil {
+			// 成功获取锁
+			pool.AddTask(func() {
+				run(ac)
+				// 任务完成后释放锁
+				ac.Unlock(lockKey, ownerID)
+			})
+		} else {
+			// 获取锁失败
+			log.Printf("[%s] 无法获取锁，跳过该账户: %v", ac.GetTraceId(), err)
+		}
 	}
 	pool.Wait()
 
 	log.Printf("[%s] Knocommerce数据同步程序结束", Platform)
 }
 
-func run(account wm_account.Account) {
+func run(account KAccount) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始处理账户", traceId)
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"time"
 	"wm-func/common/state"
-	"wm-func/wm_account"
 )
 
 type State struct {
@@ -15,7 +14,7 @@ type State struct {
 	LastRunningTime time.Time `json:"last_running_time"`
 }
 
-func GetState(account wm_account.Account, subType string) (*State, error) {
+func GetState(account KAccount, subType string) (*State, error) {
 	syncInfo := state.GetSyncInfo(account.TenantId, account.AccountId, Platform, subType)
 
 	if syncInfo == nil {
@@ -37,7 +36,7 @@ func GetState(account wm_account.Account, subType string) (*State, error) {
 	return &res, nil
 }
 
-func SaveState(account wm_account.Account, s *State) error {
+func SaveState(account KAccount, s *State) error {
 	if s == nil {
 		panic("nil state")
 	}

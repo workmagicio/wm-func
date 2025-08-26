@@ -10,10 +10,9 @@ import (
 	"net/url"
 	"sync"
 	"time"
-	"wm-func/wm_account"
 )
 
-func RefreshToken(account wm_account.Account) (*RefreshTokenResponse, error) {
+func RefreshToken(account KAccount) (*RefreshTokenResponse, error) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RefreshToken，请求授权token", traceId)
 
@@ -89,13 +88,13 @@ func RefreshToken(account wm_account.Account) (*RefreshTokenResponse, error) {
 // TokenManager 管理token的生命周期，支持过期自动续期
 type TokenManager struct {
 	mutex      sync.RWMutex          // 读写锁，保证并发安全
-	account    wm_account.Account    // 账户信息
+	account    KAccount              // 账户信息
 	token      *RefreshTokenResponse // 当前token
 	obtainedAt time.Time             // token获取时间
 }
 
 // NewTokenManager 创建新的token管理器
-func NewTokenManager(account wm_account.Account) *TokenManager {
+func NewTokenManager(account KAccount) *TokenManager {
 	return &TokenManager{
 		account: account,
 	}
