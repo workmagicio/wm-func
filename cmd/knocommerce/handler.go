@@ -11,7 +11,7 @@ import (
 
 var dateFormatDate = "2006-01-02"
 
-func RequestResponseCount(account wm_account.Account, accessToken string) {
+func RequestResponseCount(account wm_account.Account, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestResponseCount，获取回复统计数据", traceId)
 
@@ -37,7 +37,7 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 
 		// 获取开始日期的count
 		var count int64
-		count, err = GetKnoCommerceResponsesCount(accessToken, v.Start, v.Start)
+		count, err = GetKnoCommerceResponsesCount(token, v.Start, v.Start)
 		if err != nil {
 			log.Printf("[%s] GetKnoCommerceResponsesCount失败(开始日期%s): %v", traceId, v.Start, err)
 			panic(err)
@@ -51,7 +51,7 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 		time.Sleep(time.Second * 5)
 
 		// 获取结束日期的count
-		count, err = GetKnoCommerceResponsesCount(accessToken, v.End, v.End)
+		count, err = GetKnoCommerceResponsesCount(token, v.End, v.End)
 		if err != nil {
 			log.Printf("[%s] GetKnoCommerceResponsesCount失败(结束日期%s): %v", traceId, v.End, err)
 			panic(err)
@@ -90,7 +90,7 @@ func RequestResponseCount(account wm_account.Account, accessToken string) {
 	log.Printf("[%s] RequestResponseCount完成", traceId)
 }
 
-func RequestResponse(account wm_account.Account, accessToken string) {
+func RequestResponse(account wm_account.Account, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestResponse，获取回复数据", traceId)
 
@@ -115,7 +115,7 @@ func RequestResponse(account wm_account.Account, accessToken string) {
 		log.Printf("[%s] 正在处理第%d个分片，时间范围: %s - %s", traceId, i+1, v.Start, v.End)
 
 		var tmp []Result
-		tmp, err = GetAllKnoCommerceResponses(accessToken, v.Start, v.End)
+		tmp, err = GetAllKnoCommerceResponses(token, v.Start, v.End)
 		if err != nil {
 			log.Printf("[%s] GetAllKnoCommerceResponses失败: %v", traceId, err)
 			panic(err)
@@ -157,11 +157,11 @@ func RequestResponse(account wm_account.Account, accessToken string) {
 	log.Printf("[%s] RequestResponse完成", traceId)
 }
 
-func RequestQuestion(account wm_account.Account, accessToken string) {
+func RequestQuestion(account wm_account.Account, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestQuestion，获取问题基准数据", traceId)
 
-	res, err := GetKnoCommerceQuestion(accessToken)
+	res, err := GetKnoCommerceQuestion(token.GetAccessToken())
 	if err != nil {
 		log.Printf("[%s] GetKnoCommerceQuestion失败: %v", traceId, err)
 		return
@@ -179,11 +179,11 @@ func RequestQuestion(account wm_account.Account, accessToken string) {
 	log.Printf("[%s] RequestQuestion完成", traceId)
 }
 
-func RequestSurvey(account wm_account.Account, accessToken string) {
+func RequestSurvey(account wm_account.Account, token *TokenManager) {
 	traceId := account.GetTraceId()
 	log.Printf("[%s] 开始RequestSurvey，获取调查问卷数据", traceId)
 
-	res, err := GetAllKnoCommerceSurveys(accessToken)
+	res, err := GetAllKnoCommerceSurveys(token)
 	if err != nil {
 		log.Printf("[%s] GetAllKnoCommerceSurveys失败: %v", traceId, err)
 		return
