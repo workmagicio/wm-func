@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 	"wm-func/tools/alter-data-v2/backend/bcache"
+	"wm-func/tools/alter-data-v2/backend/bdebug"
 	"wm-func/tools/alter-data-v2/backend/bmodel"
+	"wm-func/tools/alter-data-v2/backend/cac"
 )
 
 func TestRun(t *testing.T) {
@@ -31,4 +33,14 @@ func TestRun(t *testing.T) {
 		t.Fatalf("Failed to load typed cache: %v", err)
 	}
 	fmt.Println("✅ 加载成功，记录数:", len(typedData))
+}
+
+func TestDebug(t *testing.T) {
+	res := bdebug.GetDataWithPlatform(134301, ADS_PLATFORM_GOOGLE)
+	fmt.Println(res)
+}
+
+func TestCac(t *testing.T) {
+	res := cac.GenerateDateSequence()
+	fmt.Println(res)
 }
