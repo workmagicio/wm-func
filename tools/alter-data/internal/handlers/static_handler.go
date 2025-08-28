@@ -29,3 +29,9 @@ func ServeAmazonOrdersPage(w http.ResponseWriter, r *http.Request) {
 	amazonOrdersPath := filepath.Join("static", "amazon-orders.html")
 	http.ServeFile(w, r, amazonOrdersPath)
 }
+
+// ServeFairingPage 提供Fairing分析页面
+func ServeFairingPage(w http.ResponseWriter, r *http.Request) {
+	fairingPath := filepath.Join("static", "fairing.html")
+	http.ServeFile(w, r, fairingPath)
+}

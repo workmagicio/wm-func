@@ -16,6 +16,7 @@ type APIHandler struct {
 	dashboardService        *service.DashboardService
 	attributionOrderService *service.AttributionOrderService
 	amazonOrdersService     *service.AmazonOrdersService
+	fairingService          *service.FairingService
 }
 
 // NewAPIHandler 创建API处理器实例
@@ -24,6 +25,7 @@ func NewAPIHandler() *APIHandler {
 		dashboardService:        service.NewDashboardService(),
 		attributionOrderService: service.NewAttributionOrderService(),
 		amazonOrdersService:     service.NewAmazonOrdersService(),
+		fairingService:          service.NewFairingService(),
 	}
 }
 
@@ -619,6 +621,105 @@ func (h *APIHandler) handleAmazonOrderError(w http.ResponseWriter, err error, st
 	response := models.AmazonOrderResponse{
 		Success: false,
 		Data:    []models.AmazonOrderData{},
+		Message: err.Error(),
+	}
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(response)
+}
+
+// === Fairing分析API接口 ===
+
+// GetAllFairing 获取所有租户的Fairing数据
+func (h *APIHandler) GetAllFairing(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	// 检查是否强制刷新
+	forceRefresh := r.URL.Query().Get("refresh") == "true"
+
+	// 获取Fairing数据（固定90天分析）
+	data, err := h.fairingService.GetAllTenantsFairing(90, forceRefresh)
+	if err != nil {
+		h.handleFairingError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// 获取缓存信息
+	cacheInfo := h.fairingService.GetCacheInfo()
+
+	response := models.FairingResponse{
+		Success:   true,
+		Data:      data,
+		Message:   fmt.Sprintf("成功获取 %d 个租户的Fairing数据 (90天分析)", len(data)),
+		CacheInfo: cacheInfo,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetTenantFairing 获取指定租户的Fairing数据
+func (h *APIHandler) GetTenantFairing(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	// 解析路径参数
+	vars := mux.Vars(r)
+	tenantIDStr := vars["tenant_id"]
+	tenantID, err := strconv.ParseInt(tenantIDStr, 10, 64)
+	if err != nil {
+		h.handleFairingError(w, fmt.Errorf("无效的租户ID: %s", tenantIDStr), http.StatusBadRequest)
+		return
+	}
+
+	// 检查是否强制刷新
+	forceRefresh := r.URL.Query().Get("refresh") == "true"
+
+	// 获取租户Fairing数据
+	tenantData, err := h.fairingService.GetTenantFairing(tenantID, forceRefresh)
+	if err != nil {
+		h.handleFairingError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// 获取缓存信息
+	cacheInfo := h.fairingService.GetCacheInfo()
+
+	response := models.FairingResponse{
+		Success:   true,
+		Data:      []models.FairingData{*tenantData},
+		Message:   fmt.Sprintf("成功获取租户 %d 的Fairing数据 (90天分析)", tenantID),
+		CacheInfo: cacheInfo,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// RefreshFairing 刷新Fairing缓存
+func (h *APIHandler) RefreshFairing(w http.ResponseWriter, r *http.Request) {
+	setJSONResponse(w)
+
+	// 清除缓存
+	h.fairingService.ClearCache()
+
+	// 强制重新获取数据（固定90天）
+	data, err := h.fairingService.GetAllTenantsFairing(90, true)
+	if err != nil {
+		h.handleFairingError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	response := models.FairingResponse{
+		Success: true,
+		Data:    data,
+		Message: fmt.Sprintf("Fairing缓存已刷新，共 %d 个租户", len(data)),
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// handleFairingError Fairing错误处理
+func (h *APIHandler) handleFairingError(w http.ResponseWriter, err error, statusCode int) {
+	response := models.FairingResponse{
+		Success: false,
+		Data:    []models.FairingData{},
 		Message: err.Error(),
 	}
 	w.WriteHeader(statusCode)

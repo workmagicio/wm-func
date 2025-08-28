@@ -185,3 +185,36 @@ type AmazonOrderResponse struct {
 	Message   string            `json:"message"`
 	CacheInfo *CacheInfo        `json:"cache_info,omitempty"`
 }
+
+// === Fairing分析相关数据模型 ===
+
+// FairingRawData Fairing原始数据模型 (数据库查询结果)
+type FairingRawData struct {
+	TenantId int64  `gorm:"column:tenant_id"`
+	StatDate string `gorm:"column:stat_date"`
+	Cnt      int64  `gorm:"column:cnt"`
+}
+
+// FairingData Fairing租户数据 (API响应格式)
+type FairingData struct {
+	TenantID           int64    `json:"tenant_id"`
+	TenantName         string   `json:"tenant_name"`
+	DateRange          []string `json:"date_range"`
+	ResponseData       []int64  `json:"response_data"`       // 响应数量数组
+	DailyAverage       float64  `json:"daily_average"`       // 90天日平均值
+	WarningLevel       string   `json:"warning_level"`       // 预警级别：normal, warning, critical
+	TotalResponses     int64    `json:"total_responses"`     // 总响应数
+	ZeroDaysCount      int      `json:"zero_days_count"`     // 掉0天数
+	ConcaveCount       int      `json:"concave_count"`       // 凹形问题数量
+	HasAnomalies       bool     `json:"has_anomalies"`       // 是否存在异常
+	ProcessedResponses []int64  `json:"processed_responses"` // 处理后的响应数（异常标记）
+	CacheTimestamp     int64    `json:"cache_timestamp"`     // 缓存时间戳
+}
+
+// FairingResponse Fairing分析响应
+type FairingResponse struct {
+	Success   bool          `json:"success"`
+	Data      []FairingData `json:"data"`
+	Message   string        `json:"message"`
+	CacheInfo *CacheInfo    `json:"cache_info,omitempty"`
+}

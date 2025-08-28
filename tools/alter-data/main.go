@@ -51,6 +51,11 @@ func main() {
 	apiRouter.HandleFunc("/amazon-orders/{tenant_id}", apiHandler.GetTenantAmazonOrders).Methods("GET")
 	apiRouter.HandleFunc("/amazon-orders/refresh", apiHandler.RefreshAmazonOrders).Methods("POST")
 
+	// Fairing分析API
+	apiRouter.HandleFunc("/fairing", apiHandler.GetAllFairing).Methods("GET")
+	apiRouter.HandleFunc("/fairing/{tenant_id}", apiHandler.GetTenantFairing).Methods("GET")
+	apiRouter.HandleFunc("/fairing/refresh", apiHandler.RefreshFairing).Methods("POST")
+
 	// 静态文件路由
 	router.PathPrefix("/static/").Handler(handlers.ServeStatic())
 
@@ -60,6 +65,8 @@ func main() {
 	router.HandleFunc("/attribution", handlers.ServeAttributionPage).Methods("GET")
 	// Amazon订单分析页面
 	router.HandleFunc("/amazon-orders", handlers.ServeAmazonOrdersPage).Methods("GET")
+	// Fairing分析页面
+	router.HandleFunc("/fairing", handlers.ServeFairingPage).Methods("GET")
 
 	// 启动服务器
 	port := ":8090"
@@ -90,6 +97,11 @@ func main() {
 	fmt.Printf("   GET  /api/amazon-orders - 获取所有租户Amazon Vendor订单数据\n")
 	fmt.Printf("   GET  /api/amazon-orders/{tenant_id} - 获取指定租户Amazon Vendor订单数据\n")
 	fmt.Printf("   POST /api/amazon-orders/refresh - 刷新Amazon Vendor订单缓存\n")
+	fmt.Printf("📋 Fairing分析:\n")
+	fmt.Printf("   GET  /fairing - Fairing分析页面\n")
+	fmt.Printf("   GET  /api/fairing - 获取所有租户Fairing数据\n")
+	fmt.Printf("   GET  /api/fairing/{tenant_id} - 获取指定租户Fairing数据\n")
+	fmt.Printf("   POST /api/fairing/refresh - 刷新Fairing缓存\n")
 	fmt.Printf("📁 已实现平台: %v\n", platform.GetImplementedPlatformNames())
 
 	log.Fatal(http.ListenAndServe(port, router))
