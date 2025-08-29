@@ -14,6 +14,7 @@ type Cac struct {
 type TenantDateSequence struct {
 	TenantId      int64
 	Last30DayDiff int64
+	RegisterTime  string
 	DateSequence  []DateSequence
 }
 
@@ -89,6 +90,7 @@ func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSe
 
 		tenantData := TenantDateSequence{
 			TenantId:      tenant.TenantId,
+			RegisterTime:  tenant.RegisterTime.Format("2006-01-02 15:04:05"),
 			Last30DayDiff: last30DayDiff,
 			DateSequence:  tmp,
 		}
@@ -106,6 +108,9 @@ func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSe
 		return oldTenants[i].Last30DayDiff > oldTenants[j].Last30DayDiff
 	})
 
+	sort.Slice(newTenants, func(i, j int) bool {
+		return newTenants[i].Last30DayDiff > newTenants[j].Last30DayDiff
+	})
 	return newTenants, oldTenants
 }
 
@@ -124,5 +129,8 @@ func calculateLast30DayDiff(dateSequences []DateSequence) int64 {
 			totalDiff += diff
 		}
 	}
+	//if totalDiff < 0 {
+	//	return totalDiff * -1
+	//}
 	return totalDiff
 }

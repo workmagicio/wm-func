@@ -7,7 +7,7 @@ var default_filter_tenants = []int64{
 func GetDefaultTags() map[int64]string {
 	res := map[int64]string{}
 	for i := 0; i < len(default_filter_tenants); i++ {
-		res[default_filter_tenants[i]] = "default_filter"
+		res[default_filter_tenants[i]] = "code_filter_region"
 	}
 	return res
 }

@@ -31,3 +31,5 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+tools/alter-data-v2/frontend/node_modules

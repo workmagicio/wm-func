@@ -8,6 +8,7 @@ import (
 type TenantData struct {
 	TenantId      int64              `json:"tenant_id"`
 	Last30DayDiff int64              `json:"last_30_day_diff"`
+	RegisterTime  string             `json:"register_time"`
 	DateSequence  []cac.DateSequence `json:"date_sequence"`
 	Tags          []string           `json:"tags"`
 }

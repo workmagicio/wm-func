@@ -5,10 +5,11 @@ import (
 	"log"
 	"strings"
 	"wm-func/common/db/platform_db"
+	"wm-func/tools/alter-data-v2/backend"
 )
 
-var query_data = `
 /*+resource_group=job_production*/
+var query_data = `
 with
   tiktok_gmv_max_metrics as (
     select
@@ -2107,29 +2108,25 @@ with
 select
   tenant_id,
   cast(stat_date as varchar) as stat_date,
-  campaign_id,
-  adset_id,
-  ad_id,
   cast(sum(ad_spend) as bigint) as spend
 from
   all_ad_level_metrics
 where stat_date >= utc_date() - interval 30 day
   and tenant_id = {{tenant_id}}
   and ads_platform = '{{ads_platform}}'
+  and ad_spend > 0
   and account_base_settings is null
-group by 1, 2, 3, 4, 5
+group by 1, 2
 `
 
 type LossData struct {
-	TenantId   int64  `json:"tenant_id"`
-	StatDate   string `json:"stat_date"`
-	CampaignId string `json:"campaign_id"`
-	AdsetId    string `json:"adset_id"`
-	AdId       string `json:"ad_id"`
-	Spend      int64  `json:"spend"`
+	TenantId int64  `json:"tenant_id"`
+	StatDate string `json:"stat_date"`
+	Spend    int64  `json:"spend"`
 }
 
 func GetDataWithPlatform(tenantId int64, platform string) []LossData {
+	platform = backend.PlatformMap[platform]
 	db := platform_db.GetDB()
 	var res = []LossData{}
 

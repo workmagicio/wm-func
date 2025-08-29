@@ -68,7 +68,7 @@ func GetDataLastLoadTime(platform string) time.Time {
 		}
 	}
 
-	// 检查概览数据缓存时间
+	// 检查wm_data缓存时间
 	if overviewCache, err := bcache.LoadCache(overviewKey); err == nil {
 		if overviewCache.CreateTime.After(latestTime) {
 			latestTime = overviewCache.CreateTime

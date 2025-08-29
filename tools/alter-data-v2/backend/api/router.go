@@ -1,6 +1,9 @@
 package api
 
 import (
+	"net/http"
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +24,31 @@ func SetupRouter() *gin.Engine {
 		}
 
 		c.Next()
+	})
+
+	// 设置静态文件服务 - 服务前端构建的文件
+	r.Static("/assets", "./dist/assets")
+	r.StaticFile("/favicon.ico", "./dist/favicon.ico")
+	r.StaticFile("/vite.svg", "./dist/vite.svg")
+
+	// 服务前端应用的入口页面
+	r.GET("/", func(c *gin.Context) {
+		c.File("./dist/index.html")
+	})
+
+	// 处理前端路由 - SPA应用的路由回退
+	r.NoRoute(func(c *gin.Context) {
+		// 如果是API请求，返回404
+		if filepath.HasPrefix(c.Request.URL.Path, "/api") || filepath.HasPrefix(c.Request.URL.Path, "/health") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"message": "接口不存在",
+			})
+			return
+		}
+
+		// 否则服务前端应用
+		c.File("./dist/index.html")
 	})
 
 	// 健康检查接口
