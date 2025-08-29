@@ -2106,13 +2106,15 @@ with
         and setting.ads_platform = 'Applovin'
   )
 select
-  tenant_id,
+  a.tenant_id,
   cast(stat_date as varchar) as stat_date,
   cast(sum(ad_spend) as bigint) as spend
 from
-  all_ad_level_metrics
+  all_ad_level_metrics as a
+join platform_offline.ods_campaign_action_cache as b
+on a.tenant_id = b.tenant_id and a.campaign_id = b.campaign_id and a.adset_id = b.adset_id and a.ad_id = b.ad_id
 where stat_date >= utc_date() - interval 30 day
-  and tenant_id = {{tenant_id}}
+  and a.tenant_id = {{tenant_id}}
   and ads_platform = '{{ads_platform}}'
   and ad_spend > 0
   and account_base_settings is null

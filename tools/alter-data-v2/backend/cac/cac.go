@@ -41,9 +41,17 @@ func GenerateDateSequence() []DateSequence {
 	return res
 }
 
-func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSequence, []TenantDateSequence) {
-	b1 := bdao.GetApiDataByPlatform(needRefresh, platform)
-	b2 := bdao.GetOverviewDataByPlatform(needRefresh, platform)
+func GetAlterDataWithPlatformWithTenantId(platform string, needRefresh bool, tenantId int64) ([]TenantDateSequence, []TenantDateSequence) {
+	var b1 []bmodel.ApiData
+	var b2 []bmodel.OverViewData
+
+	if tenantId < 0 {
+		b1 = bdao.GetApiDataByPlatform(needRefresh, platform)
+		b2 = bdao.GetOverviewDataByPlatform(needRefresh, platform)
+	} else {
+		b1 = bdao.GetApiDataByPlatformAndTenantId(needRefresh, platform, tenantId)
+		b2 = bdao.GetOverviewDataByPlatformAndTenantId(needRefresh, platform, tenantId)
+	}
 
 	var apiDataMap = map[int64]map[string]bmodel.ApiData{}
 	for _, v := range b1 {
@@ -112,6 +120,11 @@ func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSe
 		return newTenants[i].Last30DayDiff > newTenants[j].Last30DayDiff
 	})
 	return newTenants, oldTenants
+
+}
+
+func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSequence, []TenantDateSequence) {
+	return GetAlterDataWithPlatformWithTenantId(platform, needRefresh, -1)
 }
 
 func calculateLast30DayDiff(dateSequences []DateSequence) int64 {

@@ -39,6 +39,32 @@ func GetDataWithPlatform(platform string) []ApiData {
 	return res
 }
 
+var data_view_query_with_tenant_id = `
+select
+    tenant_id,
+    cast(raw_date as varchar) as raw_date,
+    cast(sum(AD_SPEND) as bigint) as ad_spend,
+    cast(sum(ORDERS) as bigint) as orders
+from
+    platform_offline.integration_api_data_view
+where RAW_PLATFORM = '%s'
+  and tenant_id = %d
+and RAW_DATE > utc_date() - interval 90 day
+group by 1, 2
+`
+
+func GetDataWithPlatformAndTenantId(platform string, tenantId int64) []ApiData {
+	db := platform_db.GetDB()
+	var res = []ApiData{}
+	exec := fmt.Sprintf(data_view_query_with_tenant_id, platform, tenantId)
+	if err := db.Raw(exec).Limit(-1).Scan(&res).Error; err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	return res
+}
+
 var query_overview_data = `
 select
     tenant_id,
@@ -62,6 +88,32 @@ func GetOverviewDataWithPlatform(platform string) []OverViewData {
 	db := platform_db.GetDB()
 	var res = []OverViewData{}
 	exec := fmt.Sprintf(query_overview_data, platform)
+	if err := db.Raw(exec).Limit(-1).Scan(&res).Error; err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	return res
+}
+
+var query_overview_data_with_tenant_id = `
+select
+    tenant_id,
+    cast(event_date as varchar) as event_date,
+    cast(sum(ad_spend) as bigint) as value
+from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
+where event_date > utc_date() - interval 90 day
+  and json_overlaps(attr_model_array, json_array(0, 3))
+  and attr_enhanced in (1, 4)
+  and ADS_PLATFORM = '%s'
+  and tenant_id = %d
+group by 1, 2
+`
+
+func GetOverviewDataWithPlatformAndTenantId(platform string, tenantId int64) []OverViewData {
+	db := platform_db.GetDB()
+	var res = []OverViewData{}
+	exec := fmt.Sprintf(query_overview_data_with_tenant_id, platform, tenantId)
 	if err := db.Raw(exec).Limit(-1).Scan(&res).Error; err != nil {
 		log.Println(err)
 		panic(err)

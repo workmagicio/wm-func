@@ -8,6 +8,59 @@ import (
 	"wm-func/tools/alter-data-v2/backend/tags"
 )
 
+func GetAlterDataWithPlatformWithTenantId(needRefresh bool, platform string, tenantId int64) AllTenantData {
+	var res = AllTenantData{}
+
+	var newTenants, oldTenants = []cac.TenantDateSequence{}, []cac.TenantDateSequence{}
+	if tenantId < 0 {
+		newTenants, oldTenants = cac.GetAlterDataWithPlatform(platform, needRefresh)
+	} else {
+		newTenants, oldTenants = cac.GetAlterDataWithPlatformWithTenantId(platform, needRefresh, tenantId)
+	}
+
+	defaultTags := tags.GetDefaultTags()
+
+	// 获取数据最后加载时间
+	res.DataLastLoadTime = bdao.GetDataLastLoadTime(platform)
+
+	for _, tenant := range newTenants {
+		res.NewTenants = append(res.NewTenants, TenantData{
+			TenantId:      tenant.TenantId,
+			RegisterTime:  tenant.RegisterTime,
+			Last30DayDiff: tenant.Last30DayDiff,
+			DateSequence:  tenant.DateSequence,
+			Tags:          []string{defaultTags[tenant.TenantId]},
+		})
+	}
+
+	for _, tenant := range oldTenants {
+		res.OldTenants = append(res.OldTenants, TenantData{
+			TenantId:      tenant.TenantId,
+			RegisterTime:  tenant.RegisterTime,
+			Last30DayDiff: tenant.Last30DayDiff,
+			DateSequence:  tenant.DateSequence,
+			Tags:          []string{defaultTags[tenant.TenantId]},
+		})
+	}
+
+	// 获取所有 diff > 0 的客户
+
+	var diffTenants = []int64{}
+	for _, tag := range append(res.OldTenants, res.NewTenants...) {
+		if tag.Last30DayDiff < -100 {
+			diffTenants = append(diffTenants, tag.TenantId)
+		}
+	}
+
+	for _, tId := range diffTenants {
+		tmp := bdebug.GetDataWithPlatform(tId, platform)
+		fmt.Println(tmp)
+	}
+
+	return res
+
+}
+
 func GetAlterDataWithPlatform(needRefresh bool, platform string) AllTenantData {
 	var res = AllTenantData{}
 
