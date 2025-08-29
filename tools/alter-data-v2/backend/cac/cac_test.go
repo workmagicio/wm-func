@@ -6,6 +6,5 @@ import (
 )
 
 func TestCac(t *testing.T) {
-	GetAlterDataWithPlatform(backend.PLATFORM_GOOGLE, false)
-
+	GetAlterDataWithPlatform(backend.PLATFORM_GOOGLE, true)
 }

@@ -41,8 +41,8 @@ func GetDataWithPlatform(platform string) []ApiData {
 
 var query_overview_data = `
 select
-    TENANT_ID,
-    event_date,
+    tenant_id,
+    cast(event_date as varchar) as event_date,
     cast(sum(ad_spend) as bigint) as value
 from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
 where event_date > utc_date() - interval 90 day

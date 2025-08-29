@@ -1,7 +1,7 @@
 package cac
 
 import (
-	"fmt"
+	"sort"
 	"time"
 	"wm-func/common/config"
 	"wm-func/tools/alter-data-v2/backend/bdao"
@@ -12,7 +12,8 @@ type Cac struct {
 }
 
 type TenantDateSequence struct {
-	TenantId int64
+	TenantId      int64
+	Last30DayDiff int64
 	DateSequence
 }
 
@@ -39,10 +40,9 @@ func GenerateDateSequence() []DateSequence {
 	return res
 }
 
-func GetAlterDataWithPlatform(platform string, needRefresh bool) {
+func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSequence, []TenantDateSequence) {
 	b1 := bdao.GetApiDataByPlatform(needRefresh, platform)
 	b2 := bdao.GetOverviewDataByPlatform(needRefresh, platform)
-	fmt.Println(b1, b2)
 
 	var apiDataMap = map[int64]map[string]bmodel.ApiData{}
 	for _, v := range b1 {
@@ -52,25 +52,70 @@ func GetAlterDataWithPlatform(platform string, needRefresh bool) {
 		apiDataMap[v.TenantId][v.RawDate] = v
 	}
 
-	var overviewDataMap = map[int64]map[string]bmodel.ApiData{}
-	for _, v := range b1 {
+	var overviewDataMap = map[int64]map[string]bmodel.OverViewData{}
+	for _, v := range b2 {
 		if overviewDataMap[v.TenantId] == nil {
-			overviewDataMap[v.TenantId] = make(map[string]bmodel.ApiData)
+			overviewDataMap[v.TenantId] = make(map[string]bmodel.OverViewData)
 		}
-		overviewDataMap[v.TenantId][v.RawDate] = v
+		overviewDataMap[v.TenantId][v.EventDate] = v
 	}
 
-	var res = map[int64][]DateSequence{}
+	// 按租户分组：30天为界限
+	last30Day := time.Now().Add(config.DateDay * -30)
 	var allTenant = bmodel.GetAllTenant()
+	var newTenants []TenantDateSequence
+	var oldTenants []TenantDateSequence
+
 	for _, tenant := range allTenant {
 		tmp := GenerateDateSequence()
 		for i, v := range tmp {
-			tmp[i].Data = overviewDataMap[tenant.TenantId][v.Date].AdSpend
-			tmp[i].ApiData = overviewDataMap[tenant.TenantId][v.Date].AdSpend
+			if overviewData, exists := overviewDataMap[tenant.TenantId][v.Date]; exists {
+				tmp[i].Data = overviewData.Value
+			}
+			if apiData, exists := apiDataMap[tenant.TenantId][v.Date]; exists {
+				tmp[i].ApiData = apiData.AdSpend
+			}
 		}
-		res[tenant.TenantId] = tmp
+
+		// 计算最近30天的diff
+		last30DayDiff := calculateLast30DayDiff(tmp)
+
+		tenantData := TenantDateSequence{
+			TenantId:      tenant.TenantId,
+			Last30DayDiff: last30DayDiff,
+			DateSequence:  DateSequence{}, // 这里不需要单个日期数据
+		}
+
+		// 分组：新租户 vs 老租户
+		if tenant.RegisterTime.After(last30Day) {
+			newTenants = append(newTenants, tenantData)
+		} else {
+			oldTenants = append(oldTenants, tenantData)
+		}
 	}
 
-	fmt.Println(apiDataMap, overviewDataMap)
+	// oldTenants 按照diff差值逆序排序
+	sort.Slice(oldTenants, func(i, j int) bool {
+		return oldTenants[i].Last30DayDiff > oldTenants[j].Last30DayDiff
+	})
 
+	return newTenants, oldTenants
+}
+
+func calculateLast30DayDiff(dateSequences []DateSequence) int64 {
+	now := time.Now()
+	last30Day := now.Add(config.DateDay * -30)
+
+	var totalDiff int64 = 0
+	for _, seq := range dateSequences {
+		seqDate, err := time.Parse("2006-01-02", seq.Date)
+		if err != nil {
+			continue
+		}
+		if seqDate.After(last30Day) {
+			diff := seq.Data - seq.ApiData // 以ApiData为基准
+			totalDiff += diff
+		}
+	}
+	return totalDiff
 }
