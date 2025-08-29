@@ -1,6 +1,9 @@
 package controller
 
-import "wm-func/tools/alter-data-v2/backend/cac"
+import (
+	"time"
+	"wm-func/tools/alter-data-v2/backend/cac"
+)
 
 type TenantData struct {
 	TenantId      int64              `json:"tenant_id"`
@@ -10,6 +13,7 @@ type TenantData struct {
 }
 
 type AllTenantData struct {
-	NewTenants []TenantData `json:"new_tenants"`
-	OldTenants []TenantData `json:"old_tenants"`
+	NewTenants       []TenantData `json:"new_tenants"`
+	OldTenants       []TenantData `json:"old_tenants"`
+	DataLastLoadTime time.Time    `json:"data_last_load_time"`
 }

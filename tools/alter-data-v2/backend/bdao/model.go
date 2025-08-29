@@ -1,6 +1,7 @@
 package bdao
 
 import (
+	"time"
 	"wm-func/tools/alter-data-v2/backend"
 	"wm-func/tools/alter-data-v2/backend/bcache"
 	"wm-func/tools/alter-data-v2/backend/bmodel"
@@ -51,4 +52,33 @@ func GetOverviewDataByPlatform(isNeedRefresh bool, platform string) []bmodel.Ove
 		bcache.SaveCache(cacheKey, data)
 		return data
 	}
+}
+
+// GetDataLastLoadTime 获取指定平台数据的最后加载时间
+func GetDataLastLoadTime(platform string) time.Time {
+	apiDataKey := "apidata_" + platform
+	overviewKey := "overview_" + backend.PlatformMap[platform]
+
+	var latestTime time.Time
+
+	// 检查API数据缓存时间
+	if apiCache, err := bcache.LoadCache(apiDataKey); err == nil {
+		if apiCache.CreateTime.After(latestTime) {
+			latestTime = apiCache.CreateTime
+		}
+	}
+
+	// 检查概览数据缓存时间
+	if overviewCache, err := bcache.LoadCache(overviewKey); err == nil {
+		if overviewCache.CreateTime.After(latestTime) {
+			latestTime = overviewCache.CreateTime
+		}
+	}
+
+	// 如果没有找到缓存，返回当前时间
+	if latestTime.IsZero() {
+		latestTime = time.Now()
+	}
+
+	return latestTime
 }

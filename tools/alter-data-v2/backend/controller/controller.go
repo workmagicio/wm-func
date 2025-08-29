@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"wm-func/tools/alter-data-v2/backend/bdao"
 	"wm-func/tools/alter-data-v2/backend/cac"
 	"wm-func/tools/alter-data-v2/backend/tags"
 )
@@ -10,6 +11,9 @@ func GetAlterDataWithPlatform(needRefresh bool, platform string) AllTenantData {
 
 	newTenants, oldTenants := cac.GetAlterDataWithPlatform(platform, needRefresh)
 	defaultTags := tags.GetDefaultTags()
+
+	// 获取数据最后加载时间
+	res.DataLastLoadTime = bdao.GetDataLastLoadTime(platform)
 
 	for _, tenant := range newTenants {
 		res.NewTenants = append(res.NewTenants, TenantData{
