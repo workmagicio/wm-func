@@ -1,6 +1,7 @@
-package dao
+package bdao
 
 import (
+	"wm-func/tools/alter-data-v2/backend"
 	"wm-func/tools/alter-data-v2/backend/bcache"
 	"wm-func/tools/alter-data-v2/backend/bmodel"
 )
@@ -31,6 +32,7 @@ func GetApiDataByPlatform(isNeedRefresh bool, platform string) []bmodel.ApiData 
 }
 
 func GetOverviewDataByPlatform(isNeedRefresh bool, platform string) []bmodel.OverViewData {
+	platform = backend.PlatformMap[platform]
 	cacheKey := "overview_" + platform
 
 	if isNeedRefresh {
