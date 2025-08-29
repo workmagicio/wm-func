@@ -95,3 +95,34 @@ func GetAllTenant() []AllTenant {
 
 	return res
 }
+
+var query_tenant_platform = `
+select tenant_id,
+       platform
+from platform_offline.account_connection_unnest_account_level_with_no_testing
+group by 1, 2
+`
+
+type TenantPlatform struct {
+	TenantId int64  `json:"tenant_id"`
+	Platform string `json:"platform"`
+}
+
+func GetTenantPlatformMap() map[int64]map[string]bool {
+	db := platform_db.GetDB()
+	var res = []TenantPlatform{}
+	if err := db.Raw(query_tenant_platform).Limit(-1).Scan(&res).Error; err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	result := make(map[int64]map[string]bool)
+	for _, item := range res {
+		if result[item.TenantId] == nil {
+			result[item.TenantId] = make(map[string]bool)
+		}
+		result[item.TenantId][item.Platform] = true
+	}
+
+	return result
+}

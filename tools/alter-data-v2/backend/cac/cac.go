@@ -14,7 +14,7 @@ type Cac struct {
 type TenantDateSequence struct {
 	TenantId      int64
 	Last30DayDiff int64
-	DateSequence
+	DateSequence  []DateSequence
 }
 
 type DateSequence struct {
@@ -66,7 +66,14 @@ func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSe
 	var newTenants []TenantDateSequence
 	var oldTenants []TenantDateSequence
 
+	tenantPlatformMap := bmodel.GetTenantPlatformMap()
+
 	for _, tenant := range allTenant {
+
+		if !tenantPlatformMap[tenant.TenantId][platform] {
+			continue
+		}
+
 		tmp := GenerateDateSequence()
 		for i, v := range tmp {
 			if overviewData, exists := overviewDataMap[tenant.TenantId][v.Date]; exists {
@@ -83,7 +90,7 @@ func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSe
 		tenantData := TenantDateSequence{
 			TenantId:      tenant.TenantId,
 			Last30DayDiff: last30DayDiff,
-			DateSequence:  DateSequence{}, // 这里不需要单个日期数据
+			DateSequence:  tmp,
 		}
 
 		// 分组：新租户 vs 老租户
