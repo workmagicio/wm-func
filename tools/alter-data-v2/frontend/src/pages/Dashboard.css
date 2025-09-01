@@ -207,6 +207,43 @@
   color: #666;
 }
 
+.update-data-button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+  min-width: 80px;
+}
+
+.update-data-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.update-data-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.update-data-button.updating {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  cursor: not-allowed;
+  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+}
+
+.update-data-button:disabled {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 /* 信息卡片 */
 .info-card {
   background: #f8fafc;
@@ -387,6 +424,28 @@
 .tag-old {
   background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   color: white;
+}
+
+.tag-missing-setting {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+  border: 2px solid #ff6f00;
+  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.6);
+    transform: translateY(-1px);
+  }
+  100% {
+    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+  }
 }
 
 /* 响应式设计 */

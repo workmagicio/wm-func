@@ -12,6 +12,7 @@ import (
 type GetAlterDataRequest struct {
 	Platform    string `form:"platform" binding:"required"`
 	NeedRefresh bool   `form:"needRefresh"`
+	TenantId    *int64 `form:"tenantId"` // 可选参数，用于缓存更新
 }
 
 // GetAlterDataResponse API响应
@@ -29,6 +30,7 @@ type GetAlterDataResponse struct {
 // @Produce json
 // @Param platform query string true "平台名称" Enums(googleAds,facebookMarketing,tiktokMarketing)
 // @Param needRefresh query bool false "是否需要刷新缓存" default(false)
+// @Param tenantId query int false "租户ID，用于补齐缓存数据" default()
 // @Success 200 {object} GetAlterDataResponse "成功"
 // @Failure 400 {object} GetAlterDataResponse "参数错误"
 // @Failure 500 {object} GetAlterDataResponse "服务器错误"
@@ -46,7 +48,14 @@ func GetAlterData(c *gin.Context) {
 	}
 
 	// 调用业务逻辑
-	result := controller.GetAlterDataWithPlatform(req.NeedRefresh, req.Platform)
+	var result controller.AllTenantData
+	if req.TenantId != nil {
+		// 有 tenantId 参数，调用带 tenantId 的函数
+		result = controller.GetAlterDataWithPlatformWithTenantId(req.NeedRefresh, req.Platform, *req.TenantId)
+	} else {
+		// 没有 tenantId 参数，调用普通函数（等同于 tenantId = -1）
+		result = controller.GetAlterDataWithPlatformWithTenantId(req.NeedRefresh, req.Platform, -1)
+	}
 
 	// 返回结果
 	c.JSON(http.StatusOK, GetAlterDataResponse{

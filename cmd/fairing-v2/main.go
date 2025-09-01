@@ -19,10 +19,6 @@ func main() {
 	}
 
 	for _, account := range FAccounts {
-		//if account.TenantId != 150102 {
-		//	continue
-		//}
-
 		run(account)
 
 	}

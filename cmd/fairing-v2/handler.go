@@ -33,7 +33,7 @@ func RequestResponse(account FAccount) {
 
 	var next = res.Next
 
-	if next != nil {
+	for next != nil {
 		tmp, err2 := callFairingResponsesAPINext(account, *next)
 		if err2 != nil {
 			panic(err2)
@@ -41,6 +41,7 @@ func RequestResponse(account FAccount) {
 
 		data = append(data, tmp.Data...)
 		next = tmp.Next
+		time.Sleep(time.Second * 2)
 	}
 
 	var insertAirbyteData []AirbyteData

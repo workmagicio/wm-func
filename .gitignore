@@ -33,3 +33,5 @@ go.work.sum
 # .vscode/
 
 tools/alter-data-v2/frontend/node_modules
+tools/alter-data-v2/cache
+tools/alter-data-v2/cache/remove_data

@@ -6,6 +6,7 @@ interface DateSequence {
   date: string
   api_data: number
   data: number
+  remove_data: number
 }
 
 interface TrendChartProps {
@@ -15,21 +16,35 @@ interface TrendChartProps {
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ title, data, showDifference = false }) => {
-  // 转换数据格式，添加差异计算
-  const chartData = data.map((item, index) => ({
-    date: new Date(item.date).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }),
-    'API数据': item.api_data,
-    'wm_data': item.data,
-    '差异': item.data - item.api_data,
-    originalDate: item.date,
-    index: index,
-  }))
+  // 计算过去30天的日期范围
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  // 计算参考线位置（从后往前第30天和第60天）
+  // 转换数据格式，添加差异计算
+  const chartData = data.map((item, index) => {
+    const itemDate = new Date(item.date)
+    const isLast30Days = itemDate >= thirtyDaysAgo
+    const hasRemoveData = item.remove_data !== 0
+
+    return {
+      date: new Date(item.date).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }),
+      'API数据': item.api_data,
+      'wm_data': item.data,
+      'Data+RemoveData': (isLast30Days && hasRemoveData) ? item.data + item.remove_data : null,
+      '差异': item.data - item.api_data,
+      originalDate: item.date,
+      index: index,
+    }
+  })
+
+  // 检查是否需要显示 Data+RemoveData 线（是否有有效数据）
+  const shouldShowRemoveDataLine = chartData.some(item => item['Data+RemoveData'] !== null)
+
+    // 计算参考线位置（从后往前第30天和第60天）
   const getReferenceLinesData = () => {
     if (!chartData.length) return []
-    
-    const lines = []
+
+    const lines: Array<{type: string, date: string, index: number}> = []
     const latestDate = new Date(chartData[chartData.length - 1].originalDate)
     
     // 第30天参考线
@@ -164,12 +179,12 @@ const TrendChart: React.FC<TrendChartProps> = ({ title, data, showDifference = f
         <LineChart data={chartData} margin={{ top: 20, right: 30, left: -30, bottom: 5 }}>
           <defs>
             <linearGradient id="areaGradient1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f87171" stopOpacity={0.1}/>
-              <stop offset="100%" stopColor="#f87171" stopOpacity={0.02}/>
-            </linearGradient>
-            <linearGradient id="areaGradient2" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.1}/>
               <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.02}/>
+            </linearGradient>
+            <linearGradient id="areaGradient2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.02}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -188,19 +203,31 @@ const TrendChart: React.FC<TrendChartProps> = ({ title, data, showDifference = f
           <Line 
             type="monotone" 
             dataKey="API数据" 
-            stroke="#f87171" 
-            strokeWidth={3}
-            dot={false}
-            activeDot={{ r: 4, fill: '#f87171' }}
-          />
-          <Line 
-            type="monotone" 
-            dataKey="wm_data"
             stroke="#60a5fa" 
             strokeWidth={3}
             dot={false}
             activeDot={{ r: 4, fill: '#60a5fa' }}
           />
+          <Line 
+            type="monotone" 
+            dataKey="wm_data"
+            stroke="#8b5cf6" 
+            strokeWidth={3}
+            dot={false}
+            activeDot={{ r: 4, fill: '#8b5cf6' }}
+          />
+          {shouldShowRemoveDataLine && (
+            <Line 
+              type="monotone" 
+              dataKey="Data+RemoveData"
+              stroke="#f87171" 
+              strokeWidth={3}
+              strokeDasharray="10 5"
+              dot={false}
+              activeDot={{ r: 4, fill: '#f87171' }}
+              connectNulls={false}
+            />
+          )}
           {/* 添加参考线 */}
           {referenceLines.map((line, index) => (
             <ReferenceLine 
@@ -211,7 +238,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ title, data, showDifference = f
               strokeDasharray="5 5"
               label={{ 
                 value: line.type, 
-                position: 'topLeft',
+                position: 'top',
                 style: { 
                   fontSize: '12px',
                   fill: line.type === '30天前' ? '#ef4444' : '#8b5cf6',
@@ -227,3 +254,4 @@ const TrendChart: React.FC<TrendChartProps> = ({ title, data, showDifference = f
 }
 
 export default TrendChart
+

@@ -5,6 +5,7 @@ import (
 	"wm-func/tools/alter-data-v2/backend/bdao"
 	"wm-func/tools/alter-data-v2/backend/bdebug"
 	"wm-func/tools/alter-data-v2/backend/cac"
+	"wm-func/tools/alter-data-v2/backend/cache"
 	"wm-func/tools/alter-data-v2/backend/tags"
 )
 
@@ -43,18 +44,68 @@ func GetAlterDataWithPlatformWithTenantId(needRefresh bool, platform string, ten
 		})
 	}
 
-	// 获取所有 diff > 0 的客户
+	cacheManager := cache.GetCacheManager()
 
-	var diffTenants = []int64{}
-	for _, tag := range append(res.OldTenants, res.NewTenants...) {
-		if tag.Last30DayDiff < -100 {
-			diffTenants = append(diffTenants, tag.TenantId)
+	if tenantId < 0 {
+		// 读取缓存模式：为所有租户加载 RemoveData
+		for i := range res.NewTenants {
+			removeDataMap := cacheManager.GetRemoveData(res.NewTenants[i].TenantId, platform)
+			for j := range res.NewTenants[i].DateSequence {
+				if removeData, exists := removeDataMap[res.NewTenants[i].DateSequence[j].Date]; exists {
+					res.NewTenants[i].DateSequence[j].RemoveData = removeData
+				}
+			}
 		}
-	}
 
-	for _, tId := range diffTenants {
-		tmp := bdebug.GetDataWithPlatform(tId, platform)
-		fmt.Println(tmp)
+		for i := range res.OldTenants {
+			removeDataMap := cacheManager.GetRemoveData(res.OldTenants[i].TenantId, platform)
+			for j := range res.OldTenants[i].DateSequence {
+				if removeData, exists := removeDataMap[res.OldTenants[i].DateSequence[j].Date]; exists {
+					res.OldTenants[i].DateSequence[j].RemoveData = removeData
+				}
+			}
+		}
+	} else if tenantId > 0 {
+		// 更新缓存模式：获取数据并缓存
+		fmt.Printf("正在为租户 %d 获取 RemoveData...\n", tenantId)
+		removeDataResult := bdebug.GetDataWithPlatform(tenantId, platform)
+
+		// 将结果转换为缓存格式并存储
+		removeDataMap := make(map[string]int64)
+		for _, item := range removeDataResult {
+			removeDataMap[item.StatDate] = item.Spend
+		}
+
+		// 存储到缓存
+		err := cacheManager.SetRemoveData(tenantId, platform, removeDataMap)
+		if err != nil {
+			fmt.Printf("缓存 RemoveData 失败: %v\n", err)
+		} else {
+			fmt.Printf("成功缓存租户 %d 的 RemoveData，共 %d 条记录\n", tenantId, len(removeDataMap))
+		}
+
+		// 将新获取的数据合并到结果中
+		for i := range res.NewTenants {
+			if res.NewTenants[i].TenantId == tenantId {
+				for j := range res.NewTenants[i].DateSequence {
+					if removeData, exists := removeDataMap[res.NewTenants[i].DateSequence[j].Date]; exists {
+						res.NewTenants[i].DateSequence[j].RemoveData = removeData
+					}
+				}
+				break
+			}
+		}
+
+		for i := range res.OldTenants {
+			if res.OldTenants[i].TenantId == tenantId {
+				for j := range res.OldTenants[i].DateSequence {
+					if removeData, exists := removeDataMap[res.OldTenants[i].DateSequence[j].Date]; exists {
+						res.OldTenants[i].DateSequence[j].RemoveData = removeData
+					}
+				}
+				break
+			}
+		}
 	}
 
 	return res
@@ -90,18 +141,25 @@ func GetAlterDataWithPlatform(needRefresh bool, platform string) AllTenantData {
 		})
 	}
 
-	// 获取所有 diff > 0 的客户
+	// 读取缓存：为所有租户加载 RemoveData
+	cacheManager := cache.GetCacheManager()
 
-	var diffTenants = []int64{}
-	for _, tag := range append(res.OldTenants, res.NewTenants...) {
-		if tag.Last30DayDiff < -100 {
-			diffTenants = append(diffTenants, tag.TenantId)
+	for i := range res.NewTenants {
+		removeDataMap := cacheManager.GetRemoveData(res.NewTenants[i].TenantId, platform)
+		for j := range res.NewTenants[i].DateSequence {
+			if removeData, exists := removeDataMap[res.NewTenants[i].DateSequence[j].Date]; exists {
+				res.NewTenants[i].DateSequence[j].RemoveData = removeData
+			}
 		}
 	}
 
-	for _, tenantId := range diffTenants {
-		tmp := bdebug.GetDataWithPlatform(tenantId, platform)
-		fmt.Println(tmp)
+	for i := range res.OldTenants {
+		removeDataMap := cacheManager.GetRemoveData(res.OldTenants[i].TenantId, platform)
+		for j := range res.OldTenants[i].DateSequence {
+			if removeData, exists := removeDataMap[res.OldTenants[i].DateSequence[j].Date]; exists {
+				res.OldTenants[i].DateSequence[j].RemoveData = removeData
+			}
+		}
 	}
 
 	return res

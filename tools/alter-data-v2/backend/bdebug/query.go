@@ -2108,7 +2108,7 @@ with
 select
   a.tenant_id,
   cast(stat_date as varchar) as stat_date,
-  cast(sum(ad_spend) as bigint) as spend
+  cast(sum(ad_spend) * exchange_rate as bigint) as spend
 from
   all_ad_level_metrics as a
 join platform_offline.ods_campaign_action_cache as b
@@ -2139,6 +2139,12 @@ func GetDataWithPlatform(tenantId int64, platform string) []LossData {
 		log.Println(err)
 		panic(err)
 	}
+
+	//for index := range res {
+	//	if res[index].Spend == 0 {
+	//		res[index].Spend = -1
+	//	}
+	//}
 
 	return res
 }

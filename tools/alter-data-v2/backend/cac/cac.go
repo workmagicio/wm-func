@@ -1,6 +1,7 @@
 package cac
 
 import (
+	"math"
 	"sort"
 	"time"
 	"wm-func/common/config"
@@ -19,9 +20,10 @@ type TenantDateSequence struct {
 }
 
 type DateSequence struct {
-	Date    string `json:"date"`
-	ApiData int64  `json:"api_data"`
-	Data    int64  `json:"data"`
+	Date       string `json:"date"`
+	ApiData    int64  `json:"api_data"`
+	Data       int64  `json:"data"`
+	RemoveData int64  `json:"remove_data"`
 }
 
 func GenerateDateSequence() []DateSequence {
@@ -31,9 +33,10 @@ func GenerateDateSequence() []DateSequence {
 
 	for start.Before(now) {
 		res = append(res, DateSequence{
-			Date:    start.Format("2006-01-02"),
-			ApiData: 0,
-			Data:    0,
+			Date:       start.Format("2006-01-02"),
+			ApiData:    0,
+			Data:       0,
+			RemoveData: 0,
 		})
 		start = start.Add(config.DateDay)
 	}
@@ -111,13 +114,13 @@ func GetAlterDataWithPlatformWithTenantId(platform string, needRefresh bool, ten
 		}
 	}
 
-	// oldTenants 按照diff差值逆序排序
+	// oldTenants 按照diff差值绝对值逆序排序
 	sort.Slice(oldTenants, func(i, j int) bool {
-		return oldTenants[i].Last30DayDiff > oldTenants[j].Last30DayDiff
+		return math.Abs(float64(oldTenants[i].Last30DayDiff)) > math.Abs(float64(oldTenants[j].Last30DayDiff))
 	})
 
 	sort.Slice(newTenants, func(i, j int) bool {
-		return newTenants[i].Last30DayDiff > newTenants[j].Last30DayDiff
+		return math.Abs(float64(newTenants[i].Last30DayDiff)) > math.Abs(float64(newTenants[j].Last30DayDiff))
 	})
 	return newTenants, oldTenants
 

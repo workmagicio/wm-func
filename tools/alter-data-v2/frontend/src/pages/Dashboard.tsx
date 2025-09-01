@@ -6,6 +6,7 @@ interface DateSequence {
   date: string
   api_data: number
   data: number
+  remove_data: number
 }
 
 interface Tenant {
@@ -34,6 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
   const [data, setData] = useState<ApiResponse['data'] | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [updatingTenants, setUpdatingTenants] = useState<Set<number>>(new Set())
 
   // 获取数据
   const fetchData = async (needRefresh = false) => {
@@ -72,6 +74,39 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
     fetchData(true)
   }
 
+  // 补齐数据
+  const handleUpdateTenantData = async (tenantId: number) => {
+    try {
+      setUpdatingTenants(prev => new Set(prev).add(tenantId))
+      
+      const params = new URLSearchParams({ 
+        platform,
+        tenantId: tenantId.toString()
+      })
+      
+      const response = await fetch(`/api/alter-data?${params}`)
+      const result: ApiResponse = await response.json()
+      
+      if (result.success) {
+        // 成功后刷新数据
+        await fetchData()
+        console.log(`租户 ${tenantId} 的数据补齐成功`)
+      } else {
+        console.error(`租户 ${tenantId} 数据补齐失败:`, result.message)
+        alert(`数据补齐失败: ${result.message}`)
+      }
+    } catch (err) {
+      console.error(`租户 ${tenantId} 数据补齐出错:`, err)
+      alert('数据补齐失败，请检查网络连接')
+    } finally {
+      setUpdatingTenants(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(tenantId)
+        return newSet
+      })
+    }
+  }
+
   const getPlatformName = (platformId: string) => {
     const platforms = {
       googleAds: 'Google Ads',
@@ -91,18 +126,39 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
     return '#666'
   }
 
-  const formatRegisterTime = (registerTime?: string) => {
+    const formatRegisterTime = (registerTime?: string) => {
     if (!registerTime) return ''
     try {
       const date = new Date(registerTime)
-      return date.toLocaleDateString('zh-CN', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit' 
+      return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
       })
     } catch (error) {
       return registerTime
     }
+  }
+
+  // 检查是否需要"缺少setting"标签
+  const needsMissingSettingTag = (tenant: Tenant) => {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    // 检查过去30天的数据
+    return tenant.date_sequence.some(item => {
+      const itemDate = new Date(item.date)
+      if (itemDate < thirtyDaysAgo) return false
+      
+      // 如果有 RemoveData，检查补齐后是否仍与 API数据 不匹配
+      if (item.remove_data > 0) {
+        const dataWithRemove = item.data + item.remove_data
+        const apiData = item.api_data
+        // 如果补齐后仍然与API数据不匹配（允许小的误差）
+        return Math.abs(dataWithRemove - apiData) > Math.max(apiData * 0.05, 10)
+      }
+      return false
+    })
   }
 
   // 加载状态
@@ -152,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
             <label className="platform-label">📊 平台选择：</label>
             <select 
               value={platform} 
-              onChange={(e) => window.location.reload()} // 现在只有googleAds，所以暂时用刷新
+              onChange={() => window.location.reload()} // 现在只有googleAds，所以暂时用刷新
               className="platform-select"
             >
               <option value="googleAds">Google Ads</option>
@@ -203,7 +259,7 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
         <div className="section">
           <div className="section-header">
             <h2 className="section-title">🌟 最近15天注册的客户</h2>
-            <div className="section-subtitle">共 {data.new_tenants.length} 个新客户</div>
+            <div className="section-subtitle">共 {data.new_tenants.length} 个新客户（按30天差异绝对值降序排列）</div>
           </div>
           
           <div className="tenant-grid">
@@ -219,6 +275,9 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
                     {tenant.tags.filter(tag => tag && tag.trim() !== '').map((tag, index) => (
                       <span key={index} className="tag tag-new">{tag}</span>
                     ))}
+                    {needsMissingSettingTag(tenant) && (
+                      <span className="tag tag-missing-setting">缺少setting</span>
+                    )}
                   </div>
                 </div>
                 <div className="tenant-diff">
@@ -229,6 +288,13 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
                     {formatDiff(tenant.last_30_day_diff)}
                   </div>
                   <div className="diff-label">30天差异</div>
+                  <button 
+                    className={`update-data-button ${updatingTenants.has(tenant.tenant_id) ? 'updating' : ''}`}
+                    onClick={() => handleUpdateTenantData(tenant.tenant_id)}
+                    disabled={updatingTenants.has(tenant.tenant_id)}
+                  >
+                    {updatingTenants.has(tenant.tenant_id) ? '补齐中...' : '补齐数据'}
+                  </button>
                 </div>
               </div>
               
@@ -249,7 +315,7 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
         <div className="section">
           <div className="section-header">
             <h2 className="section-title">👥 老客户</h2>
-            <div className="section-subtitle">共 {data.old_tenants.length} 个老客户（按30天差异降序排列）</div>
+            <div className="section-subtitle">共 {data.old_tenants.length} 个老客户（按30天差异绝对值降序排列）</div>
           </div>
           
           <div className="tenant-grid">
@@ -265,6 +331,9 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
                     {tenant.tags.filter(tag => tag && tag.trim() !== '').map((tag, index) => (
                       <span key={index} className="tag tag-old">{tag}</span>
                     ))}
+                    {needsMissingSettingTag(tenant) && (
+                      <span className="tag tag-missing-setting">缺少setting</span>
+                    )}
                   </div>
                 </div>
                 <div className="tenant-diff">
@@ -275,6 +344,13 @@ const Dashboard: React.FC<DashboardProps> = ({ platform }) => {
                     {formatDiff(tenant.last_30_day_diff)}
                   </div>
                   <div className="diff-label">30天差异</div>
+                  <button 
+                    className={`update-data-button ${updatingTenants.has(tenant.tenant_id) ? 'updating' : ''}`}
+                    onClick={() => handleUpdateTenantData(tenant.tenant_id)}
+                    disabled={updatingTenants.has(tenant.tenant_id)}
+                  >
+                    {updatingTenants.has(tenant.tenant_id) ? '补齐中...' : '补齐数据'}
+                  </button>
                 </div>
               </div>
               
