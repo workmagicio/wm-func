@@ -2,6 +2,16 @@
   text-align: left;
 }
 
+.app-layout {
+  display: flex;
+  min-height: calc(100vh - 60px); /* 减去header高度 */
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
 .loading {
   display: flex;
   justify-content: center;

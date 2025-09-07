@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"wm-func/tools/alter-data-v2/backend/controller"
+	"wm-func/tools/alter-data-v2/backend/tags"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,9 +18,10 @@ type GetAlterDataRequest struct {
 
 // GetAlterDataResponse API响应
 type GetAlterDataResponse struct {
-	Success bool                     `json:"success"`
-	Data    controller.AllTenantData `json:"data,omitempty"`
-	Message string                   `json:"message,omitempty"`
+	Success    bool                     `json:"success"`
+	Data       controller.AllTenantData `json:"data,omitempty"`
+	Message    string                   `json:"message,omitempty"`
+	GlobalTags []string                 `json:"global_tags,omitempty"`
 }
 
 // GetAlterData 获取平台数据差异分析
@@ -57,11 +59,15 @@ func GetAlterData(c *gin.Context) {
 		result = controller.GetAlterDataWithPlatformWithTenantId(req.NeedRefresh, req.Platform, -1)
 	}
 
+	// 获取全局标签列表
+	globalTags := tags.GetPlatformTags(req.Platform)
+
 	// 返回结果
 	c.JSON(http.StatusOK, GetAlterDataResponse{
-		Success: true,
-		Data:    result,
-		Message: "获取数据成功",
+		Success:    true,
+		Data:       result,
+		Message:    "获取数据成功",
+		GlobalTags: globalTags,
 	})
 }
 

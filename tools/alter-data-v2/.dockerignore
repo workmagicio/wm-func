@@ -1,0 +1,41 @@
+# 排除不必要的文件以减少构建上下文
+.git
+.gitignore
+*.md
+*.log
+.DS_Store
+Thumbs.db
+
+# 排除开发和测试相关
+node_modules
+*.test
+.nyc_output
+coverage
+
+# 排除构建产物和缓存
+dist
+.cache
+data
+logs
+cache
+
+# 但要包含编译的二进制文件
+!tools/alter-data-v2/bin/
+
+# 排除IDE和编辑器文件
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 排除docker相关文件
+.dockerignore
+docker compose*
+*.dockerfile
+Dockerfile*
+
+# 排除脚本文件(这些在容器内不需要)
+*.sh
+start.sh
+stop.sh

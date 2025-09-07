@@ -1,0 +1,35 @@
+# 使用最小的Alpine镜像
+FROM alpine:latest
+
+# 安装必要的运行时依赖
+RUN apk --no-cache add ca-certificates tzdata curl
+
+# 设置时区
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# 创建运行用户
+RUN addgroup -g 1000 appuser && \
+    adduser -D -s /bin/sh -u 1000 -G appuser appuser
+
+# 创建应用目录
+WORKDIR /app
+
+# 复制已编译的二进制文件
+COPY tools/alter-data-v2/bin/app .
+
+# 创建必要目录并设置权限
+RUN mkdir -p cache data logs && \
+    chown -R appuser:appuser /app
+
+# 切换到非root用户
+USER appuser
+
+# 暴露端口
+EXPOSE 8080
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# 启动应用
+CMD ["./app"]

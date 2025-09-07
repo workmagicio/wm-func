@@ -9,6 +9,9 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ selectedPlatform, onPlatformChange }) => {
   const platforms = [
     { id: 'googleAds', name: 'Google Ads', icon: '🔍' },
+    { id: 'facebookMarketing', name: 'Meta Ads', icon: '📘' },
+    { id: 'tiktokMarketing', name: 'TikTok Ads', icon: '🎵' },
+    { id: 'snapchatMarketing', name: 'Snapchat Ads', icon: '🎥' },
   ]
 
   return (

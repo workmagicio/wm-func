@@ -59,6 +59,11 @@ func SetupRouter() *gin.Engine {
 	{
 		// 获取数据差异分析
 		api.GET("/alter-data", GetAlterData)
+
+		// 标签管理接口
+		api.POST("/tags", AddTag)
+		api.DELETE("/tags", RemoveTag)
+		api.GET("/tags/:tenant_id/:platform", GetTags)
 	}
 
 	return r

@@ -126,3 +126,29 @@ func GetDataLastLoadTime(platform string) time.Time {
 
 	return latestTime
 }
+
+func QuerySingleData(platform string) ([]bmodel.WmData, error) {
+	data := bmodel.GetSingleDataWithPlatform(platform)
+	return data, nil
+}
+
+func GetWmOnlyDataByPlatform(isNeedRefresh bool, platform string) []bmodel.WmData {
+	cacheKey := "wmdata_" + platform
+
+	if isNeedRefresh {
+		// 强制刷新：直接从DB获取最新数据并更新缓存
+		data := bmodel.GetSingleDataWithPlatform(platform)
+		bcache.SaveCache(cacheKey, data)
+		return data
+	} else {
+		// 优先缓存：尝试从缓存加载，失败则从DB获取并缓存
+		if cachedData, err := bcache.LoadTyped[[]bmodel.WmData](cacheKey); err == nil {
+			return cachedData
+		}
+
+		// 缓存不存在，从DB获取并保存缓存
+		data := bmodel.GetSingleDataWithPlatform(platform)
+		bcache.SaveCache(cacheKey, data)
+		return data
+	}
+}

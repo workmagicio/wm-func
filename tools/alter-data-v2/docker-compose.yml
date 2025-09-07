@@ -1,0 +1,58 @@
+services:
+  # Redis缓存服务
+  redis:
+    image: redis:7.2-alpine
+    container_name: alter-data-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --save 60 1 --loglevel warning --appendonly yes
+    networks:
+      - alter-data-network
+
+  # Go API服务
+  api:
+    build:
+      context: ../../  # 设置构建上下文为项目根目录
+      dockerfile: tools/alter-data-v2/Dockerfile
+    container_name: alter-data-api
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - GIN_MODE=release
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app/backend
+      - ./cache:/app/cache  # 兼容旧版本缓存目录
+    networks:
+      - alter-data-network
+
+  # Nginx静态文件服务
+  nginx:
+    image: nginx:alpine
+    container_name: alter-data-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+    networks:
+      - alter-data-network
+
+networks:
+  alter-data-network:
+    driver: bridge
+
+volumes:
+  redis-data:

@@ -16,7 +16,7 @@ echo "🎨 传输静态文件..."
 scp -r -i ~/.ssh/ali-us-va-default-key.pem ./static ecs-user@10.10.2.238:/home/ecs-user/alter-data/
 
 echo "🐳 传输Docker Compose配置..."
-scp -i ~/.ssh/ali-us-va-default-key.pem ./docker-compose.yaml ecs-user@10.10.2.238:/home/ecs-user/alter-data/
+scp -i ~/.ssh/ali-us-va-default-key.pem ./docker compose.yaml ecs-user@10.10.2.238:/home/ecs-user/alter-data/
 
 echo ""
 echo "✅ 传输完成！"
@@ -32,4 +32,4 @@ echo "✅ 部署完成！"
 echo "🌐 访问地址: http://10.10.2.238:8090"
 echo ""
 echo "💡 查看日志命令："
-echo "   ssh -i ~/.ssh/ali-us-va-default-key.pem ecs-user@10.10.2.238 'cd /home/ecs-user/alter-data && docker-compose logs -f'"
+echo "   ssh -i ~/.ssh/ali-us-va-default-key.pem ecs-user@10.10.2.238 'cd /home/ecs-user/alter-data && docker compose logs -f'"

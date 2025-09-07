@@ -1,0 +1,311 @@
+/* Tag筛选器样式 */
+.tag-filter-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 快捷筛选按钮 */
+.quick-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.filter-btn {
+  padding: 10px 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  flex: none;
+}
+
+.filter-btn:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.quick-filters .filter-btn.error {
+  padding: 10px 16px !important;
+  color: #d73527 !important;
+  background: #fff !important;
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+  text-align: center !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.quick-filters .filter-btn.error.active {
+  padding: 10px 16px !important;
+  background: #d73527 !important;
+  color: white !important;
+  border: 1px solid #d73527 !important;
+  border-radius: 6px !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+  text-align: center !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.quick-filters .filter-btn.normal {
+  padding: 10px 16px !important;
+  color: #28a745 !important;
+  background: #fff !important;
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+  text-align: center !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.filter-btn.normal.active {
+  padding: 10px 16px !important;
+  background: #28a745 !important;
+  color: white !important;
+  border: 1px solid #28a745 !important;
+  border-radius: 6px !important;
+  margin: 0 !important;
+}
+
+/* 搜索区域 */
+.search-section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.clear-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.clear-btn:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* 标签选择器 */
+.tag-selector {
+  margin-bottom: 16px;
+}
+
+.tag-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tag-group {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tag-group-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag-group-title::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.tag-group:has(.tag-option.error) .tag-group-title::before {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.tag-group:has(.tag-option.normal) .tag-group-title::before {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.tag-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag-option {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;
+  display: inline-block;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tag-option:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tag-option.selected {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.tag-option.error {
+  color: #d73527;
+}
+
+.tag-option.error.selected {
+  background: #d73527;
+  color: white;
+  border-color: #d73527;
+}
+
+.tag-option.normal {
+  color: #28a745;
+}
+
+.tag-option.normal.selected {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+/* 已选标签展示 */
+.selected-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 0 0 0;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+.selected-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-right: 8px;
+}
+
+.selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.selected-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.selected-tag.error {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.selected-tag.normal {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  color: #16a34a;
+  border: 1px solid #a7f3d0;
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.remove-tag-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  opacity: 1;
+}
+

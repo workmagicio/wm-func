@@ -1,0 +1,94 @@
+.platform-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.platform-selector-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.platform-selector-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.platform-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.platform-button:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.platform-button.active {
+  border-color: var(--platform-color);
+  background: var(--platform-color-light);
+  color: var(--platform-color-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.platform-button:active {
+  transform: translateY(0);
+}
+
+.platform-icon {
+  font-size: 16px;
+}
+
+.platform-name {
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .platform-selector-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .platform-selector-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .platform-button {
+    min-width: 100px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .platform-selector-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .platform-button {
+    width: 100%;
+    min-width: unset;
+  }
+}

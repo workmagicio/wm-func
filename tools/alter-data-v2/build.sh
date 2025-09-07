@@ -1,45 +1,37 @@
 #!/bin/bash
 
-echo "🚀 开始构建 Alter Data V2 应用..."
+# 交叉编译脚本 - 编译Linux二进制文件
 
-# 检查是否在正确的目录
-if [ ! -f "main.go" ]; then
-    echo "❌ 错误: 请在 alter-data-v2 目录下运行此脚本"
-    exit 1
-fi
+set -e
 
-echo "📦 构建前端应用..."
+echo "🔨 开始交叉编译..."
 
-# 进入前端目录
-cd frontend
+# 进入项目根目录
+cd "$(dirname "$0")/../../"
 
-# 检查是否已安装依赖
-if [ ! -d "node_modules" ]; then
-    echo "📥 安装前端依赖..."
-    npm install
+# 设置编译环境
+export CGO_ENABLED=0
+export GOOS=linux
+export GOARCH=amd64
+
+# 创建输出目录
+mkdir -p tools/alter-data-v2/bin
+
+# 编译应用
+echo "📦 编译 alter-data-v2..."
+go build -a -installsuffix cgo -ldflags '-w -s' -o tools/alter-data-v2/bin/app tools/alter-data-v2/main.go
+
+# 检查编译结果
+if [ -f "tools/alter-data-v2/bin/app" ]; then
+    echo "✅ 编译成功!"
+    
+    # 显示文件信息
+    echo "📊 二进制文件信息:"
+    ls -lh tools/alter-data-v2/bin/app
+    file tools/alter-data-v2/bin/app
 else
-    echo "✅ 前端依赖已安装"
-fi
-
-# 构建前端
-echo "🔨 构建前端代码..."
-npm run build
-
-if [ $? -ne 0 ]; then
-    echo "❌ 前端构建失败"
+    echo "❌ 编译失败!"
     exit 1
 fi
 
-# 返回根目录
-cd ..
-
-echo "✅ 前端构建完成"
-echo "📁 前端文件已输出到 dist/ 目录"
-
-echo "🎉 构建完成!"
-echo ""
-echo "启动服务器请运行:"
-echo "  go run main.go"
-echo ""
-echo "或者使用:"
-echo "  ./start.sh"
+echo "🎉 交叉编译完成!"

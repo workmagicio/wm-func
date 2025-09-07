@@ -2,15 +2,130 @@ package controller
 
 import (
 	"fmt"
+	"strings"
+	"time"
+	"wm-func/common/config"
+	"wm-func/tools/alter-data-v2/backend"
 	"wm-func/tools/alter-data-v2/backend/bdao"
 	"wm-func/tools/alter-data-v2/backend/bdebug"
+	"wm-func/tools/alter-data-v2/backend/bmodel"
 	"wm-func/tools/alter-data-v2/backend/cac"
 	"wm-func/tools/alter-data-v2/backend/cache"
 	"wm-func/tools/alter-data-v2/backend/tags"
 )
 
+// filterEmptyTags 过滤掉空字符串的标签
+func filterEmptyTags(tags []string) []string {
+	var validTags []string
+	for _, tag := range tags {
+		if len(tag) > 0 {
+			validTags = append(validTags, tag)
+		}
+	}
+	return validTags
+}
+
+// processTenantTags 处理租户标签，包括系统异常标签和用户标签的分类排序
+func processTenantTags(tenantId int64, platform string, hasMissingData bool, needsMissingSetting bool) []string {
+	// 获取用户自定义tags
+	allTags := tags.GetAllTags(tenantId, platform)
+	validTags := filterEmptyTags(allTags)
+
+	var errorTags []string
+	var normalTags []string
+
+	// 1. 添加系统检测的异常tags
+	if hasMissingData {
+		errorTags = append(errorTags, "err_缺数")
+	}
+	if needsMissingSetting {
+		errorTags = append(errorTags, "err_缺少setting")
+	}
+
+	// 2. 分类用户tags
+	for _, tag := range validTags {
+		if strings.HasPrefix(tag, "err_") {
+			errorTags = append(errorTags, tag)
+		} else {
+			normalTags = append(normalTags, tag)
+		}
+	}
+
+	// 3. 异常tags在前，正常tags在后
+	result := append(errorTags, normalTags...)
+	return result
+}
+
+// needsMissingSettingTag 检查是否需要"缺少setting"标签
+func needsMissingSettingTag(tenant cac.TenantDateSequence) bool {
+	// 检查过去30天的数据
+	for _, item := range tenant.DateSequence {
+		// 如果有 RemoveData，检查补齐后是否仍与 API数据 不匹配
+		if item.RemoveData > 0 {
+			dataWithRemove := item.Data + item.RemoveData
+			apiData := item.ApiData
+			// 如果补齐后仍然与API数据不匹配（允许小的误差）
+			if apiData > 0 && dataWithRemove > 0 {
+				diff := dataWithRemove - apiData
+				if diff < 0 {
+					diff = -diff
+				}
+				threshold := apiData / 20 // 5%的误差范围
+				if threshold < 10 {
+					threshold = 10
+				}
+				if diff > threshold {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// processTenantList 统一处理租户列表，添加标签和分组
+func processTenantList(tenants []cac.TenantDateSequence, platform string) ([]TenantData, []TenantData) {
+	tenantsWithTags := []TenantData{}
+	tenantsWithoutTags := []TenantData{}
+
+	for _, tenant := range tenants {
+		// 检查是否需要"缺少setting"标签
+		needsMissingSetting := needsMissingSettingTag(tenant)
+
+		// 处理所有标签（包括系统异常标签）
+		processedTags := processTenantTags(tenant.TenantId, platform, tenant.HasMissingData, needsMissingSetting)
+
+		tenantData := TenantData{
+			TenantId:      tenant.TenantId,
+			RegisterTime:  tenant.RegisterTime,
+			Last30DayDiff: tenant.Last30DayDiff,
+			DateSequence:  tenant.DateSequence,
+			Tags:          processedTags,
+		}
+
+		if len(processedTags) > 0 {
+			tenantsWithTags = append(tenantsWithTags, tenantData)
+		} else {
+			tenantsWithoutTags = append(tenantsWithoutTags, tenantData)
+		}
+	}
+
+	return tenantsWithTags, tenantsWithoutTags
+}
+
 func GetAlterDataWithPlatformWithTenantId(needRefresh bool, platform string, tenantId int64) AllTenantData {
-	var res = AllTenantData{}
+	// 根据平台类型选择不同的处理逻辑
+	if backend.IsWmOnlyPlatform(platform) {
+		return getWmOnlyAlterData(needRefresh, platform, tenantId)
+	} else {
+		return getDualSourceAlterData(needRefresh, platform, tenantId)
+	}
+}
+
+func getDualSourceAlterData(needRefresh bool, platform string, tenantId int64) AllTenantData {
+	var res = AllTenantData{
+		DataType: "dual_source",
+	}
 
 	var newTenants, oldTenants = []cac.TenantDateSequence{}, []cac.TenantDateSequence{}
 	if tenantId < 0 {
@@ -19,29 +134,23 @@ func GetAlterDataWithPlatformWithTenantId(needRefresh bool, platform string, ten
 		newTenants, oldTenants = cac.GetAlterDataWithPlatformWithTenantId(platform, needRefresh, tenantId)
 	}
 
-	defaultTags := tags.GetDefaultTags()
-
 	// 获取数据最后加载时间
 	res.DataLastLoadTime = bdao.GetDataLastLoadTime(platform)
 
-	for _, tenant := range newTenants {
-		res.NewTenants = append(res.NewTenants, TenantData{
-			TenantId:      tenant.TenantId,
-			RegisterTime:  tenant.RegisterTime,
-			Last30DayDiff: tenant.Last30DayDiff,
-			DateSequence:  tenant.DateSequence,
-			Tags:          []string{defaultTags[tenant.TenantId]},
-		})
-	}
+	// 处理租户数据
+	newTenantsWithTags, newTenantsWithoutTags := processTenantList(newTenants, platform)
+	oldTenantsWithTags, oldTenantsWithoutTags := processTenantList(oldTenants, platform)
 
-	for _, tenant := range oldTenants {
-		res.OldTenants = append(res.OldTenants, TenantData{
-			TenantId:      tenant.TenantId,
-			RegisterTime:  tenant.RegisterTime,
-			Last30DayDiff: tenant.Last30DayDiff,
-			DateSequence:  tenant.DateSequence,
-			Tags:          []string{defaultTags[tenant.TenantId]},
-		})
+	// 合并数据：无tag的在前，有tag的在后
+	res.NewTenants = append(newTenantsWithoutTags, newTenantsWithTags...)
+	res.OldTenants = append(oldTenantsWithoutTags, oldTenantsWithTags...)
+
+	// 确保返回的数组不为nil
+	if res.NewTenants == nil {
+		res.NewTenants = []TenantData{}
+	}
+	if res.OldTenants == nil {
+		res.OldTenants = []TenantData{}
 	}
 
 	cacheManager := cache.GetCacheManager()
@@ -109,59 +218,162 @@ func GetAlterDataWithPlatformWithTenantId(needRefresh bool, platform string, ten
 	}
 
 	return res
-
 }
 
 func GetAlterDataWithPlatform(needRefresh bool, platform string) AllTenantData {
-	var res = AllTenantData{}
+	return GetAlterDataWithPlatformWithTenantId(needRefresh, platform, -1)
+}
 
-	newTenants, oldTenants := cac.GetAlterDataWithPlatform(platform, needRefresh)
-	defaultTags := tags.GetDefaultTags()
-
-	// 获取数据最后加载时间
-	res.DataLastLoadTime = bdao.GetDataLastLoadTime(platform)
-
-	for _, tenant := range newTenants {
-		res.NewTenants = append(res.NewTenants, TenantData{
-			TenantId:      tenant.TenantId,
-			RegisterTime:  tenant.RegisterTime,
-			Last30DayDiff: tenant.Last30DayDiff,
-			DateSequence:  tenant.DateSequence,
-			Tags:          []string{defaultTags[tenant.TenantId]},
-		})
+// getWmOnlyAlterData 处理仅WM数据的平台
+func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTenantData {
+	var res = AllTenantData{
+		DataType: "wm_only",
 	}
 
-	for _, tenant := range oldTenants {
-		res.OldTenants = append(res.OldTenants, TenantData{
-			TenantId:      tenant.TenantId,
-			RegisterTime:  tenant.RegisterTime,
-			Last30DayDiff: tenant.Last30DayDiff,
-			DateSequence:  tenant.DateSequence,
-			Tags:          []string{defaultTags[tenant.TenantId]},
-		})
-	}
-
-	// 读取缓存：为所有租户加载 RemoveData
-	cacheManager := cache.GetCacheManager()
-
-	for i := range res.NewTenants {
-		removeDataMap := cacheManager.GetRemoveData(res.NewTenants[i].TenantId, platform)
-		for j := range res.NewTenants[i].DateSequence {
-			if removeData, exists := removeDataMap[res.NewTenants[i].DateSequence[j].Date]; exists {
-				res.NewTenants[i].DateSequence[j].RemoveData = removeData
+	// 只获取WM数据，不获取API数据
+	var wmData []bmodel.WmData
+	if tenantId < 0 {
+		wmData = bdao.GetWmOnlyDataByPlatform(needRefresh, platform)
+		fmt.Printf("获取到 %s 平台的WM数据: %d 条记录\n", platform, len(wmData))
+	} else {
+		// 对于特定租户，暂时获取所有数据然后过滤
+		allWmData := bdao.GetWmOnlyDataByPlatform(needRefresh, platform)
+		fmt.Printf("获取到 %s 平台的所有WM数据: %d 条记录\n", platform, len(allWmData))
+		for _, data := range allWmData {
+			if data.TenantId == tenantId {
+				wmData = append(wmData, data)
 			}
+		}
+		fmt.Printf("过滤后租户 %d 的WM数据: %d 条记录\n", tenantId, len(wmData))
+	}
+
+	// 构建数据映射
+	var wmDataMap = map[int64]map[string]bmodel.WmData{}
+	for _, v := range wmData {
+		if wmDataMap[v.TenantId] == nil {
+			wmDataMap[v.TenantId] = make(map[string]bmodel.WmData)
+		}
+		wmDataMap[v.TenantId][v.RawDate] = v
+	}
+
+	var newTenants []TenantData
+	var oldTenants []TenantData
+	var lastDataDate string
+
+	allTenant := bmodel.GetAllTenant()
+	tenantPlatformMap := bmodel.GetTenantPlatformMap()
+	last30Day := time.Now().Add(config.DateDay * -30)
+
+	for _, tenant := range allTenant {
+		// 如果指定了租户ID，只处理该租户
+		if tenantId > 0 && tenant.TenantId != tenantId {
+			continue
+		}
+		if tenant.TenantId == 150038 {
+			println(1)
+		}
+
+		if !tenantPlatformMap[tenant.TenantId][platform] {
+			continue
+		}
+
+		tmp := cac.GenerateDateSequence()
+		for i, v := range tmp {
+			// 只填充WM数据，ApiData和RemoveData保持为0
+			if wmData, exists := wmDataMap[tenant.TenantId][v.Date]; exists {
+				tmp[i].Data = wmData.Data
+				// tmp[i].ApiData = 0  // 保持默认值0
+				// tmp[i].RemoveData = 0  // 保持默认值0
+			}
+		}
+
+		// 计算最后有数据的日期
+		tenantLastDataDate := getLastDataDate(tmp)
+		if tenantLastDataDate > lastDataDate {
+			lastDataDate = tenantLastDataDate
+		}
+
+		// WM-only特有的数据质量检测
+		last7DaysHasData := checkLast7DaysHasData(tmp)
+
+		// WM-only特有的标签处理
+		wmOnlyTags := processWmOnlyTags(tenant.TenantId, platform, last7DaysHasData)
+
+		tenantData := TenantData{
+			TenantId:      tenant.TenantId,
+			RegisterTime:  tenant.RegisterTime.Format("2006-01-02 15:04:05"),
+			Last30DayDiff: 0, // WM-only数据不计算差值
+			DateSequence:  tmp,
+			Tags:          wmOnlyTags,
+		}
+
+		if tenant.RegisterTime.After(last30Day) {
+			newTenants = append(newTenants, tenantData)
+		} else {
+			oldTenants = append(oldTenants, tenantData)
 		}
 	}
 
-	for i := range res.OldTenants {
-		removeDataMap := cacheManager.GetRemoveData(res.OldTenants[i].TenantId, platform)
-		for j := range res.OldTenants[i].DateSequence {
-			if removeData, exists := removeDataMap[res.OldTenants[i].DateSequence[j].Date]; exists {
-				res.OldTenants[i].DateSequence[j].RemoveData = removeData
-			}
-		}
+	// 确保返回的数组不为nil
+	if newTenants == nil {
+		newTenants = []TenantData{}
+	}
+	if oldTenants == nil {
+		oldTenants = []TenantData{}
 	}
 
+	res.NewTenants = newTenants
+	res.OldTenants = oldTenants
+	res.DataLastLoadTime = time.Now()
+	res.LastDataDate = lastDataDate
+
+	fmt.Printf("返回WM-only数据: 新租户 %d 个, 老租户 %d 个\n", len(newTenants), len(oldTenants))
 	return res
+}
 
+// checkLast7DaysHasData 检查最近7天是否有数据
+func checkLast7DaysHasData(sequences []cac.DateSequence) bool {
+	checkDays := 7
+	for i := len(sequences) - checkDays; i < len(sequences); i++ {
+		if i >= 0 && sequences[i].Data > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// getLastDataDate 获取最后有数据的日期
+func getLastDataDate(sequences []cac.DateSequence) string {
+	for i := len(sequences) - 1; i >= 0; i-- {
+		if sequences[i].Data > 0 {
+			return sequences[i].Date
+		}
+	}
+	return ""
+}
+
+// processWmOnlyTags 处理WM-only数据的标签
+func processWmOnlyTags(tenantId int64, platform string, last7DaysHasData bool) []string {
+	// 获取用户自定义tags
+	allTags := tags.GetAllTags(tenantId, platform)
+	validTags := filterEmptyTags(allTags)
+
+	var errorTags []string
+	var normalTags []string
+
+	// WM-only特有的系统标签
+	if !last7DaysHasData {
+		errorTags = append(errorTags, "err_最近7天无数据")
+	}
+
+	// 分类用户tags
+	for _, tag := range validTags {
+		if strings.HasPrefix(tag, "err_") {
+			errorTags = append(errorTags, tag)
+		} else {
+			normalTags = append(normalTags, tag)
+		}
+	}
+
+	return append(errorTags, normalTags...)
 }

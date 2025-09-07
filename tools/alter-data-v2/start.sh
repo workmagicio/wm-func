@@ -13,7 +13,7 @@ if [ ! -d "dist" ] || [ ! -f "dist/index.html" ]; then
 fi
 
 # 获取端口参数，默认8080
-PORT=${1:-8088}
+PORT=${1:-8089}
 
 echo "🌐 启动服务器在端口 $PORT..."
 echo "📱 前端应用: http://localhost:$PORT"

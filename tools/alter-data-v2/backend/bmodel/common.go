@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 	"wm-func/common/db/platform_db"
+	"wm-func/tools/alter-data-v2/backend"
 )
 
 var data_view_query = `
@@ -177,4 +178,27 @@ func GetTenantPlatformMap() map[int64]map[string]bool {
 	}
 
 	return result
+}
+
+func GetSingleDataWithPlatform(platform string) []WmData {
+	var exec = ""
+	switch platform {
+	case backend.PLATFORN_SNAPCHAT_AMAZONVENDOR:
+		exec = query_amazon_vonder
+	case backend.PLATFORN_SNAPCHAT_FAIRING:
+		exec = fairing_query
+	}
+
+	return QueryWmData(exec)
+}
+
+func QueryWmData(exec string) []WmData {
+	db := platform_db.GetDB()
+	var res = []WmData{}
+	if err := db.Raw(exec).Limit(-1).Scan(&res).Error; err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	return res
 }

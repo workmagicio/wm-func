@@ -5,15 +5,39 @@
 ## 功能特性
 
 - 🔍 **数据差异分析**: 对比API数据和wm_data的差异
-- 👥 **租户分组**: 按注册时间分为新租户(<30天)和老租户(≥30天)
+- 👥 **租户分组**: 按注册时间分为新租户(<30天)和老租户(≥30天)  
 - 📊 **30天统计**: 每个租户最近30天的数据差异累计
 - 🕒 **数据时效性**: 返回数据最后更新时间
-- 💾 **缓存机制**: 支持缓存刷新控制
+- 💾 **Redis缓存**: 高性能Redis缓存，支持数据持久化
+- 🐳 **容器化部署**: Docker Compose一键部署
+- 🌐 **前后端分离**: Nginx + Go API服务
 
 ## 启动服务
 
+### 🐳 Docker方式（推荐）
+
 ```bash
-# 安装依赖
+# 一键启动所有服务（包括Redis、API、Nginx）
+./start-docker.sh
+
+# 停止服务
+./stop-docker.sh
+
+# 查看服务状态
+docker compose ps
+
+# 查看日志
+docker compose logs -f api    # API服务日志
+docker compose logs -f redis  # Redis服务日志
+```
+
+### 🛠️ 传统方式
+
+```bash
+# 启动Redis（需要先安装Redis）
+redis-server
+
+# 安装Go依赖
 go mod tidy
 
 # 启动服务(默认端口8080)
@@ -151,7 +175,34 @@ go run main.go -port=8080
 
 ## 注意事项
 
-1. **缓存机制**: 默认使用缓存数据，可通过`needRefresh=true`强制刷新
+1. **缓存机制**: 使用Redis缓存，支持数据持久化，可通过`needRefresh=true`强制刷新
 2. **数据一致性**: 以ApiData为基准，计算与wm_data的差异
-3. **性能考虑**: 大量数据时建议使用缓存，避免频繁刷新
+3. **性能考虑**: Redis缓存提供高性能数据访问，避免频繁数据库查询
 4. **时区**: 所有时间使用UTC时区
+5. **容器化**: 推荐使用Docker Compose方式部署，包含所有依赖服务
+
+## 技术架构
+
+### 🏗️ 系统架构
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│    Nginx    │    │   Go API    │    │   Redis     │
+│   (80/443)  │━━━▶│   (8080)    │━━━▶│   (6379)    │
+└─────────────┘    └─────────────┘    └─────────────┘
+      │                   │                   │
+   前端静态文件        业务逻辑处理          缓存存储
+```
+
+### 💾 Redis缓存策略
+- **bcache**: 使用`bcache:key`格式存储API和Overview数据
+- **RemoveData**: 使用`cache:remove_data:tenantId_platform`格式的Hash存储
+- **持久化**: RDB + AOF双重保障，数据挂载到`./data/redis`目录
+- **过期策略**: 无过期时间，通过业务逻辑控制缓存更新
+
+### 🔧 环境变量
+| 变量名 | 默认值 | 说明 |
+|--------|-------|------|
+| `REDIS_HOST` | localhost | Redis主机地址 |
+| `REDIS_PORT` | 6379 | Redis端口 |
+| `REDIS_PASSWORD` | (空) | Redis密码 |
+| `GIN_MODE` | release | Gin运行模式 |

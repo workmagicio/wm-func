@@ -17,4 +17,6 @@ type AllTenantData struct {
 	NewTenants       []TenantData `json:"new_tenants"`
 	OldTenants       []TenantData `json:"old_tenants"`
 	DataLastLoadTime time.Time    `json:"data_last_load_time"`
+	DataType         string       `json:"data_type"`      // 数据类型：dual_source 或 wm_only
+	LastDataDate     string       `json:"last_data_date"` // 最后有数据的日期（仅WM-only类型使用）
 }

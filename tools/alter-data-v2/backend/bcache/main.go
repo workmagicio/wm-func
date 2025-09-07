@@ -3,10 +3,12 @@ package bcache
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
+
+	"wm-func/tools/alter-data-v2/backend/redis"
+
+	redisv8 "github.com/go-redis/redis/v8"
 )
 
 // Cache 缓存结构
@@ -17,8 +19,8 @@ type Cache struct {
 
 // CacheManager 缓存管理器
 type CacheManager struct {
-	cacheDir string
-	mutex    sync.RWMutex
+	keyPrefix string
+	mutex     sync.RWMutex
 }
 
 var (
@@ -30,10 +32,10 @@ var (
 func GetManager() *CacheManager {
 	once.Do(func() {
 		defaultManager = &CacheManager{
-			cacheDir: "./cache",
+			keyPrefix: "bcache:",
 		}
-		// 确保缓存目录存在
-		os.MkdirAll(defaultManager.cacheDir, 0755)
+		// 初始化Redis连接
+		redis.GetClient()
 	})
 	return defaultManager
 }
@@ -86,15 +88,17 @@ func (cm *CacheManager) Save(key string, value interface{}) error {
 		Data:       value,
 	}
 
-	data, err := json.MarshalIndent(&cache, "", "  ")
+	data, err := json.Marshal(&cache)
 	if err != nil {
 		return fmt.Errorf("marshal cache failed: %w", err)
 	}
 
-	fileName := cm.getCacheFilePath(key)
+	redisKey := cm.getRedisKey(key)
+	client := redis.GetClient()
+	ctx := redis.GetContext()
 
-	if err := os.WriteFile(fileName, data, 0644); err != nil {
-		return fmt.Errorf("write cache file failed: %w", err)
+	if err := client.Set(ctx, redisKey, string(data), 0).Err(); err != nil {
+		return fmt.Errorf("save to redis failed: %w", err)
 	}
 
 	return nil
@@ -105,20 +109,20 @@ func (cm *CacheManager) Load(key string) (*Cache, error) {
 	cm.mutex.RLock()
 	defer cm.mutex.RUnlock()
 
-	fileName := cm.getCacheFilePath(key)
+	redisKey := cm.getRedisKey(key)
+	client := redis.GetClient()
+	ctx := redis.GetContext()
 
-	// 检查文件是否存在
-	if _, err := os.Stat(fileName); os.IsNotExist(err) {
-		return nil, fmt.Errorf("cache not found: %s", key)
-	}
-
-	data, err := os.ReadFile(fileName)
+	data, err := client.Get(ctx, redisKey).Result()
 	if err != nil {
-		return nil, fmt.Errorf("read cache file failed: %w", err)
+		if err == redisv8.Nil {
+			return nil, fmt.Errorf("cache not found: %s", key)
+		}
+		return nil, fmt.Errorf("read from redis failed: %w", err)
 	}
 
 	var cache Cache
-	if err := json.Unmarshal(data, &cache); err != nil {
+	if err := json.Unmarshal([]byte(data), &cache); err != nil {
 		return nil, fmt.Errorf("unmarshal cache failed: %w", err)
 	}
 
@@ -130,14 +134,17 @@ func (cm *CacheManager) Delete(key string) error {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	fileName := cm.getCacheFilePath(key)
-	if err := os.Remove(fileName); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("delete cache file failed: %w", err)
+	redisKey := cm.getRedisKey(key)
+	client := redis.GetClient()
+	ctx := redis.GetContext()
+
+	if err := client.Del(ctx, redisKey).Err(); err != nil {
+		return fmt.Errorf("delete from redis failed: %w", err)
 	}
 	return nil
 }
 
-// getCacheFilePath 获取缓存文件路径
-func (cm *CacheManager) getCacheFilePath(key string) string {
-	return filepath.Join(cm.cacheDir, key+".json")
+// getRedisKey 获取Redis键
+func (cm *CacheManager) getRedisKey(key string) string {
+	return cm.keyPrefix + key
 }
