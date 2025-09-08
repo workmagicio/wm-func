@@ -152,3 +152,59 @@ func GetWmOnlyDataByPlatform(isNeedRefresh bool, platform string) []bmodel.WmDat
 		return data
 	}
 }
+
+// GetAttributionData 获取归因数据（带缓存）
+func GetAttributionData(isNeedRefresh bool) []bmodel.Attribution {
+	cacheKey := "attribution_data"
+
+	if isNeedRefresh {
+		// 强制刷新：直接从DB获取最新数据并更新缓存
+		data := bmodel.GetAttrData()
+		bcache.SaveCache(cacheKey, data)
+		return data
+	} else {
+		// 优先缓存：尝试从缓存加载，失败则从DB获取并缓存
+		if cachedData, err := bcache.LoadTyped[[]bmodel.Attribution](cacheKey); err == nil {
+			return cachedData
+		}
+
+		// 缓存不存在，从DB获取并保存缓存
+		data := bmodel.GetAttrData()
+		bcache.SaveCache(cacheKey, data)
+		return data
+	}
+}
+
+// GetAttributionDataByTenantId 获取特定租户的归因数据（带缓存）
+func GetAttributionDataByTenantId(isNeedRefresh bool, tenantId int64) []bmodel.Attribution {
+	cacheKey := fmt.Sprintf("attribution_data_%d", tenantId)
+
+	if isNeedRefresh {
+		// 强制刷新：直接从DB获取最新数据并更新缓存
+		allData := bmodel.GetAttrData()
+		var tenantData []bmodel.Attribution
+		for _, attr := range allData {
+			if attr.TenantId == tenantId {
+				tenantData = append(tenantData, attr)
+			}
+		}
+		bcache.SaveCache(cacheKey, tenantData)
+		return tenantData
+	} else {
+		// 优先缓存：尝试从缓存加载，失败则从DB获取并缓存
+		if cachedData, err := bcache.LoadTyped[[]bmodel.Attribution](cacheKey); err == nil {
+			return cachedData
+		}
+
+		// 缓存不存在，从DB获取并保存缓存
+		allData := bmodel.GetAttrData()
+		var tenantData []bmodel.Attribution
+		for _, attr := range allData {
+			if attr.TenantId == tenantId {
+				tenantData = append(tenantData, attr)
+			}
+		}
+		bcache.SaveCache(cacheKey, tenantData)
+		return tenantData
+	}
+}

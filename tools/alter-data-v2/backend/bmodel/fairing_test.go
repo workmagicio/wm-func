@@ -6,6 +6,6 @@ import (
 )
 
 func TestQuery(t *testing.T) {
-	b := GetSingleDataWithPlatform("amazonVendorPartner")
+	b := GetDataWithPlatform("shopify")
 	fmt.Println(b)
 }

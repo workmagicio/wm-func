@@ -1,0 +1,152 @@
+.attribution-chart {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e74c3c;
+  padding-bottom: 8px;
+}
+
+.attribution-stats {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #e74c3c;
+}
+
+.stats-row {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+}
+
+.stat-value.warning {
+  color: #e74c3c;
+}
+
+.platform-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.platform-total-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.platform-name {
+  font-weight: 600;
+  color: #333;
+  min-width: 60px;
+}
+
+.platform-value {
+  color: #666;
+  font-size: 14px;
+}
+
+.low-attribution-warning {
+  color: #e74c3c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.attribution-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.error-tag {
+  background-color: #fee;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+}
+
+.normal-tag {
+  background-color: #e6fffa;
+  color: #234e52;
+  border: 1px solid #81e6d9;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .attribution-chart {
+    padding: 15px;
+  }
+  
+  .stats-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .platform-totals {
+    grid-template-columns: 1fr;
+  }
+  
+  .platform-total-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* 图表容器样式 */
+.recharts-wrapper {
+  margin-top: 10px;
+}
+
+/* 自定义tooltip样式 */
+.recharts-tooltip-wrapper {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 图例样式 */
+.recharts-legend-wrapper {
+  padding-top: 20px;
+}
+
+.recharts-legend-item-text {
+  font-size: 12px !important;
+}

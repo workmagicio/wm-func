@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import './TagFilter.css'
 
-interface TenantData {
+interface AttributionTenantData {
   tenant_id: number
   tags: string[]
-  last_30_day_diff: number
-  register_time: string
+  total_attribution_avg: number
+  recent_zero_days: number
+  has_recent_zeros: boolean
   date_sequence: any[]
+  platform_totals: any[]
 }
 
-interface TagFilterProps {
-  newTenants: TenantData[]
-  oldTenants: TenantData[]
-  onFilterChange: (filteredNew: TenantData[], filteredOld: TenantData[]) => void
+interface AttributionTagFilterProps {
+  data: AttributionTenantData[]
+  onFilterChange: (filtered: AttributionTenantData[]) => void
 }
 
 type FilterMode = 'all' | 'error' | 'normal' | 'custom' | 'exclude'
@@ -24,7 +25,7 @@ interface FilterState {
   searchText: string
 }
 
-const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterChange }) => {
+const AttributionTagFilter: React.FC<AttributionTagFilterProps> = ({ data, onFilterChange }) => {
   const [filterState, setFilterState] = useState<FilterState>({
     mode: 'all',
     selectedTags: [],
@@ -34,18 +35,28 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
 
   // 计算所有标签和统计信息
   const tagStats = useMemo(() => {
-    const allTenants = [...newTenants, ...oldTenants]
     const tagCounts: { [tag: string]: number } = {}
     
     let errorCount = 0
     let normalCount = 0
     
-    allTenants.forEach(tenant => {
+    if (!Array.isArray(data)) {
+      return {
+        allTags: [],
+        errorTags: [],
+        normalTags: [],
+        tagCounts: {},
+        errorCount: 0,
+        normalCount: 0,
+        totalCount: 0
+      }
+    }
+    
+    data.forEach(tenant => {
       const tags = tenant.tags || []
       const hasErrorTag = tags.some(tag => tag.startsWith('err_'))
       const hasNormalTag = tags.some(tag => !tag.startsWith('err_'))
       
-      // 如果有正常标签，就不统计到错误中，但仍然可以筛选错误标签
       if (hasErrorTag && !hasNormalTag) {
         errorCount++
       } else {
@@ -57,105 +68,88 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
       })
     })
     
-    // 分类标签
-    const errorTags = Object.keys(tagCounts).filter(tag => tag.startsWith('err_')).sort()
-    const normalTags = Object.keys(tagCounts).filter(tag => !tag.startsWith('err_')).sort()
+    const allTags = Object.keys(tagCounts).sort()
+    const errorTags = allTags.filter(tag => tag.startsWith('err_'))
+    const normalTags = allTags.filter(tag => !tag.startsWith('err_'))
     
     return {
-      tagCounts,
+      allTags,
       errorTags,
       normalTags,
+      tagCounts,
       errorCount,
       normalCount,
-      totalCount: allTenants.length
+      totalCount: data.length
     }
-  }, [newTenants, oldTenants])
+  }, [data])
 
-  // 筛选逻辑
-  const applyFilters = (tenants: TenantData[], filterState: FilterState): TenantData[] => {
-    let filtered = tenants
+  // 应用筛选逻辑
+  const filteredData = useMemo(() => {
+    if (!Array.isArray(data)) {
+      return []
+    }
+    
+    let filtered = data
 
     // 按模式筛选
-    switch (filterState.mode) {
-      case 'error':
-        filtered = filtered.filter(tenant => {
-          const tags = tenant.tags || []
-          return tags.some(tag => tag.startsWith('err_'))
-        })
-        break
-      case 'normal':
-        filtered = filtered.filter(tenant => {
-          const tags = tenant.tags || []
-          return !tags.some(tag => tag.startsWith('err_'))
-        })
-        break
-      case 'custom':
-        if (filterState.selectedTags.length > 0) {
-          filtered = filtered.filter(tenant => {
-            const tags = tenant.tags || []
-            return filterState.selectedTags.every(selectedTag => 
-              tags.includes(selectedTag)
-            )
-          })
-        }
-        break
-      default:
-        // 'all' - 不过滤
-        break
+    if (filterState.mode === 'error') {
+      filtered = filtered.filter(tenant => 
+        tenant.tags?.some(tag => tag.startsWith('err_')) && 
+        !tenant.tags?.some(tag => !tag.startsWith('err_'))
+      )
+    } else if (filterState.mode === 'normal') {
+      filtered = filtered.filter(tenant => 
+        !tenant.tags?.some(tag => tag.startsWith('err_')) ||
+        tenant.tags?.some(tag => !tag.startsWith('err_'))
+      )
+    }
+
+    // 按选中的标签筛选
+    if (filterState.selectedTags.length > 0) {
+      filtered = filtered.filter(tenant =>
+        filterState.selectedTags.every(selectedTag =>
+          tenant.tags?.includes(selectedTag)
+        )
+      )
     }
 
     // 排除指定的标签
     if (filterState.excludedTags.length > 0) {
-      filtered = filtered.filter(tenant => {
-        const tags = tenant.tags || []
-        return !filterState.excludedTags.some(excludedTag =>
-          tags.includes(excludedTag)
+      filtered = filtered.filter(tenant =>
+        !filterState.excludedTags.some(excludedTag =>
+          tenant.tags?.includes(excludedTag)
         )
-      })
+      )
     }
 
-    // 搜索筛选
-    if (filterState.searchText) {
+    // 按搜索文本筛选
+    if (filterState.searchText.trim()) {
       const searchLower = filterState.searchText.toLowerCase()
-      filtered = filtered.filter(tenant => {
-        const tags = tenant.tags || []
-        return (
-          tenant.tenant_id.toString().includes(searchLower) ||
-          tags.some(tag => tag.toLowerCase().includes(searchLower))
-        )
-      })
+      filtered = filtered.filter(tenant =>
+        tenant.tenant_id.toString().includes(searchLower) ||
+        tenant.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+      )
     }
 
     return filtered
-  }
+  }, [data, filterState])
 
-  // 当筛选条件变化时，应用筛选
+  // 当筛选结果改变时通知父组件
   useEffect(() => {
-    const filteredNew = applyFilters(newTenants, filterState)
-    const filteredOld = applyFilters(oldTenants, filterState)
-    onFilterChange(filteredNew, filteredOld)
-  }, [newTenants, oldTenants, filterState, onFilterChange])
+    onFilterChange(filteredData)
+  }, [filteredData, onFilterChange])
 
   const handleModeChange = (mode: FilterMode) => {
-    setFilterState(prev => ({
-      ...prev,
-      mode,
-      selectedTags: mode === 'custom' ? prev.selectedTags : []
-    }))
+    setFilterState(prev => ({ ...prev, mode, selectedTags: [] }))
   }
 
   const handleTagToggle = (tag: string) => {
-    setFilterState(prev => {
-      const newSelectedTags = prev.selectedTags.includes(tag)
+    setFilterState(prev => ({
+      ...prev,
+      selectedTags: prev.selectedTags.includes(tag)
         ? prev.selectedTags.filter(t => t !== tag)
         : [...prev.selectedTags, tag]
-      
-      return {
-        ...prev,
-        mode: 'custom',
-        selectedTags: newSelectedTags
-      }
-    })
+    }))
   }
 
   const handleExcludeTagToggle = (tag: string) => {
@@ -172,10 +166,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
   }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterState(prev => ({
-      ...prev,
-      searchText: e.target.value
-    }))
+    setFilterState(prev => ({ ...prev, searchText: e.target.value }))
   }
 
   const clearFilters = () => {
@@ -187,37 +178,32 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
     })
   }
 
-  const removeSelectedTag = (tag: string) => {
-    setFilterState(prev => ({
-      ...prev,
-      selectedTags: prev.selectedTags.filter(t => t !== tag)
-    }))
-  }
+  const isFiltered = filterState.mode !== 'all' || filterState.selectedTags.length > 0 || filterState.excludedTags.length > 0 || filterState.searchText.trim() !== ''
 
   return (
     <div className="tag-filter-section">
       {/* 快捷筛选按钮 */}
       <div className="quick-filters">
-        <button 
+        <button
           className={`filter-btn ${filterState.mode === 'all' ? 'active' : ''}`}
           onClick={() => handleModeChange('all')}
         >
           全部 ({tagStats.totalCount})
         </button>
-        <button 
+        <button
           className={`filter-btn error ${filterState.mode === 'error' ? 'active' : ''}`}
           onClick={() => handleModeChange('error')}
         >
           异常 ({tagStats.errorCount})
         </button>
-        <button 
+        <button
           className={`filter-btn normal ${filterState.mode === 'normal' ? 'active' : ''}`}
           onClick={() => handleModeChange('normal')}
         >
           正常 ({tagStats.normalCount})
         </button>
         
-        {/* 排除标签快捷按钮 */}
+        {/* 排除标签快捷指示器 */}
         {filterState.excludedTags.length > 0 && (
           <div className="excluded-tags-indicator">
             <span className="excluded-label">已排除:</span>
@@ -242,7 +228,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
           onChange={handleSearchChange}
           className="search-input"
         />
-        {(filterState.mode !== 'all' || filterState.selectedTags.length > 0 || filterState.excludedTags.length > 0 || filterState.searchText) && (
+        {isFiltered && (
           <button onClick={clearFilters} className="clear-btn">
             清空筛选
           </button>
@@ -330,7 +316,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
                 >
                   {tag}
                   <button 
-                    onClick={() => removeSelectedTag(tag)}
+                    onClick={() => setFilterState(prev => ({ ...prev, selectedTags: prev.selectedTags.filter(t => t !== tag) }))}
                     className="remove-tag-btn"
                   >
                     ×
@@ -361,8 +347,16 @@ const TagFilter: React.FC<TagFilterProps> = ({ newTenants, oldTenants, onFilterC
           )}
         </div>
       )}
+
+      {/* 筛选结果 */}
+      <div className="filter-result">
+        显示 {filteredData.length} / {data.length} 个租户
+        {isFiltered && (
+          <span className="filtered-indicator">（已筛选）</span>
+        )}
+      </div>
     </div>
   )
 }
 
-export default TagFilter
+export default AttributionTagFilter

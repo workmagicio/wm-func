@@ -1,0 +1,495 @@
+.attribution-analysis {
+  max-width: 100%;
+  margin: 0;
+  padding: 0 20px;
+}
+
+.attribution-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #c3e6cb;
+  margin-bottom: 24px;
+}
+
+.header-left h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #155724;
+  margin: 0 0 8px 0;
+}
+
+.header-subtitle {
+  color: #155724;
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.last-update {
+  font-size: 12px;
+  color: #155724;
+  opacity: 0.7;
+}
+
+.refresh-button {
+  padding: 10px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.refresh-button:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+/* 概览卡片 */
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.overview-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border-left: 4px solid #17a2b8;
+}
+
+.overview-title {
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.overview-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.overview-value.error {
+  color: #dc3545;
+}
+
+.overview-value.warning {
+  color: #ffc107;
+}
+
+.overview-subtitle {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* 租户网格 */
+.tenant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 24px;
+}
+
+.attribution-tenant-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-left: 4px solid #17a2b8;
+  transition: all 0.2s ease;
+}
+
+.attribution-tenant-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.tenant-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tenant-basic-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.tenant-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-value.warning {
+  color: #dc3545;
+}
+
+.tenant-diff {
+  text-align: right;
+}
+
+.diff-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.diff-label {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* 平台汇总 */
+.platform-summary {
+  margin-bottom: 20px;
+}
+
+.platform-summary h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.platform-totals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.platform-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.platform-name {
+  font-weight: 600;
+  color: #495057;
+  min-width: 60px;
+}
+
+.platform-value {
+  color: #6c757d;
+  flex: 1;
+}
+
+.low-attribution-warning {
+  color: #dc3545;
+  font-size: 14px;
+}
+
+/* 筛选部分 */
+.filter-section {
+  margin-bottom: 24px;
+}
+
+/* 标签管理 */
+.tenant-tags-section {
+  margin-bottom: 20px;
+}
+
+.tags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tags-header h5 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.add-tag-btn {
+  padding: 4px 8px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.add-tag-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.tenant-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.error-tag {
+  background-color: #fee;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+}
+
+.normal-tag {
+  background-color: #e6fffa;
+  color: #234e52;
+  border: 1px solid #81e6d9;
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0;
+  margin-left: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.remove-tag-btn:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.remove-tag-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.no-tags {
+  color: #6c757d;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.no-tags p {
+  margin: 0;
+}
+
+/* 加载和错误状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #17a2b8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  text-align: center;
+  padding: 40px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: #721c24;
+}
+
+.error-message h3 {
+  margin: 0 0 10px 0;
+}
+
+.retry-button {
+  padding: 10px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.retry-button:hover {
+  background: #c82333;
+}
+
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.no-chart-data {
+  padding: 40px;
+  text-align: center;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 2px dashed #dee2e6;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .attribution-analysis {
+    padding: 0 15px;
+  }
+  
+  .attribution-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-controls {
+    align-items: stretch;
+  }
+  
+  .tenant-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tenant-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .tenant-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .platform-totals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .overview-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .tenant-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 客户类型标签样式 */
+.tenant-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.customer-type-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.customer-type-badge.new-customer {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.customer-type-badge.old-customer {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+}
+
+.register-time {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 12px;
+  padding: 4px 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #dee2e6;
+}
+
+/* 客户类型响应式优化 */
+@media (max-width: 768px) {
+  .tenant-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .customer-type-badge {
+    align-self: flex-start;
+  }
+}

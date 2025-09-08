@@ -14,6 +14,7 @@
   gap: 8px;
   margin-bottom: 16px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .filter-btn {
@@ -307,5 +308,358 @@
 .remove-tag-btn:hover {
   background: rgba(0, 0, 0, 0.1);
   opacity: 1;
+}
+
+/* 标签选择区域样式 */
+.tag-selection {
+  margin-top: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.selection-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.selection-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.selection-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.tag-group {
+  margin-bottom: 16px;
+}
+
+.tag-group:last-child {
+  margin-bottom: 0;
+}
+
+.tag-group h4,
+.tag-group h5 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tag-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tag-btn.error {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.tag-btn.error:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.tag-btn.normal {
+  color: #059669;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.tag-btn.normal:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.tag-btn.selected {
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.tag-btn.error.selected {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.tag-btn.normal.selected {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+/* 排除标签特殊样式 */
+.tag-btn.exclude {
+  position: relative;
+}
+
+.tag-btn.exclude:before {
+  content: '🚫';
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+.tag-btn.exclude.selected {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.tag-btn.exclude.selected:before {
+  content: '❌';
+}
+
+/* 标签模式切换标签 */
+.tag-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: #374151;
+}
+
+.tab-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.tab-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.tab-btn.exclude {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.tab-btn.exclude:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.tab-btn.exclude.active {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+/* 排除标签快捷指示器 */
+.excluded-tags-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.excluded-label {
+  color: #dc2626;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.excluded-tag-mini {
+  background: #dc2626;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.excluded-more {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* 排除标签特殊样式 */
+.tag-option.exclude {
+  position: relative;
+}
+
+.tag-option.exclude.selected {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.selected-tag.exclude {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+/* 标签操作头部 */
+.tag-actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tag-actions-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.tag-help {
+  display: flex;
+  align-items: center;
+}
+
+.help-text {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f9fafb;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+/* 标签项包装器 */
+.tag-item-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tag-item-wrapper:last-child {
+  margin-bottom: 0;
+}
+
+/* 排除按钮 */
+.exclude-btn {
+  padding: 4px 6px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exclude-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: scale(1.1);
+}
+
+.exclude-btn.active {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.exclude-btn.active:hover {
+  background: #b91c1c;
+}
+
+/* 被排除的标签样式 */
+.tag-option.excluded {
+  opacity: 0.5;
+  background: #f9fafb !important;
+  color: #6b7280 !important;
+  border-color: #d1d5db !important;
+  position: relative;
+}
+
+.tag-option.excluded::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: #dc2626;
+  transform: translateY(-50%);
+}
+
+.tag-option.excluded:hover {
+  opacity: 0.7;
+}
+
+/* 标签列表重新布局 */
+.tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 排除模式按钮样式 */
+.mode-btn.exclude {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.mode-btn.exclude:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.mode-btn.exclude.active {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
 }
 

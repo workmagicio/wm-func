@@ -35,6 +35,7 @@ interface ApiResponse {
   global_tags?: string[]
 }
 
+
 const Dashboard: React.FC<{}> = () => {
   const platforms = getEnabledPlatforms()
   
