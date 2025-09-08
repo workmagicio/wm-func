@@ -150,3 +150,145 @@
 .recharts-legend-item-text {
   font-size: 12px !important;
 }
+
+/* 客户差异分析样式 */
+.customer-analysis-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.analysis-title {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.customer-group {
+  margin-bottom: 20px;
+  background: white;
+  border-radius: 6px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.customer-group:last-child {
+  margin-bottom: 0;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.group-icon {
+  font-size: 18px;
+}
+
+.group-title {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.group-count {
+  color: #666;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customer-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
+  transition: background-color 0.2s ease;
+}
+
+.customer-item:hover {
+  background: #e9ecef;
+}
+
+.customer-id {
+  font-weight: 600;
+  color: #333;
+  min-width: 80px;
+  font-size: 13px;
+}
+
+.customer-register-time {
+  color: #666;
+  font-size: 12px;
+  min-width: 100px;
+}
+
+.customer-diff {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 13px;
+  margin-left: auto;
+}
+
+.more-customers {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  font-size: 12px;
+  padding: 8px;
+  background: #f1f3f4;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.no-customers {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* 响应式设计 - 客户分析 */
+@media (max-width: 768px) {
+  .customer-analysis-section {
+    padding: 15px;
+  }
+  
+  .group-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .group-count {
+    margin-left: 0;
+  }
+  
+  .customer-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .customer-diff {
+    margin-left: 0;
+  }
+}

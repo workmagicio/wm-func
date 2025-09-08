@@ -63,7 +63,7 @@ func SetupRouter() *gin.Engine {
 		// 归因数据分析接口
 		api.GET("/attribution", GetAttributionData)
 		api.GET("/attribution/all", GetAllAttributionData)
-		api.GET("/attribution/grouped", GetAttributionDataGrouped)
+		api.GET("/attribution-data/grouped", GetAttributionDataGrouped)
 		api.GET("/attribution/:tenantId", GetAttributionDataByPath)
 
 		// 标签管理接口

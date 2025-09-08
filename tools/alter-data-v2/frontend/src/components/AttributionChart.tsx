@@ -33,16 +33,22 @@ interface AttributionTenantData {
   tags: string[]
   recent_zero_days: number
   has_recent_zeros: boolean
+  customer_type?: string
+  register_time?: string
 }
 
 interface AttributionChartProps {
   title: string
   data: AttributionTenantData
+  showCustomerAnalysis?: boolean
+  allCustomersData?: AttributionTenantData[]
 }
 
 const AttributionChart: React.FC<AttributionChartProps> = ({ 
   title, 
-  data
+  data,
+  showCustomerAnalysis = false,
+  allCustomersData = []
 }) => {
   // 数据安全检查
   if (!data || !data?.date_sequence || !Array.isArray(data?.date_sequence) || data?.date_sequence?.length === 0) {
@@ -90,6 +96,48 @@ const AttributionChart: React.FC<AttributionChartProps> = ({
     'Snapchat归因': '#FFFC00'
   }
 
+  // 计算30天差异绝对值
+  const calculate30DayDiff = (tenant: AttributionTenantData): number => {
+    if (!tenant?.date_sequence || tenant.date_sequence.length === 0) return 0
+    
+    // 获取最近30天的数据
+    const last30Days = tenant.date_sequence.slice(-30)
+    const totalAttribution = last30Days.reduce((sum, day) => sum + (day?.total_attribution || 0), 0)
+    const avgExpected = (tenant?.total_attribution_avg || 0) * last30Days.length
+    
+    return Math.abs(totalAttribution - avgExpected)
+  }
+
+  // 客户差异分析数据
+  const customerAnalysisData = React.useMemo(() => {
+    if (!showCustomerAnalysis || !allCustomersData || allCustomersData.length === 0) {
+      return { newCustomers: [], oldCustomers: [] }
+    }
+
+    // 计算15天前的日期（用于新客户判断）
+    const fifteenDaysAgo = new Date()
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15)
+
+    // 分类并计算差异
+    const customersWithDiff = allCustomersData.map(customer => ({
+      ...customer,
+      diff30Day: calculate30DayDiff(customer),
+      isNew15Days: customer.register_time ? new Date(customer.register_time) >= fifteenDaysAgo : false
+    }))
+
+    // 按15天注册时间分类新客户
+    const newCustomers = customersWithDiff
+      .filter(customer => customer.isNew15Days)
+      .sort((a, b) => b.diff30Day - a.diff30Day) // 按30天差异绝对值降序
+
+    // 老客户按30天差异绝对值降序
+    const oldCustomers = customersWithDiff
+      .filter(customer => !customer.isNew15Days)
+      .sort((a, b) => b.diff30Day - a.diff30Day)
+
+    return { newCustomers, oldCustomers }
+  }, [showCustomerAnalysis, allCustomersData])
+
   return (
     <div className="attribution-chart">
       <h4 className="chart-title">{title}</h4>
@@ -136,6 +184,77 @@ const AttributionChart: React.FC<AttributionChartProps> = ({
         )}
       </div>
 
+      {/* 客户差异分析 */}
+      {showCustomerAnalysis && (
+        <div className="customer-analysis-section">
+          <h5 className="analysis-title">📊 数据差异分析</h5>
+          
+          {/* 新客户分析 */}
+          <div className="customer-group">
+            <div className="group-header">
+              <span className="group-icon">🌟</span>
+              <span className="group-title">最近15天注册的客户</span>
+              <span className="group-count">共 {customerAnalysisData.newCustomers.length} 个新客户（按30天差异绝对值降序排列）</span>
+            </div>
+            
+            {customerAnalysisData.newCustomers.length > 0 ? (
+              <div className="customer-list">
+                {customerAnalysisData.newCustomers.slice(0, 5).map((customer: any) => (
+                  <div key={customer.tenant_id} className="customer-item">
+                    <span className="customer-id">租户 {customer.tenant_id}</span>
+                    <span className="customer-register-time">
+                      注册: {customer.register_time ? new Date(customer.register_time).toLocaleDateString('zh-CN') : '未知'}
+                    </span>
+                    <span className="customer-diff">
+                      差异: {customer.diff30Day.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+                {customerAnalysisData.newCustomers.length > 5 && (
+                  <div className="more-customers">
+                    还有 {customerAnalysisData.newCustomers.length - 5} 个新客户...
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="no-customers">暂无最近15天注册的客户</div>
+            )}
+          </div>
+
+          {/* 老客户分析 */}
+          <div className="customer-group">
+            <div className="group-header">
+              <span className="group-icon">👥</span>
+              <span className="group-title">老客户</span>
+              <span className="group-count">共 {customerAnalysisData.oldCustomers.length} 个老客户（按30天差异绝对值降序排列）</span>
+            </div>
+            
+            {customerAnalysisData.oldCustomers.length > 0 ? (
+              <div className="customer-list">
+                {customerAnalysisData.oldCustomers.slice(0, 5).map((customer: any) => (
+                  <div key={customer.tenant_id} className="customer-item">
+                    <span className="customer-id">租户 {customer.tenant_id}</span>
+                    <span className="customer-register-time">
+                      注册: {customer.register_time ? new Date(customer.register_time).toLocaleDateString('zh-CN') : '未知'}
+                    </span>
+                    <span className="customer-diff">
+                      差异: {customer.diff30Day.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+                {customerAnalysisData.oldCustomers.length > 5 && (
+                  <div className="more-customers">
+                    还有 {customerAnalysisData.oldCustomers.length - 5} 个老客户...
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="no-customers">暂无老客户数据</div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 图表 */}
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -156,7 +275,7 @@ const AttributionChart: React.FC<AttributionChartProps> = ({
               strokeDasharray="5 5"
               label={{ 
                 value: `总归因平均: ${data.total_attribution_avg.toFixed(1)}`, 
-                position: 'topRight',
+                position: 'top' as const,
                 style: { fontSize: '12px', fill: '#ff7300' }
               }}
             />
