@@ -12,8 +12,8 @@ var data_view_query = `
 select
     tenant_id,
     cast(raw_date as varchar) as raw_date,
-    cast(sum(AD_SPEND) as bigint) as ad_spend,
-    cast(sum(ORDERS) as bigint) as orders
+    cast(sum(if(RAW_PLATFORM in ('knocommerce'), ORDERS, AD_SPEND) ) as bigint) as ad_spend
+--     cast(sum(ORDERS) as bigint) as orders
 from
     platform_offline.integration_api_data_view
 where RAW_PLATFORM = '%s'
@@ -44,7 +44,7 @@ var data_view_query_with_tenant_id = `
 select
     tenant_id,
     cast(raw_date as varchar) as raw_date,
-    cast(sum(coalesce(AD_SPEND, ORDERS)) as bigint) as ad_spend,
+    cast(sum(if(RAW_PLATFORM in ('knocommerce'), ORDERS, AD_SPEND) ) as bigint) as ad_spend
     cast(sum(ORDERS) as bigint) as orders
 from
     platform_offline.integration_api_data_view
