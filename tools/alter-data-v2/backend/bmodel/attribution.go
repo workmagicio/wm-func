@@ -11,7 +11,7 @@ select tenant_id,
        ads_platform,
        sum(attr_orders + extra_orders) as data
 from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest
-where (event_date >= utc_date() - interval 90 day)
+where (event_date >= utc_date() - interval 60 day)
   and json_overlaps(attr_model_array, json_array(0, 3))
   and attr_enhanced in (1, 4)
 group by 1, 2, 3

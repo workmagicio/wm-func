@@ -269,9 +269,9 @@ func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTe
 		if tenantId > 0 && tenant.TenantId != tenantId {
 			continue
 		}
-		if tenant.TenantId == 150038 {
-			println(1)
-		}
+		//if tenant.TenantId != 150122 {
+		//	continue
+		//}
 
 		if !tenantPlatformMap[tenant.TenantId][platform] {
 			continue
@@ -279,9 +279,10 @@ func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTe
 
 		tmp := cac.GenerateDateSequence()
 		for i, v := range tmp {
+
 			// 只填充WM数据，ApiData和RemoveData保持为0
-			if wmData, exists := wmDataMap[tenant.TenantId][v.Date]; exists {
-				tmp[i].Data = wmData.Data
+			if dd, exists := wmDataMap[tenant.TenantId][v.Date]; exists {
+				tmp[i].Data = dd.Data
 				// tmp[i].ApiData = 0  // 保持默认值0
 				// tmp[i].RemoveData = 0  // 保持默认值0
 			}

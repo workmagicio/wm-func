@@ -79,6 +79,22 @@ export const PLATFORMS: Platform[] = [
     icon: '📊',
     color: '#6366f1',
     enabled: true
+  },
+  {
+    id: 'amazonAds',
+    name: 'Amazon Ads',
+    displayName: 'Amazon Ads',
+    icon: '🛒',
+    color: '#ff9900',
+    enabled: true
+  },
+  {
+    id: 'knocommerce',
+    name: 'Knocommerce',
+    displayName: 'Knocommerce',
+    icon: '📈',
+    color: '#8b5cf6',
+    enabled: true
   }
 ];
 

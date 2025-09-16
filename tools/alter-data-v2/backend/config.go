@@ -10,14 +10,18 @@ const (
 	PLATFORN_SNAPCHAT_BINGADS      = "bingAds"
 	PLATFORN_SNAPCHAT_AMAZONVENDOR = "amazonVendorPartner"
 	PLATFORN_SNAPCHAT_FAIRING      = "fairing"
+	PLATFORN_AMAZONADS             = "amazonAds"
+	PLATFORN_KNOCOMMERCE           = "knocommerce"
 
-	ADS_PLATFORM_GOOGLE    = "Google"
-	ADS_PLATFORM_FACEBOOK  = "Meta"
-	ADS_PLATFORM_TIKTOK    = "TikTok"
-	ADS_PLATFORM_SNAPCHAT  = "Snapchat"
-	ADS_PLATFORM_PINTEREST = "Pinterest"
-	ADS_PLATFORM_APPLOVIN  = "Applovin"
-	ADS_PLATFORM_BINGADS   = "Microsoft"
+	ADS_PLATFORM_GOOGLE      = "Google"
+	ADS_PLATFORM_FACEBOOK    = "Meta"
+	ADS_PLATFORM_TIKTOK      = "TikTok"
+	ADS_PLATFORM_SNAPCHAT    = "Snapchat"
+	ADS_PLATFORM_PINTEREST   = "Pinterest"
+	ADS_PLATFORM_APPLOVIN    = "Applovin"
+	ADS_PLATFORM_BINGADS     = "Microsoft"
+	ADS_PLATFORM_AMAZONADS   = "amazonAds"
+	ADS_PLATFORM_KNOCOMMERCE = "knocommerce"
 )
 
 var PlatformMap = map[string]string{
@@ -28,10 +32,13 @@ var PlatformMap = map[string]string{
 	PLATFORN_SNAPCHAT_PINTEREST: ADS_PLATFORM_PINTEREST,
 	PLATFORN_SNAPCHAT_APPLOVIN:  ADS_PLATFORM_APPLOVIN,
 	PLATFORN_SNAPCHAT_BINGADS:   ADS_PLATFORM_BINGADS,
+	PLATFORN_AMAZONADS:          ADS_PLATFORM_AMAZONADS,
+	PLATFORN_KNOCOMMERCE:        ADS_PLATFORM_KNOCOMMERCE,
 }
 
 // IsWmOnlyPlatform 检查是否为仅WM数据的平台类型
 func IsWmOnlyPlatform(platform string) bool {
 	return platform == PLATFORN_SNAPCHAT_AMAZONVENDOR ||
-		platform == PLATFORN_SNAPCHAT_FAIRING
+		platform == PLATFORN_SNAPCHAT_FAIRING ||
+		platform == PLATFORN_AMAZONADS
 }

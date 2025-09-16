@@ -67,10 +67,21 @@ fi
 
 # 构建项目
 echo "🔨 开始构建项目..."
-if command -v yarn >/dev/null 2>&1; then
-    yarn build
+# 使用生产环境配置文件
+if [ -f "vite.config.prod.ts" ]; then
+    echo "📋 使用生产环境配置文件"
+    if command -v yarn >/dev/null 2>&1; then
+        yarn build --config vite.config.prod.ts
+    else
+        npm run build -- --config vite.config.prod.ts
+    fi
 else
-    npm run build
+    echo "📋 使用默认配置文件"
+    if command -v yarn >/dev/null 2>&1; then
+        yarn build
+    else
+        npm run build
+    fi
 fi
 
 # 检查构建结果

@@ -86,6 +86,11 @@ type OverViewData struct {
 }
 
 func GetOverviewDataWithPlatform(platform string) []OverViewData {
+	// knocommerce平台使用特殊的查询
+	if platform == backend.ADS_PLATFORM_KNOCOMMERCE {
+		return GetKnocommerceOverviewData()
+	}
+
 	db := platform_db.GetDB()
 	var res = []OverViewData{}
 	exec := fmt.Sprintf(query_overview_data, platform)
@@ -112,6 +117,11 @@ group by 1, 2
 `
 
 func GetOverviewDataWithPlatformAndTenantId(platform string, tenantId int64) []OverViewData {
+	// knocommerce平台使用特殊的查询
+	if platform == backend.ADS_PLATFORM_KNOCOMMERCE {
+		return GetKnocommerceOverviewDataWithTenantId(tenantId)
+	}
+
 	db := platform_db.GetDB()
 	var res = []OverViewData{}
 	exec := fmt.Sprintf(query_overview_data_with_tenant_id, platform, tenantId)
@@ -187,6 +197,8 @@ func GetSingleDataWithPlatform(platform string) []WmData {
 		exec = query_amazon_vonder
 	case backend.PLATFORN_SNAPCHAT_FAIRING:
 		exec = fairing_query
+	case backend.PLATFORN_AMAZONADS:
+		exec = amazonads_query
 	}
 
 	return QueryWmData(exec)
