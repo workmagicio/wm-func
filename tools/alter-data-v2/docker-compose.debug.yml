@@ -12,29 +12,29 @@ services:
     networks:
       - alter-data-network
 
-  # Go API服务 (包含前端静态文件)
+  # Go API服务 - 调试版本 (包含前端静态文件)
   api:
     build:
-      context: .  # 设置构建上下文为当前目录
+      context: .
       dockerfile: Dockerfile
     container_name: alter-data-api
     restart: unless-stopped
     ports:
-      - "80:8080"    # 直接映射到80端口
-      - "443:8080"   # 也可以用于HTTPS (如果需要的话)
+      - "80:8080"      # 直接映射到80端口
+      - "8081:8080"    # 保留8081端口用于调试
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=
-      - GIN_MODE=release
+      - GIN_MODE=debug  # 设置为debug模式以便查看日志
     depends_on:
       - redis
     volumes:
-      - ./cache:/app/cache  # 兼容旧版本缓存目录
-      - ./logs:/app/logs    # 挂载日志目录
+      - ./cache:/app/cache
+      - ./logs:/app/logs  # 挂载日志目录
     networks:
       - alter-data-network
-    # 确保日志输出配置
+    # 确保日志输出到stdout/stderr
     logging:
       driver: json-file
       options:

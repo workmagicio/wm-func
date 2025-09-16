@@ -1,0 +1,23 @@
+# 使用最小的scratch镜像（只有几KB）
+FROM scratch
+
+# 复制CA证书（HTTPS请求需要）
+COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# 复制时区信息
+COPY --from=alpine:latest /usr/share/zoneinfo /usr/share/zoneinfo
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制预编译的静态二进制文件
+COPY bin/app ./app
+
+# 复制前端静态文件
+COPY dist ./dist
+
+# 暴露端口
+EXPOSE 8080
+
+# 启动应用
+ENTRYPOINT ["./app"]

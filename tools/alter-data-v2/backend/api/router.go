@@ -31,6 +31,9 @@ func SetupRouter() *gin.Engine {
 	r.StaticFile("/favicon.ico", "./dist/favicon.ico")
 	r.StaticFile("/vite.svg", "./dist/vite.svg")
 
+	// 健康检查接口 - 需要在NoRoute之前定义
+	r.GET("/health", HealthCheck)
+
 	// 服务前端应用的入口页面
 	r.GET("/", func(c *gin.Context) {
 		c.File("./dist/index.html")
@@ -39,7 +42,7 @@ func SetupRouter() *gin.Engine {
 	// 处理前端路由 - SPA应用的路由回退
 	r.NoRoute(func(c *gin.Context) {
 		// 如果是API请求，返回404
-		if filepath.HasPrefix(c.Request.URL.Path, "/api") || filepath.HasPrefix(c.Request.URL.Path, "/health") {
+		if filepath.HasPrefix(c.Request.URL.Path, "/api") {
 			c.JSON(http.StatusNotFound, gin.H{
 				"success": false,
 				"message": "接口不存在",
@@ -50,9 +53,6 @@ func SetupRouter() *gin.Engine {
 		// 否则服务前端应用
 		c.File("./dist/index.html")
 	})
-
-	// 健康检查接口
-	r.GET("/health", HealthCheck)
 
 	// API路由组
 	api := r.Group("/api")

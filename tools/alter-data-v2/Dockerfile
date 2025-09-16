@@ -17,6 +17,9 @@ WORKDIR /app
 # 复制已编译的二进制文件
 COPY tools/alter-data-v2/bin/app .
 
+# 复制前端静态文件
+COPY tools/alter-data-v2/dist ./dist
+
 # 创建必要目录并设置权限
 RUN mkdir -p cache data logs && \
     chown -R appuser:appuser /app

@@ -1,8 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"wm-func/tools/alter-data-v2/backend/cac"
 	"wm-func/tools/alter-data-v2/backend/controller"
@@ -40,10 +42,18 @@ type GetAlterDataResponse struct {
 // @Failure 500 {object} GetAlterDataResponse "服务器错误"
 // @Router /api/alter-data [get]
 func GetAlterData(c *gin.Context) {
+	startTime := time.Now()
+	clientIP := c.ClientIP()
+
+	// 打印请求开始日志
+	fmt.Printf("🌐 [GetAlterData] 请求开始 - IP: %s", clientIP)
+	fmt.Printf("📋 [GetAlterData] URL: %s, Method: %s", c.Request.URL.String(), c.Request.Method)
+
 	var req GetAlterDataRequest
 
 	// 绑定查询参数
 	if err := c.ShouldBindQuery(&req); err != nil {
+		fmt.Printf("❌ [GetAlterData] 参数绑定失败: %v", err)
 		c.JSON(http.StatusBadRequest, GetAlterDataResponse{
 			Success: false,
 			Message: "参数错误: " + err.Error(),
@@ -51,18 +61,32 @@ func GetAlterData(c *gin.Context) {
 		return
 	}
 
+	// 打印请求参数
+	tenantIdStr := "nil"
+	if req.TenantId != nil {
+		tenantIdStr = fmt.Sprintf("%d", *req.TenantId)
+	}
+	fmt.Printf("📝 [GetAlterData] 请求参数 - Platform: %s, NeedRefresh: %v, TenantId: %s",
+		req.Platform, req.NeedRefresh, tenantIdStr)
+
 	// 调用业务逻辑
 	var result controller.AllTenantData
 	if req.TenantId != nil {
-		// 有 tenantId 参数，调用带 tenantId 的函数
+		fmt.Printf("🔍 [GetAlterData] 调用 GetAlterDataWithPlatformWithTenantId - TenantId: %d", *req.TenantId)
 		result = controller.GetAlterDataWithPlatformWithTenantId(req.NeedRefresh, req.Platform, *req.TenantId)
 	} else {
-		// 没有 tenantId 参数，调用普通函数（等同于 tenantId = -1）
+		fmt.Printf("🔍 [GetAlterData] 调用 GetAlterDataWithPlatformWithTenantId - TenantId: -1 (所有租户)")
 		result = controller.GetAlterDataWithPlatformWithTenantId(req.NeedRefresh, req.Platform, -1)
 	}
 
 	// 获取全局标签列表
 	globalTags := tags.GetPlatformTags(req.Platform)
+	fmt.Printf("🏷️ [GetAlterData] 获取到 %d 个全局标签", len(globalTags))
+
+	// 计算处理时间
+	duration := time.Since(startTime)
+	fmt.Printf("📊 [GetAlterData] 业务逻辑处理完成 - 新租户: %d, 老租户: %d, 数据类型: %s",
+		len(result.NewTenants), len(result.OldTenants), result.DataType)
 
 	// 返回结果
 	c.JSON(http.StatusOK, GetAlterDataResponse{
@@ -71,6 +95,8 @@ func GetAlterData(c *gin.Context) {
 		Message:    "获取数据成功",
 		GlobalTags: globalTags,
 	})
+
+	fmt.Printf("✅ [GetAlterData] 请求完成 - 耗时: %v, IP: %s", duration, clientIP)
 }
 
 // GetAttributionDataRequest 归因数据API请求参数
@@ -99,10 +125,17 @@ type GetAttributionDataResponse struct {
 // @Failure 500 {object} GetAttributionDataResponse "服务器错误"
 // @Router /api/attribution [get]
 func GetAttributionData(c *gin.Context) {
+	startTime := time.Now()
+	clientIP := c.ClientIP()
+
+	fmt.Printf("🌐 [GetAttributionData] 请求开始 - IP: %s", clientIP)
+	fmt.Printf("📋 [GetAttributionData] URL: %s, Method: %s", c.Request.URL.String(), c.Request.Method)
+
 	var req GetAttributionDataRequest
 
 	// 绑定查询参数
 	if err := c.ShouldBindQuery(&req); err != nil {
+		fmt.Printf("❌ [GetAttributionData] 参数绑定失败: %v", err)
 		c.JSON(http.StatusBadRequest, GetAttributionDataResponse{
 			Success: false,
 			Message: "参数错误: " + err.Error(),
@@ -110,8 +143,15 @@ func GetAttributionData(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("📝 [GetAttributionData] 请求参数 - TenantId: %d, NeedRefresh: %v", req.TenantId, req.NeedRefresh)
+
 	// 调用业务逻辑
+	fmt.Printf("🔍 [GetAttributionData] 调用 GetAttributionDataWithTenantId - TenantId: %d", req.TenantId)
 	result := cac.GetAttributionDataWithTenantId(req.TenantId, req.NeedRefresh)
+
+	duration := time.Since(startTime)
+	fmt.Printf("📊 [GetAttributionData] 业务逻辑处理完成 - 客户类型: %s, 日期序列长度: %d",
+		result.CustomerType, len(result.DateSequence))
 
 	// 返回结果
 	c.JSON(http.StatusOK, GetAttributionDataResponse{
@@ -119,6 +159,8 @@ func GetAttributionData(c *gin.Context) {
 		Data:    result,
 		Message: "获取归因数据成功",
 	})
+
+	fmt.Printf("✅ [GetAttributionData] 请求完成 - 耗时: %v, IP: %s", duration, clientIP)
 }
 
 // GetAttributionDataByPath 通过路径参数获取归因数据分析

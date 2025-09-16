@@ -6,8 +6,9 @@ set -e
 
 echo "🔨 开始交叉编译..."
 
-# 进入项目根目录
-cd "$(dirname "$0")/../../"
+# 进入项目根目录（当前目录就是项目根目录）
+PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$PROJECT_ROOT"
 
 # 设置编译环境
 export CGO_ENABLED=0
@@ -15,20 +16,20 @@ export GOOS=linux
 export GOARCH=amd64
 
 # 创建输出目录
-mkdir -p tools/alter-data-v2/bin
+mkdir -p bin
 
 # 编译应用
 echo "📦 编译 alter-data-v2..."
-go build -a -installsuffix cgo -ldflags '-w -s' -o tools/alter-data-v2/bin/app tools/alter-data-v2/main.go
+go build -a -installsuffix cgo -ldflags '-w -s' -o bin/app main.go
 
 # 检查编译结果
-if [ -f "tools/alter-data-v2/bin/app" ]; then
+if [ -f "bin/app" ]; then
     echo "✅ 编译成功!"
     
     # 显示文件信息
     echo "📊 二进制文件信息:"
-    ls -lh tools/alter-data-v2/bin/app
-    file tools/alter-data-v2/bin/app
+    ls -lh bin/app
+    file bin/app
 else
     echo "❌ 编译失败!"
     exit 1

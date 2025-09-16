@@ -1,11 +1,13 @@
 package cac
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"strings"
 	"time"
 	"wm-func/common/config"
+	"wm-func/tools/alter-data-v2/backend"
 	"wm-func/tools/alter-data-v2/backend/bdao"
 	"wm-func/tools/alter-data-v2/backend/bmodel"
 	"wm-func/tools/alter-data-v2/backend/tags"
@@ -57,12 +59,21 @@ func GenerateDateSequence() []DateSequence {
 }
 
 func GetAlterDataWithPlatformWithTenantId(platform string, needRefresh bool, tenantId int64) ([]TenantDateSequence, []TenantDateSequence) {
+	fmt.Println("GetAlterDataWithPlatformWithTenantId platform: ", platform)
 	var b1 []bmodel.ApiData
 	var b2 []bmodel.OverViewData
 
 	if tenantId <= 0 {
 		b1 = bdao.GetApiDataByPlatform(needRefresh, platform)
 		b2 = bdao.GetOverviewDataByPlatform(needRefresh, platform)
+		if platform == backend.ADS_PLATFORM_KNOCOMMERCE {
+			for _, v := range b1 {
+				fmt.Println("b1: ", v)
+			}
+			for _, v := range b2 {
+				fmt.Println("b2: ", v)
+			}
+		}
 	} else {
 		b1 = bdao.GetApiDataByPlatformAndTenantId(needRefresh, platform, tenantId)
 		b2 = bdao.GetOverviewDataByPlatformAndTenantId(needRefresh, platform, tenantId)
@@ -219,6 +230,7 @@ func countTagTypes(tags []string) (errorCount int, normalCount int) {
 }
 
 func GetAlterDataWithPlatform(platform string, needRefresh bool) ([]TenantDateSequence, []TenantDateSequence) {
+	fmt.Println(" GetAlterDataWithPlatform platform : ", platform)
 	return GetAlterDataWithPlatformWithTenantId(platform, needRefresh, -1)
 }
 

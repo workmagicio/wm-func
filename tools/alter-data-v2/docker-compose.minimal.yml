@@ -12,16 +12,16 @@ services:
     networks:
       - alter-data-network
 
-  # Go API服务 (包含前端静态文件)
+  # Go API服务 - 使用最小镜像 (包含前端静态文件)
   api:
     build:
-      context: .  # 设置构建上下文为当前目录
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.minimal  # 使用最小的scratch镜像
     container_name: alter-data-api
     restart: unless-stopped
     ports:
-      - "80:8080"    # 直接映射到80端口
-      - "443:8080"   # 也可以用于HTTPS (如果需要的话)
+      - "80:8080"      # 直接映射到80端口
+      - "8081:8080"    # 保留8081端口
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -30,16 +30,9 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./cache:/app/cache  # 兼容旧版本缓存目录
-      - ./logs:/app/logs    # 挂载日志目录
+      - ./cache:/app/cache
     networks:
       - alter-data-network
-    # 确保日志输出配置
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 networks:
   alter-data-network:

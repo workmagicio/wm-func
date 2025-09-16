@@ -29,20 +29,14 @@ gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/bin/app ${INSTANCE_NAME}:${REM
 echo "🎯 传输前端静态文件..."
 gcloud compute scp --zone=${ZONE} --recurse ${PROJECT_ROOT}/dist ${INSTANCE_NAME}:${REMOTE_DIR}/
 
+echo "🐳 传输调试版Docker Compose配置..."
+gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/docker-compose.debug.yml ${INSTANCE_NAME}:${REMOTE_DIR}/docker-compose.yml
 
-# 只有第一次需要传下面内容
-echo "🐳 传输Docker Compose配置..."
-gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/docker-compose.prod.yml ${INSTANCE_NAME}:${REMOTE_DIR}/docker-compose.yml
-
-echo "📋 传输Dockerfile..."
-gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/Dockerfile.prod ${INSTANCE_NAME}:${REMOTE_DIR}/Dockerfile
-
-#
 echo ""
 echo "✅ 传输完成！"
 
 echo ""
-echo "🚀 启动新服务..."
+echo "🚀 启动新服务（调试模式）..."
 gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="cd ${REMOTE_DIR} && docker compose up -d"
 
 echo ""
@@ -50,17 +44,24 @@ echo "📊 查看服务状态..."
 gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="cd ${REMOTE_DIR} && docker compose ps"
 
 echo ""
-echo "✅ 部署完成！"
+echo "📋 查看API服务日志（最近50行）..."
+gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="cd ${REMOTE_DIR} && docker compose logs --tail=50 api"
+
+echo ""
+echo "✅ 调试模式部署完成！"
 
 # 获取实例内部IP
 INTERNAL_IP=$(gcloud compute instances describe ${INSTANCE_NAME} --zone=${ZONE} --format='get(networkInterfaces[0].networkIP)')
 
 echo "🌐 访问地址 (内部IP):"
 echo "   应用: http://${INTERNAL_IP} (前端+API)"
+echo "   调试: http://${INTERNAL_IP}:8081 (备用端口)"
 echo "   API:  http://${INTERNAL_IP}/api/"
 echo ""
-echo "💡 有用的命令："
-echo "   查看日志: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='cd ${REMOTE_DIR} && docker compose logs -f'"
+echo "💡 调试用命令："
+echo "   查看API日志: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='cd ${REMOTE_DIR} && docker compose logs -f api'"
+echo "   查看所有日志: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='cd ${REMOTE_DIR} && docker compose logs -f'"
 echo "   连接实例: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE}"
 echo "   停止服务: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='cd ${REMOTE_DIR} && docker compose down'"
 echo "   重启服务: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='cd ${REMOTE_DIR} && docker compose restart'"
+echo "   进入API容器: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='cd ${REMOTE_DIR} && docker compose exec api sh'"
