@@ -252,16 +252,37 @@ type GetAttributionDataGroupedResponse struct {
 // @Failure 500 {object} GetAttributionDataGroupedResponse "服务器错误"
 // @Router /api/attribution/grouped [get]
 func GetAttributionDataGrouped(c *gin.Context) {
+	startTime := time.Now()
+	clientIP := c.ClientIP()
+
+	fmt.Printf("🌐 [GetAttributionDataGrouped] 请求开始 - IP: %s\n", clientIP)
+	fmt.Printf("📋 [GetAttributionDataGrouped] URL: %s, Method: %s\n", c.Request.URL.String(), c.Request.Method)
+
 	needRefresh := c.DefaultQuery("needRefresh", "false") == "true"
+	fmt.Printf("📝 [GetAttributionDataGrouped] 请求参数 - NeedRefresh: %v\n", needRefresh)
+
+	// 调用业务逻辑
+	fmt.Printf("🔍 [GetAttributionDataGrouped] 开始调用 GetAttributionDataGroupedByCustomerType\n")
+	businessStartTime := time.Now()
 
 	newCustomers, oldCustomers := cac.GetAttributionDataGroupedByCustomerType(needRefresh)
 
+	businessDuration := time.Since(businessStartTime)
+	fmt.Printf("📊 [GetAttributionDataGrouped] 业务逻辑处理完成 - 新客户: %d, 老客户: %d, 业务耗时: %v\n",
+		len(newCustomers), len(oldCustomers), businessDuration)
+
+	// 计算总耗时
+	totalDuration := time.Since(startTime)
+
+	// 返回响应
 	c.JSON(http.StatusOK, GetAttributionDataGroupedResponse{
 		Success:      true,
 		NewCustomers: newCustomers,
 		OldCustomers: oldCustomers,
 		Message:      "获取分组归因数据成功",
 	})
+
+	fmt.Printf("✅ [GetAttributionDataGrouped] 请求完成 - 总耗时: %v, IP: %s\n", totalDuration, clientIP)
 }
 
 // HealthCheck 健康检查接口

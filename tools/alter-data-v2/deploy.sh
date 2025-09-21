@@ -2,8 +2,8 @@
 set -e  # 遇到错误立即退出
 
 # 配置变量
-INSTANCE_NAME="alter-data-xk"
-ZONE="us-east1-d"
+INSTANCE_NAME="lan-env"
+ZONE="us-west2-b"
 REMOTE_DIR="/home/$(whoami)/alter-data-v2"
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 

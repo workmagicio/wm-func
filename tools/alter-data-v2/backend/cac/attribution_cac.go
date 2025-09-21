@@ -2,6 +2,7 @@ package cac
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 	"wm-func/common/config"
@@ -275,11 +276,28 @@ func GetAttributionDataWithTenantId(tenantId int64, needRefresh bool) Attributio
 
 // GetAllAttributionData 获取所有租户的归因分析数据
 func GetAllAttributionData(needRefresh bool) []AttributionTenantData {
+	fmt.Printf("🔍 [GetAllAttributionData] 开始获取所有租户信息\n")
+	tenantStartTime := time.Now()
+
 	// 1. 获取所有租户
 	allTenants := bdao.GetAllTenant()
 
+	tenantDuration := time.Since(tenantStartTime)
+	fmt.Printf("📊 [GetAllAttributionData] 获取租户信息完成 - 租户数量: %d, 耗时: %v\n",
+		len(allTenants), tenantDuration)
+
+	fmt.Printf("🔍 [GetAllAttributionData] 开始获取所有归因数据\n")
+	attrStartTime := time.Now()
+
 	// 2. 获取所有归因数据
 	allAttributions := bdao.GetAttributionData(needRefresh)
+
+	attrDuration := time.Since(attrStartTime)
+	fmt.Printf("📊 [GetAllAttributionData] 获取归因数据完成 - 归因记录数: %d, 耗时: %v\n",
+		len(allAttributions), attrDuration)
+
+	fmt.Printf("🔍 [GetAllAttributionData] 开始按租户分组归因数据\n")
+	groupStartTime := time.Now()
 
 	// 3. 按租户分组归因数据
 	tenantAttributionMap := make(map[int64][]bmodel.Attribution)
@@ -287,16 +305,34 @@ func GetAllAttributionData(needRefresh bool) []AttributionTenantData {
 		tenantAttributionMap[attr.TenantId] = append(tenantAttributionMap[attr.TenantId], attr)
 	}
 
+	groupDuration := time.Since(groupStartTime)
+	fmt.Printf("📊 [GetAllAttributionData] 分组完成 - 有归因数据的租户: %d, 耗时: %v\n",
+		len(tenantAttributionMap), groupDuration)
+
 	var result []AttributionTenantData
 
+	fmt.Printf("🔍 [GetAllAttributionData] 开始处理每个租户的数据\n")
+	processStartTime := time.Now()
+
 	// 4. 为每个有归因数据的租户生成分析数据
+	processedCount := 0
 	for _, tenant := range allTenants {
 		// 只处理有归因数据的租户
 		if attributions, exists := tenantAttributionMap[tenant.TenantId]; exists && len(attributions) > 0 {
 			tenantData := processAttributionDataForTenant(tenant.TenantId, attributions)
 			result = append(result, tenantData)
+			processedCount++
+
+			// 每处理100个租户打印一次进度
+			if processedCount%100 == 0 {
+				fmt.Printf("📊 [GetAllAttributionData] 已处理 %d 个租户\n", processedCount)
+			}
 		}
 	}
+
+	processDuration := time.Since(processStartTime)
+	fmt.Printf("📊 [GetAllAttributionData] 数据处理完成 - 处理租户数: %d, 耗时: %v\n",
+		processedCount, processDuration)
 
 	return result
 }
@@ -381,10 +417,20 @@ func processAttributionDataForTenant(tenantId int64, attributions []bmodel.Attri
 
 // GetAttributionDataGroupedByCustomerType 获取按新老客户分组的归因数据
 func GetAttributionDataGroupedByCustomerType(needRefresh bool) ([]AttributionTenantData, []AttributionTenantData) {
+	fmt.Printf("🔍 [GetAttributionDataGroupedByCustomerType] 开始获取所有归因数据\n")
+	allDataStartTime := time.Now()
+
 	// 1. 获取所有归因数据
 	allData := GetAllAttributionData(needRefresh)
 
+	allDataDuration := time.Since(allDataStartTime)
+	fmt.Printf("📊 [GetAttributionDataGroupedByCustomerType] 获取所有归因数据完成 - 数据量: %d, 耗时: %v\n",
+		len(allData), allDataDuration)
+
 	// 2. 按客户类型分组
+	fmt.Printf("🔍 [GetAttributionDataGroupedByCustomerType] 开始按客户类型分组\n")
+	groupStartTime := time.Now()
+
 	var newCustomers []AttributionTenantData
 	var oldCustomers []AttributionTenantData
 
@@ -396,6 +442,10 @@ func GetAttributionDataGroupedByCustomerType(needRefresh bool) ([]AttributionTen
 		}
 		// 忽略 unknown 类型的租户
 	}
+
+	groupDuration := time.Since(groupStartTime)
+	fmt.Printf("📊 [GetAttributionDataGroupedByCustomerType] 分组完成 - 新客户: %d, 老客户: %d, 分组耗时: %v\n",
+		len(newCustomers), len(oldCustomers), groupDuration)
 
 	return newCustomers, oldCustomers
 }

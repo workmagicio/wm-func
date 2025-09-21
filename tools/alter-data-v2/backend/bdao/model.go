@@ -9,7 +9,15 @@ import (
 )
 
 func GetAllTenant() []bmodel.AllTenant {
-	return bmodel.GetAllTenant()
+	fmt.Printf("🔍 [GetAllTenant] 开始获取租户数据\n")
+	startTime := time.Now()
+
+	data := bmodel.GetAllTenant()
+
+	duration := time.Since(startTime)
+	fmt.Printf("📊 [GetAllTenant] 租户数据获取完成 - 租户数量: %d, 耗时: %v\n", len(data), duration)
+
+	return data
 }
 
 func GetApiDataByPlatform(isNeedRefresh bool, platform string) []bmodel.ApiData {
@@ -158,18 +166,33 @@ func GetAttributionData(isNeedRefresh bool) []bmodel.Attribution {
 	cacheKey := "attribution_data"
 
 	if isNeedRefresh {
+		fmt.Printf("🔍 [GetAttributionData] 强制刷新 - 从数据库获取最新数据\n")
+		dbStartTime := time.Now()
+
 		// 强制刷新：直接从DB获取最新数据并更新缓存
 		data := bmodel.GetAttrData()
+
+		dbDuration := time.Since(dbStartTime)
+		fmt.Printf("📊 [GetAttributionData] 数据库查询完成 - 记录数: %d, 耗时: %v\n", len(data), dbDuration)
+
 		bcache.SaveCache(cacheKey, data)
 		return data
 	} else {
 		// 优先缓存：尝试从缓存加载，失败则从DB获取并缓存
 		if cachedData, err := bcache.LoadTyped[[]bmodel.Attribution](cacheKey); err == nil {
+			fmt.Printf("✅ [GetAttributionData] 从缓存获取数据 - 记录数: %d\n", len(cachedData))
 			return cachedData
 		}
 
+		fmt.Printf("🔍 [GetAttributionData] 缓存未命中 - 从数据库获取数据\n")
+		dbStartTime := time.Now()
+
 		// 缓存不存在，从DB获取并保存缓存
 		data := bmodel.GetAttrData()
+
+		dbDuration := time.Since(dbStartTime)
+		fmt.Printf("📊 [GetAttributionData] 数据库查询完成 - 记录数: %d, 耗时: %v\n", len(data), dbDuration)
+
 		bcache.SaveCache(cacheKey, data)
 		return data
 	}

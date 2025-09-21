@@ -106,7 +106,7 @@ func TestTransformAdGroupWithZeroTime(t *testing.T) {
 	}
 
 	// 转换为 Airbyte 格式
-	airbyteData := TransformAdGroupToAirbyte(adGroup, 134302)
+	airbyteData := TransformAdGroupToAirbyte(adGroup, 150219)
 
 	// 解析 JSON 数据来验证
 	var parsedAdGroup AdGroup
@@ -170,7 +170,7 @@ func TestAdStructure(t *testing.T) {
 	t.Logf("✓ Ad结构体解析成功: ID=%s, Name=%s, Status=%s", ad.Id, ad.Name, ad.Status)
 
 	// 测试转换为 Airbyte 格式
-	airbyteData := TransformAdToAirbyte(ad, 134302)
+	airbyteData := TransformAdToAirbyte(ad, 150219)
 
 	// 验证转换结果
 	if airbyteData.AirbyteRawId != ad.Id {
