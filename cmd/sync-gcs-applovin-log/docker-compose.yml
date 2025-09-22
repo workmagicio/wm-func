@@ -1,0 +1,9 @@
+services:
+  server:
+    image: alpine:latest
+    volumes:
+      - ./sync-gcs-applovin-log:/app/sync-gcs-applovin-log
+      - ./data:/app/data/
+    working_dir: /app
+    command: ["./sync-gcs-applovin-log"]
+    restart: always
