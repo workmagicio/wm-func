@@ -44,12 +44,13 @@ func (a *Applovin) Sync() {
 	it := a.GcsClient.Bucket(bucket).Objects(ctx, query)
 	log.Printf("获取文件夹 %s/%s 中的文件:", bucket, a.Prefix)
 
+	insert := []OrderJoinSource{}
+	insertKey := []cache.Cache{}
 	for {
 		attrs, err := it.Next()
 		if errors.Is(err, iterator.Done) {
 			break
 		}
-		fmt.Println(attrs.Updated)
 
 		if err != nil {
 			fmt.Errorf("遍历文件失败: %w", err)
@@ -60,19 +61,37 @@ func (a *Applovin) Sync() {
 
 		if cache.IsNeedUpdate(a.cache, a.TenantId, key, attrs.Updated) {
 			fmt.Println("need load")
-			a.Download(attrs.Name)
-			cache.SaveS3Cache(a.cache, a.TenantId, key, attrs.Updated)
+			insert = append(insert, a.Download(attrs.Name)...)
+			insertKey = append(insertKey, cache.Cache{
+				Key:          key,
+				LastModified: attrs.Updated,
+			})
 		} else {
 			log.Printf("跳过下载 %s (未修改)", key)
 		}
+
+		if len(insert) > 500 {
+			a.Save(insert, insertKey)
+			insert = []OrderJoinSource{}
+			insertKey = []cache.Cache{}
+		}
+	}
+
+	if len(insert) > 0 {
+		a.Save(insert, insertKey)
 	}
 	return
 }
 
-func (a *Applovin) Download(prefix string) {
+func (a *Applovin) Save(data []OrderJoinSource, keys []cache.Cache) {
+	InsertOrderJoinSource(data)
+	cache.SaveS3CacheWithArr(a.cache, a.TenantId, keys)
+}
+
+func (a *Applovin) Download(prefix string) []OrderJoinSource {
 	if !strings.Contains(prefix, "json") {
 		log.Printf("skip %s", prefix)
-		return
+		return nil
 	}
 	ctx := context.Background()
 
@@ -98,7 +117,7 @@ func (a *Applovin) Download(prefix string) {
 			ImportingType: tp,
 			OrderId:       applovinData.OrderId,
 			SrcEntityType: tp,
-			SrcEntityId:   fmt.Sprintf("tp|%d|%s|%s", a.TenantId, applovinData.OrderId, applovinData.EventTime),
+			SrcEntityId:   fmt.Sprintf("%d|%s｜%s|%s|%s", a.TenantId, applovinData.AdsetId, applovinData.CampaignId, applovinData.OrderId, applovinData.EventTime),
 			SrcEventTime:  applovinData.EventTime,
 			SrcChannel:    "ads",
 			SrcSource:     "Applovin",
@@ -110,9 +129,10 @@ func (a *Applovin) Download(prefix string) {
 	}
 
 	if len(insertData) == 0 {
-		return
+		return nil
 	}
-	InsertOrderJoinSource(insertData)
+	return insertData
+	//InsertOrderJoinSource(insertData)
 }
 
 type ResponseData struct {

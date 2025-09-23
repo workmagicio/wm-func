@@ -81,3 +81,27 @@ func SaveS3Cache(cache *S3Cache, tenantID int64, key string, lastModified time.T
 	b, _ := json.Marshal(cache)
 	saveCache(b, tenantID)
 }
+
+type Cache struct {
+	Key          string
+	LastModified time.Time
+}
+
+func SaveS3CacheWithArr(cache *S3Cache, tenantId int64, arr []Cache) {
+	if cache.Files == nil {
+		cache.Files = make(map[string]map[string]time.Time)
+	}
+
+	for _, ch := range arr {
+		tenantIdStr := fmt.Sprintf("%d", tenantId)
+
+		if cache.Files[tenantIdStr] == nil {
+			cache.Files[tenantIdStr] = make(map[string]time.Time)
+		}
+
+		cache.Files[tenantIdStr][ch.Key] = ch.LastModified
+	}
+
+	b, _ := json.Marshal(cache)
+	saveCache(b, tenantId)
+}
