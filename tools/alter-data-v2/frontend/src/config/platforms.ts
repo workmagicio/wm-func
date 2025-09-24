@@ -95,6 +95,14 @@ export const PLATFORMS: Platform[] = [
     icon: '📈',
     color: '#8b5cf6',
     enabled: true
+  },
+  {
+    id: 'applovinLog',
+    name: 'AppLovin Log',
+    displayName: 'AppLovin Log',
+    icon: '📝',
+    color: '#2563eb',
+    enabled: true
   }
 ];
 

@@ -199,6 +199,8 @@ func GetSingleDataWithPlatform(platform string) []WmData {
 		exec = fairing_query
 	case backend.PLATFORN_AMAZONADS:
 		exec = amazonads_query
+	case "applovinLog":
+		exec = query_applovin_log
 	}
 
 	return QueryWmData(exec)

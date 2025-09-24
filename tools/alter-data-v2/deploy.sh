@@ -11,6 +11,15 @@ echo "🛑 停止远端服务..."
 gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="cd ${REMOTE_DIR} && docker compose down" || echo "⚠️ 服务可能未运行，继续部署..."
 
 echo ""
+echo "🧹 清理远端旧文件..."
+gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="cd ${REMOTE_DIR} && rm -rf dist bin && echo '✅ 已删除 dist 和 bin 目录'"
+
+echo ""
+echo "🧹 清理本地构建文件..."
+rm -rf ${PROJECT_ROOT}/dist ${PROJECT_ROOT}/bin
+echo "✅ 已删除本地 dist 和 bin 目录"
+
+echo ""
 echo "🔨 构建后端二进制文件..."
 bash ${PROJECT_ROOT}/build.sh
 
@@ -30,16 +39,24 @@ echo "🎯 传输前端静态文件..."
 gcloud compute scp --zone=${ZONE} --recurse ${PROJECT_ROOT}/dist ${INSTANCE_NAME}:${REMOTE_DIR}/
 
 
-# 只有第一次需要传下面内容
-echo "🐳 传输Docker Compose配置..."
-gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/docker-compose.prod.yml ${INSTANCE_NAME}:${REMOTE_DIR}/docker-compose.yml
+# # 只有第一次需要传下面内容
+# echo "🐳 传输Docker Compose配置..."
+# gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/docker-compose.prod.yml ${INSTANCE_NAME}:${REMOTE_DIR}/docker-compose.yml
 
-echo "📋 传输Dockerfile..."
-gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/Dockerfile.prod ${INSTANCE_NAME}:${REMOTE_DIR}/Dockerfile
+# echo "📋 传输Dockerfile..."
+# gcloud compute scp --zone=${ZONE} ${PROJECT_ROOT}/Dockerfile.prod ${INSTANCE_NAME}:${REMOTE_DIR}/Dockerfile
 
 #
 echo ""
 echo "✅ 传输完成！"
+
+echo ""
+echo "🧹 清理旧的 Docker 镜像和缓存..."
+gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="docker system prune -f && docker image prune -f"
+
+echo ""
+echo "🔨 强制重新构建 Docker 镜像..."
+gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command="cd ${REMOTE_DIR} && docker compose build --no-cache"
 
 echo ""
 echo "🚀 启动新服务..."

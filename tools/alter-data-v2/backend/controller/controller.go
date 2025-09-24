@@ -14,6 +14,9 @@ import (
 	"wm-func/tools/alter-data-v2/backend/tags"
 )
 
+// applovinLog 平台需要监控的租户ID列表
+var applovinLogTenantIds = []int64{150090}
+
 // filterEmptyTags 过滤掉空字符串的标签
 func filterEmptyTags(tags []string) []string {
 	var validTags []string
@@ -263,6 +266,17 @@ func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTe
 	allTenant := bmodel.GetAllTenant()
 	tenantPlatformMap := bmodel.GetTenantPlatformMap()
 	last30Day := time.Now().Add(config.DateDay * -30)
+
+	// 为 applovinLog 平台手动添加租户映射
+	if platform == "applovinLog" {
+		for _, tenantId := range applovinLogTenantIds {
+			if tenantPlatformMap[tenantId] == nil {
+				tenantPlatformMap[tenantId] = make(map[string]bool)
+			}
+			tenantPlatformMap[tenantId]["applovinLog"] = true
+			fmt.Printf("为租户 %d 手动添加 applovinLog 平台映射\n", tenantId)
+		}
+	}
 
 	for _, tenant := range allTenant {
 		// 如果指定了租户ID，只处理该租户
