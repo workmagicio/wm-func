@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 	t_pool "wm-func/common/pool"
 	"wm-func/wm_account"
 )
@@ -13,9 +14,16 @@ const (
 )
 
 func main() {
-	log.Println("start run meta ad metrics sync...")
-	run()
-	log.Println("end run meta ad metrics sync...")
+	log.Println("start sleep 1 hour")
+	ticker := time.NewTicker(1 * time.Minute * 60)
+	for range ticker.C {
+		log.Println("start run meta ad metrics sync...")
+		run()
+		log.Println("end run meta ad metrics sync...")
+		log.Println("sleep 1 hour")
+
+	}
+	//run()
 }
 
 func run() {
