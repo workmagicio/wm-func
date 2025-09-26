@@ -55,7 +55,7 @@ const Dashboard: React.FC<{}> = () => {
     }
     
     // 3. 默认值
-    return platforms[0]?.id || 'googleAds'
+    return platforms[0]?.id || ''
   }
   
   const [platform, setPlatform] = useState<string>(getInitialPlatform())

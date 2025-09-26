@@ -111,6 +111,10 @@ func (a *Applovin) Download(prefix string) []OrderJoinSource {
 			panic(err)
 		}
 
+		if applovinData.EventType == "Purchase" {
+			continue
+		}
+
 		tp := fmt.Sprintf("applovin_log_%s", applovinData.EventType)
 		insertData = append(insertData, OrderJoinSource{
 			TenantId:      a.TenantId,
@@ -120,7 +124,7 @@ func (a *Applovin) Download(prefix string) []OrderJoinSource {
 			SrcEntityId:   fmt.Sprintf("%d|%s｜%s|%s|%s", a.TenantId, applovinData.AdsetId, applovinData.CampaignId, applovinData.OrderId, applovinData.EventTime),
 			SrcEventTime:  applovinData.EventTime,
 			SrcChannel:    "ads",
-			SrcSource:     "Applovin",
+			SrcSource:     "applovin",
 			SrcAdId:       applovinData.AdsetId,
 			SrcAdsetId:    "-",
 			SrcCampaignId: applovinData.CampaignId,

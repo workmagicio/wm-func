@@ -201,6 +201,9 @@ func GetSingleDataWithPlatform(platform string) []WmData {
 		exec = amazonads_query
 	case "applovinLog":
 		exec = query_applovin_log
+	case backend.PLATFORN_SHOPIFY:
+		// 对于 Shopify，返回比对数据（以订单数据为基准）
+		return GetShopifyComparisonData()
 	}
 
 	return QueryWmData(exec)

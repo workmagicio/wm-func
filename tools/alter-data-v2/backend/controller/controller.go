@@ -117,10 +117,18 @@ func processTenantList(tenants []cac.TenantDateSequence, platform string) ([]Ten
 }
 
 func GetAlterDataWithPlatformWithTenantId(needRefresh bool, platform string, tenantId int64) AllTenantData {
+	// 添加调试信息
+	fmt.Printf("🎯 [GetAlterDataWithPlatformWithTenantId] 开始处理平台: %s, TenantId: %d, NeedRefresh: %v\n", platform, tenantId, needRefresh)
+
 	// 根据平台类型选择不同的处理逻辑
-	if backend.IsWmOnlyPlatform(platform) {
+	isWmOnly := backend.IsWmOnlyPlatform(platform)
+	fmt.Printf("🔍 [GetAlterDataWithPlatformWithTenantId] 平台 %s 是否为 WM-Only: %v\n", platform, isWmOnly)
+
+	if isWmOnly {
+		fmt.Printf("📊 [GetAlterDataWithPlatformWithTenantId] 使用 WM-Only 处理逻辑\n")
 		return getWmOnlyAlterData(needRefresh, platform, tenantId)
 	} else {
+		fmt.Printf("📊 [GetAlterDataWithPlatformWithTenantId] 使用双数据源处理逻辑\n")
 		return getDualSourceAlterData(needRefresh, platform, tenantId)
 	}
 }
@@ -229,6 +237,8 @@ func GetAlterDataWithPlatform(needRefresh bool, platform string) AllTenantData {
 
 // getWmOnlyAlterData 处理仅WM数据的平台
 func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTenantData {
+	fmt.Printf("🚀 [getWmOnlyAlterData] 开始处理 WM-Only 平台: %s, TenantId: %d\n", platform, tenantId)
+
 	var res = AllTenantData{
 		DataType: "wm_only",
 	}
@@ -236,18 +246,24 @@ func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTe
 	// 只获取WM数据，不获取API数据
 	var wmData []bmodel.WmData
 	if tenantId < 0 {
+		fmt.Printf("🔍 [getWmOnlyAlterData] 获取所有租户的WM数据\n")
 		wmData = bdao.GetWmOnlyDataByPlatform(needRefresh, platform)
-		fmt.Printf("获取到 %s 平台的WM数据: %d 条记录\n", platform, len(wmData))
+		fmt.Printf("📊 [getWmOnlyAlterData] 获取到 %s 平台的WM数据: %d 条记录\n", platform, len(wmData))
+		if len(wmData) > 0 {
+			fmt.Printf("🎯 [getWmOnlyAlterData] 示例WM数据: TenantId=%d, Date=%s, Data=%d\n",
+				wmData[0].TenantId, wmData[0].RawDate, wmData[0].Data)
+		}
 	} else {
 		// 对于特定租户，暂时获取所有数据然后过滤
+		fmt.Printf("🔍 [getWmOnlyAlterData] 获取特定租户 %d 的WM数据\n", tenantId)
 		allWmData := bdao.GetWmOnlyDataByPlatform(needRefresh, platform)
-		fmt.Printf("获取到 %s 平台的所有WM数据: %d 条记录\n", platform, len(allWmData))
+		fmt.Printf("📊 [getWmOnlyAlterData] 获取到 %s 平台的所有WM数据: %d 条记录\n", platform, len(allWmData))
 		for _, data := range allWmData {
 			if data.TenantId == tenantId {
 				wmData = append(wmData, data)
 			}
 		}
-		fmt.Printf("过滤后租户 %d 的WM数据: %d 条记录\n", tenantId, len(wmData))
+		fmt.Printf("📊 [getWmOnlyAlterData] 过滤后租户 %d 的WM数据: %d 条记录\n", tenantId, len(wmData))
 	}
 
 	// 构建数据映射
@@ -275,6 +291,27 @@ func getWmOnlyAlterData(needRefresh bool, platform string, tenantId int64) AllTe
 			}
 			tenantPlatformMap[tenantId]["applovinLog"] = true
 			fmt.Printf("为租户 %d 手动添加 applovinLog 平台映射\n", tenantId)
+		}
+	}
+
+	// 为 shopify 平台手动添加租户映射
+	if platform == "shopify" {
+		fmt.Printf("🔍 [shopify] 开始处理 shopify 平台租户映射，当前WM数据包含的租户:\n")
+		shopifyTenantIds := make(map[int64]bool)
+		for _, data := range wmData {
+			if !shopifyTenantIds[data.TenantId] {
+				shopifyTenantIds[data.TenantId] = true
+				fmt.Printf("   - 租户 %d\n", data.TenantId)
+			}
+		}
+
+		fmt.Printf("🔧 [shopify] 为 %d 个租户添加 shopify 平台映射\n", len(shopifyTenantIds))
+		for shopifyTenantId := range shopifyTenantIds {
+			if tenantPlatformMap[shopifyTenantId] == nil {
+				tenantPlatformMap[shopifyTenantId] = make(map[string]bool)
+			}
+			tenantPlatformMap[shopifyTenantId]["shopify"] = true
+			fmt.Printf("   ✅ 为租户 %d 添加 shopify 平台映射\n", shopifyTenantId)
 		}
 	}
 

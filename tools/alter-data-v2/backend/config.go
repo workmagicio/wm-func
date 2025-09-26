@@ -13,6 +13,7 @@ const (
 	PLATFORN_AMAZONADS             = "amazonAds"
 	PLATFORN_KNOCOMMERCE           = "knocommerce"
 	PLATFORN_APPLOVIN_LOG          = "applovinLog"
+	PLATFORN_SHOPIFY               = "shopify"
 
 	ADS_PLATFORM_GOOGLE      = "Google"
 	ADS_PLATFORM_FACEBOOK    = "Meta"
@@ -42,5 +43,6 @@ func IsWmOnlyPlatform(platform string) bool {
 	return platform == PLATFORN_SNAPCHAT_AMAZONVENDOR ||
 		platform == PLATFORN_SNAPCHAT_FAIRING ||
 		platform == PLATFORN_AMAZONADS ||
-		platform == PLATFORN_APPLOVIN_LOG
+		platform == PLATFORN_APPLOVIN_LOG ||
+		platform == PLATFORN_SHOPIFY
 }

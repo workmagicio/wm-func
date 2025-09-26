@@ -103,6 +103,14 @@ export const PLATFORMS: Platform[] = [
     icon: '📝',
     color: '#2563eb',
     enabled: true
+  },
+  {
+    id: 'shopify',
+    name: 'Shopify',
+    displayName: 'Shopify',
+    icon: '🛍️',
+    color: '#96bf48',
+    enabled: true
   }
 ];
 

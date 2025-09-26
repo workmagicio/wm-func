@@ -1,5 +1,6 @@
 import React from 'react'
 import './Navigation.css'
+import { getEnabledPlatforms } from '../config/platforms'
 
 interface NavigationProps {
   selectedPlatform: string
@@ -7,12 +8,7 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ selectedPlatform, onPlatformChange }) => {
-  const platforms = [
-    { id: 'googleAds', name: 'Google Ads', icon: '🔍' },
-    { id: 'facebookMarketing', name: 'Meta Ads', icon: '📘' },
-    { id: 'tiktokMarketing', name: 'TikTok Ads', icon: '🎵' },
-    { id: 'snapchatMarketing', name: 'Snapchat Ads', icon: '🎥' },
-  ]
+  const platforms = getEnabledPlatforms()
 
   return (
     <nav className="navigation">
@@ -27,7 +23,7 @@ const Navigation: React.FC<NavigationProps> = ({ selectedPlatform, onPlatformCha
               onClick={() => onPlatformChange(platform.id)}
             >
               <span className="nav-icon">{platform.icon}</span>
-              <span className="nav-text">{platform.name}</span>
+              <span className="nav-text">{platform.displayName}</span>
             </button>
           </li>
         ))}
