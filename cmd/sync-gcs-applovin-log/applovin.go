@@ -10,7 +10,6 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"log"
-	"strings"
 	"wm-func/common/cache"
 )
 
@@ -89,10 +88,14 @@ func (a *Applovin) Save(data []OrderJoinSource, keys []cache.Cache) {
 }
 
 func (a *Applovin) Download(prefix string) []OrderJoinSource {
-	if !strings.Contains(prefix, "json") {
+	if prefix[len(prefix)-5:] != ".json" {
 		log.Printf("skip %s", prefix)
 		return nil
 	}
+	//if !strings.Contains(prefix, "json") {
+	//	log.Printf("skip %s", prefix)
+	//	return nil
+	//}
 	ctx := context.Background()
 
 	reader, err := a.GcsClient.Bucket(a.Bucket).Object(prefix).NewReader(ctx)
@@ -121,7 +124,7 @@ func (a *Applovin) Download(prefix string) []OrderJoinSource {
 			ImportingType: tp,
 			OrderId:       applovinData.OrderId,
 			SrcEntityType: tp,
-			SrcEntityId:   fmt.Sprintf("%d|%s｜%s|%s|%s", a.TenantId, applovinData.AdsetId, applovinData.CampaignId, applovinData.OrderId, applovinData.EventTime),
+			SrcEntityId:   fmt.Sprintf("%d|%s|%s|%s|%s", a.TenantId, applovinData.AdsetId, applovinData.CampaignId, applovinData.OrderId, applovinData.EventTime),
 			SrcEventTime:  applovinData.EventTime,
 			SrcChannel:    "ads",
 			SrcSource:     "applovin",
@@ -145,6 +148,6 @@ type ResponseData struct {
 	EventTime  string `json:"event_time"`
 	EventType  string `json:"event_type"`
 	AdId       int    `json:"ad_id"`
-	AdsetId    string `json:"adset_id"`
-	CampaignId string `json:"campaign_id"`
+	AdsetId    string `json:"creative_set_id"`
+	CampaignId string `json:"campaign_id_external"`
 }

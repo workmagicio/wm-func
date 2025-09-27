@@ -66,6 +66,43 @@ func GetAlterDataWithPlatformWithTenantId(platform string, needRefresh bool, ten
 	if tenantId <= 0 {
 		b1 = bdao.GetApiDataByPlatform(needRefresh, platform)
 		b2 = bdao.GetOverviewDataByPlatform(needRefresh, platform)
+
+		// 为 Shopify 添加详细调试
+		if platform == backend.ADS_PLATFORM_SHOPIFY {
+			fmt.Printf("🔍 [Shopify Debug] API数据: %d 条记录\n", len(b1))
+			fmt.Printf("🔍 [Shopify Debug] Overview数据: %d 条记录\n", len(b2))
+
+			// 收集租户ID
+			apiTenants := make(map[int64]bool)
+			overviewTenants := make(map[int64]bool)
+
+			for _, v := range b1 {
+				apiTenants[v.TenantId] = true
+			}
+			for _, v := range b2 {
+				overviewTenants[v.TenantId] = true
+			}
+
+			fmt.Printf("🔍 [Shopify Debug] API数据包含 %d 个不同租户\n", len(apiTenants))
+			fmt.Printf("🔍 [Shopify Debug] Overview数据包含 %d 个不同租户\n", len(overviewTenants))
+
+			// 找共同租户
+			commonTenants := make([]int64, 0)
+			for tenantId := range apiTenants {
+				if overviewTenants[tenantId] {
+					commonTenants = append(commonTenants, tenantId)
+				}
+			}
+			fmt.Printf("🎯 [Shopify Debug] 共同租户: %d 个\n", len(commonTenants))
+			if len(commonTenants) > 0 {
+				displayCount := len(commonTenants)
+				if displayCount > 5 {
+					displayCount = 5
+				}
+				fmt.Printf("🎯 [Shopify Debug] 前%d个共同租户: %v\n", displayCount, commonTenants[:displayCount])
+			}
+		}
+
 		if platform == backend.ADS_PLATFORM_KNOCOMMERCE {
 			for _, v := range b1 {
 				fmt.Println("b1: ", v)
@@ -103,7 +140,28 @@ func GetAlterDataWithPlatformWithTenantId(platform string, needRefresh bool, ten
 
 	tenantPlatformMap := bmodel.GetTenantPlatformMap()
 
+	// 为 Shopify 平台添加调试
+	if platform == backend.ADS_PLATFORM_SHOPIFY {
+		fmt.Printf("🔍 [Shopify Debug] 租户平台映射表包含 %d 个租户\n", len(tenantPlatformMap))
+		shopifyTenantCount := 0
+		for _, platforms := range tenantPlatformMap {
+			if platforms[platform] {
+				shopifyTenantCount++
+			}
+		}
+		fmt.Printf("🔍 [Shopify Debug] 映射到 Shopify 的租户: %d 个\n", shopifyTenantCount)
+	}
+
 	for _, tenant := range allTenant {
+
+		// 为 Shopify 添加详细的租户检查日志
+		if platform == backend.ADS_PLATFORM_SHOPIFY && len(allTenant) > 0 {
+			// 只对前几个租户打印调试信息
+			if tenant.TenantId <= 134400 { // 只打印一些租户的调试信息
+				hasMapping := tenantPlatformMap[tenant.TenantId][platform]
+				fmt.Printf("🔍 [Shopify Debug] 租户 %d: 平台映射=%v\n", tenant.TenantId, hasMapping)
+			}
+		}
 
 		if !tenantPlatformMap[tenant.TenantId][platform] {
 			continue

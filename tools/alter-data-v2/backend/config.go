@@ -24,6 +24,7 @@ const (
 	ADS_PLATFORM_BINGADS     = "Microsoft"
 	ADS_PLATFORM_AMAZONADS   = "amazonAds"
 	ADS_PLATFORM_KNOCOMMERCE = "knocommerce"
+	ADS_PLATFORM_SHOPIFY     = "shopify"
 )
 
 var PlatformMap = map[string]string{
@@ -36,6 +37,7 @@ var PlatformMap = map[string]string{
 	PLATFORN_SNAPCHAT_BINGADS:   ADS_PLATFORM_BINGADS,
 	PLATFORN_AMAZONADS:          ADS_PLATFORM_AMAZONADS,
 	PLATFORN_KNOCOMMERCE:        ADS_PLATFORM_KNOCOMMERCE,
+	PLATFORN_SHOPIFY:            ADS_PLATFORM_SHOPIFY,
 }
 
 // IsWmOnlyPlatform 检查是否为仅WM数据的平台类型
@@ -43,6 +45,5 @@ func IsWmOnlyPlatform(platform string) bool {
 	return platform == PLATFORN_SNAPCHAT_AMAZONVENDOR ||
 		platform == PLATFORN_SNAPCHAT_FAIRING ||
 		platform == PLATFORN_AMAZONADS ||
-		platform == PLATFORN_APPLOVIN_LOG ||
-		platform == PLATFORN_SHOPIFY
+		platform == PLATFORN_APPLOVIN_LOG
 }

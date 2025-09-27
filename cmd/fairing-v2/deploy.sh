@@ -4,7 +4,7 @@ set -e # 任何命令失败则立即退出
 # --- 配置区 ---
 PROJECT_ID="glass-ranger-446609-p9"
 REGION="us-east1"
-JOB_NAME="fairing-v2"
+JOB_NAME="fairing-v2-all"
 
 IMAGE_TAG=$(date +%Y%m%d-%H%M%S)
 FULL_IMAGE_NAME="us-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${JOB_NAME}:${IMAGE_TAG}"

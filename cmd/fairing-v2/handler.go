@@ -16,7 +16,7 @@ func RequestQuestion(account FAccount) {
 
 func RequestResponse(account FAccount) {
 
-	start := time.Now().UTC().Add(time.Hour * 24 * 10 * -1)
+	start := time.Now().UTC().Add(time.Hour * 24 * 30 * -1)
 	//now := time.Now().UTC()
 
 	//for start.Before(now) {
@@ -46,7 +46,7 @@ func RequestResponse(account FAccount) {
 
 	var insertAirbyteData []AirbyteData
 
-	for _, r := range res.Data {
+	for _, r := range data {
 		var b []byte
 		b, err = json.Marshal(r)
 		if err != nil {
@@ -54,6 +54,8 @@ func RequestResponse(account FAccount) {
 		}
 
 		now2 := time.Now().Format("2006-01-02 15:04:05")
+
+		//fmt.Println(string(b))
 
 		insertAirbyteData = append(insertAirbyteData, AirbyteData{
 			TenantId:            account.TenantId,

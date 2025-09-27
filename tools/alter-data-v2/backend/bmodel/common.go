@@ -31,10 +31,28 @@ type ApiData struct {
 func GetDataWithPlatform(platform string) []ApiData {
 	db := platform_db.GetDB()
 	var res = []ApiData{}
-	exec := fmt.Sprintf(data_view_query, platform)
+
+	// 对 Shopify 使用特殊查询
+	var exec string
+	if platform == "shopify" {
+		exec = shopify_api_query
+		log.Printf("🔍 [GetDataWithPlatform] Shopify 使用专用 API 查询")
+		fmt.Printf("📝 [GetDataWithPlatform] Shopify API 查询:\n%s\n", exec)
+	} else {
+		exec = fmt.Sprintf(data_view_query, platform)
+		log.Printf("🔍 [GetDataWithPlatform] 标准 API 查询 - 平台: %s", platform)
+	}
+
 	if err := db.Raw(exec).Limit(-1).Scan(&res).Error; err != nil {
-		log.Println(err)
+		log.Printf("❌ [GetDataWithPlatform] API 数据查询失败: %v", err)
+		log.Printf("📝 [GetDataWithPlatform] 失败的查询: %s", exec)
 		panic(err)
+	}
+
+	log.Printf("📊 [GetDataWithPlatform] API 数据查询完成 - 平台: %s, 记录数: %d", platform, len(res))
+	if len(res) > 0 {
+		log.Printf("🎯 [GetDataWithPlatform] 示例 API 数据: TenantId=%d, Date=%s, AdSpend=%d",
+			res[0].TenantId, res[0].RawDate, res[0].AdSpend)
 	}
 
 	return res
@@ -91,6 +109,11 @@ func GetOverviewDataWithPlatform(platform string) []OverViewData {
 		return GetKnocommerceOverviewData()
 	}
 
+	// shopify平台使用特殊的查询
+	if platform == backend.ADS_PLATFORM_SHOPIFY {
+		return GetShopifyOverviewData()
+	}
+
 	db := platform_db.GetDB()
 	var res = []OverViewData{}
 	exec := fmt.Sprintf(query_overview_data, platform)
@@ -120,6 +143,11 @@ func GetOverviewDataWithPlatformAndTenantId(platform string, tenantId int64) []O
 	// knocommerce平台使用特殊的查询
 	if platform == backend.ADS_PLATFORM_KNOCOMMERCE {
 		return GetKnocommerceOverviewDataWithTenantId(tenantId)
+	}
+
+	// shopify平台使用特殊的查询
+	if platform == backend.ADS_PLATFORM_SHOPIFY {
+		return GetShopifyOverviewDataWithTenantId(tenantId)
 	}
 
 	db := platform_db.GetDB()
@@ -202,8 +230,7 @@ func GetSingleDataWithPlatform(platform string) []WmData {
 	case "applovinLog":
 		exec = query_applovin_log
 	case backend.PLATFORN_SHOPIFY:
-		// 对于 Shopify，返回比对数据（以订单数据为基准）
-		return GetShopifyComparisonData()
+		exec = shopify_api_query
 	}
 
 	return QueryWmData(exec)

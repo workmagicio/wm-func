@@ -22,7 +22,7 @@ type OrderJoinSource struct {
 }
 
 func (o *OrderJoinSource) TableName() string {
-	return "platform_offline.dwd_attr_3p_ref_order_join_source_20250926"
+	return "platform_offline.dwd_attr_3p_ref_order_join_source_v20250721jz"
 }
 
 func InsertOrderJoinSource(reports []OrderJoinSource) {

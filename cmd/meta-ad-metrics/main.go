@@ -31,11 +31,19 @@ func run() {
 	pool.Run()
 	defer pool.Close()
 
+	var tenants = map[int64]bool{
+		150208: true,
+		//150161: true,
+		//150198: true,
+	}
+
 	for _, account := range accounts {
-		if account.TenantId != 150203 {
+		if !tenants[account.TenantId] {
 			continue
 		}
-
+		//150161
+		//150198
+		//150198
 		// 避免闭包问题，复制account变量
 		acc := account
 		pool.AddTask(func() {
