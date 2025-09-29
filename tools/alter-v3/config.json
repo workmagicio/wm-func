@@ -3,8 +3,15 @@
     "name": "shopify",
     "base_platform": "shopify",
     "icon": "🛍️",
-    "total_data_count": 210,
-    "api_data_query": "select     tenant_id,     cast(raw_date as varchar) as raw_date,     cast(sum(ORDERS) as bigint) as ad_spend from platform_offline.integration_api_data_view where RAW_PLATFORM = 'shopify'   and RAW_DATE > utc_date() - interval 210 day group by 1, 2",
-    "wm_data_query": "select     tenant_id,     cast(date(order_create_time) as varchar) as event_date,     count(order_id) as value from platform_offline.dwd_view_portrait_order_dim_shopify_latest where order_create_time > utc_date() - interval 210 day group by 1, 2"
+    "total_data_count": 90,
+    "api_data_query": "select     tenant_id,     cast(raw_date as varchar) as raw_date,     cast(sum(ORDERS) as bigint) as data from platform_offline.integration_api_data_view where RAW_PLATFORM = 'shopify'   and RAW_DATE > utc_date() - interval 90 day group by 1, 2",
+    "wm_data_query": "select     tenant_id,     cast(date(order_create_time) as varchar) as raw_date,     count(order_id) as data from platform_offline.dwd_view_portrait_order_dim_shopify_latest where order_create_time > utc_date() - interval 90 day group by 1, 2"
+  },
+  {
+    "name": "amazonVendorPartner",
+    "base_platform": "amazonVendorPartner",
+    "icon": "📦",
+    "total_data_count": 90,
+    "wm_data_query": "select tenant_id, cast(stat_date as varchar) as raw_date, sum(shipped_units) as data from platform_offline.amazon_vendor_zip_code_daily_report where stat_date > utc_date() - interval 90 day group by 1, 2;"
   }
 ]

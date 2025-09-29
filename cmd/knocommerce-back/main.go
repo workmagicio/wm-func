@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
-	"time"
 	lock2 "wm-func/common/lock"
 	t_pool "wm-func/common/pool"
 	"wm-func/wm_account"
@@ -27,28 +24,18 @@ func main() {
 		})
 	}
 
-	pool := t_pool.NewWorkerPool(10)
+	pool := t_pool.NewWorkerPool(1)
 	pool.Run()
 
 	for _, account := range kaccounts {
-		ac := account
-		lockKey := fmt.Sprintf("knocommerce:%d:%s", ac.TenantId, ac.AccountId)
-		ownerID := fmt.Sprintf("process-%d", os.Getpid())
-		// 先写死180分钟
-		lockDuration := 180 * time.Minute
-
-		err := ac.TryLock(lockKey, ownerID, lockDuration)
-		if err == nil {
-			// 成功获取锁
-			pool.AddTask(func() {
-				run(ac)
-				// 任务完成后释放锁
-				ac.Unlock(lockKey, ownerID)
-			})
-		} else {
-			// 获取锁失败
-			log.Printf("[%s] 无法获取锁，跳过该账户: %v", ac.GetSimpleTraceId(), err)
+		if account.TenantId != 150203 {
+			continue
 		}
+		ac := account
+		pool.AddTask(func() {
+			run(ac)
+		})
+
 	}
 	pool.Wait()
 

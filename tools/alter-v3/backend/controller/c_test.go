@@ -3,6 +3,7 @@ package controller
 import "testing"
 
 func TestController_GetData(t *testing.T) {
-	name := "shopify"
-	NewController(name)
+	name := "amazon vendor partner"
+	c := NewController(name)
+	c.Cac()
 }

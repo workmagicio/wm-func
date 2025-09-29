@@ -20,10 +20,10 @@ func RequestResponseCount(account KAccount, token *TokenManager) {
 		panic(err)
 	}
 
-	if time.Now().Before(st.NextRunningTime) {
-		log.Printf("[%s] 还未到执行时间，跳过本次运行", traceId)
-		return
-	}
+	//if time.Now().Before(st.NextRunningTime) {
+	//	log.Printf("[%s] 还未到执行时间，跳过本次运行", traceId)
+	//	return
+	//}
 
 	insertData := []Count{}
 	lastSyncTime := time.Now().UTC()
