@@ -1,0 +1,783 @@
+{
+  "NewTenantData": [
+    {
+      "TenantId": 150224,
+      "IsNewTenant": true,
+      "Data": [
+          {
+              "Date": "2025-09-29",
+              "APiData": 930,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-28",
+              "APiData": 14567,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-27",
+              "APiData": 16840,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-26",
+              "APiData": 17507,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-25",
+              "APiData": 16804,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-24",
+              "APiData": 16970,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-23",
+              "APiData": 37048,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-22",
+              "APiData": 42053,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-21",
+              "APiData": 41198,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-20",
+              "APiData": 36315,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-19",
+              "APiData": 29600,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-18",
+              "APiData": 13394,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-17",
+              "APiData": 11236,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-16",
+              "APiData": 8238,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-15",
+              "APiData": 8191,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-14",
+              "APiData": 8901,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-13",
+              "APiData": 7968,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-12",
+              "APiData": 6613,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-11",
+              "APiData": 5809,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-10",
+              "APiData": 5805,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-09",
+              "APiData": 5500,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-08",
+              "APiData": 5438,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-07",
+              "APiData": 6063,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-06",
+              "APiData": 6586,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-05",
+              "APiData": 6789,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-04",
+              "APiData": 13059,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-03",
+              "APiData": 11984,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-02",
+              "APiData": 12820,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-01",
+              "APiData": 16815,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-31",
+              "APiData": 15782,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-30",
+              "APiData": 13791,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-29",
+              "APiData": 12301,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-28",
+              "APiData": 12129,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-27",
+              "APiData": 5501,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-26",
+              "APiData": 4406,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-25",
+              "APiData": 4836,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-24",
+              "APiData": 5121,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-23",
+              "APiData": 5102,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-22",
+              "APiData": 5857,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-21",
+              "APiData": 6708,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-20",
+              "APiData": 6782,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-19",
+              "APiData": 6950,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-18",
+              "APiData": 7685,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-17",
+              "APiData": 9216,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-16",
+              "APiData": 10119,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-15",
+              "APiData": 9181,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-14",
+              "APiData": 8894,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-13",
+              "APiData": 8365,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-12",
+              "APiData": 8930,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-11",
+              "APiData": 7810,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-10",
+              "APiData": 8420,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-09",
+              "APiData": 8013,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-08",
+              "APiData": 8392,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-07",
+              "APiData": 9883,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-06",
+              "APiData": 9083,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-05",
+              "APiData": 8622,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-04",
+              "APiData": 8861,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-03",
+              "APiData": 9447,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-02",
+              "APiData": 9251,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-01",
+              "APiData": 10061,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-31",
+              "APiData": 9731,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-30",
+              "APiData": 8655,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-29",
+              "APiData": 8917,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-28",
+              "APiData": 8159,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-27",
+              "APiData": 8021,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-26",
+              "APiData": 8059,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-25",
+              "APiData": 8059,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-24",
+              "APiData": 6941,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-23",
+              "APiData": 7526,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-22",
+              "APiData": 7240,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-21",
+              "APiData": 7824,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-20",
+              "APiData": 8806,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-19",
+              "APiData": 8249,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-18",
+              "APiData": 8481,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-17",
+              "APiData": 7669,
+              "WMData": 0
+          }
+      ],
+      "RegisterTime": "2025-09-17",
+      "Tags": [
+          "last_7d_no_data",
+          "last_30d_no_data"
+      ],
+      "HaveApiData": true,
+      "LastSyncDate": "2025-09-23"
+  }
+  ],
+  "TenantData": [
+    {
+      "TenantId": 150080,
+      "IsNewTenant": false,
+      "Data": [
+          {
+              "Date": "2025-09-29",
+              "APiData": 15833,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-28",
+              "APiData": 16730,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-27",
+              "APiData": 16864,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-26",
+              "APiData": 17352,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-25",
+              "APiData": 18581,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-24",
+              "APiData": 18037,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-23",
+              "APiData": 19573,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-22",
+              "APiData": 20360,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-21",
+              "APiData": 19254,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-20",
+              "APiData": 20563,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-19",
+              "APiData": 19780,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-18",
+              "APiData": 21247,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-17",
+              "APiData": 18980,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-16",
+              "APiData": 19419,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-15",
+              "APiData": 22108,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-14",
+              "APiData": 22474,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-13",
+              "APiData": 21568,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-12",
+              "APiData": 24040,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-11",
+              "APiData": 22357,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-10",
+              "APiData": 18087,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-09",
+              "APiData": 15054,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-08",
+              "APiData": 16808,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-07",
+              "APiData": 18936,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-06",
+              "APiData": 17359,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-05",
+              "APiData": 12155,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-04",
+              "APiData": 12310,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-03",
+              "APiData": 16912,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-02",
+              "APiData": 21856,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-09-01",
+              "APiData": 21155,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-31",
+              "APiData": 18227,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-30",
+              "APiData": 15292,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-29",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-28",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-27",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-26",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-25",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-24",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-23",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-22",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-21",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-20",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-19",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-18",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-17",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-16",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-15",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-14",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-13",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-12",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-11",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-10",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-09",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-08",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-07",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-06",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-05",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-04",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-03",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-02",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-08-01",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-31",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-30",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-29",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-28",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-27",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-26",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-25",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-24",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-23",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-22",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-21",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-20",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-19",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-18",
+              "APiData": 0,
+              "WMData": 0
+          },
+          {
+              "Date": "2025-07-17",
+              "APiData": 0,
+              "WMData": 0
+          }
+      ],
+      "RegisterTime": "",
+      "Tags": [
+          "last_7d_no_data",
+          "last_30d_no_data",
+          "code_filter_region"
+      ],
+      "HaveApiData": true,
+      "LastSyncDate": "2025-09-23"
+  }
+  ]
+}

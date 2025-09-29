@@ -20,7 +20,6 @@ func last7dLossDataCheck(platform string, analytics *data.Analytics) {
 	lastSyncDate := analytics.Data[0].Date
 	isContinuous := true
 	for i := 0; i < 7; i++ {
-
 		if i == 0 {
 			if analytics.HaveApiData && analytics.Data[i].WMData*2 >= analytics.Data[i].APiData {
 				continue
@@ -30,10 +29,10 @@ func last7dLossDataCheck(platform string, analytics *data.Analytics) {
 		// 如果小于平均值的 10% 这视为缺数
 		if analytics.Data[i].WMData < zeroData {
 			if platform == "amazonVendorPartner" && i <= 2 {
-				continue
+				hasErr = false
+			} else {
+				hasErr = true
 			}
-
-			hasErr = true
 		} else {
 			isContinuous = false
 		}

@@ -31,16 +31,16 @@ func run() {
 	pool.Run()
 	defer pool.Close()
 
-	//var tenants = map[int64]bool{
-	//	150208: true,
-	//	//150161: true,
-	//	//150198: true,
-	//}
+	var tenants = map[int64]bool{
+		//150133: true,
+		150110: true,
+		//150198: true,
+	}
 
 	for _, account := range accounts {
-		//if !tenants[account.TenantId] {
-		//	continue
-		//}
+		if !tenants[account.TenantId] {
+			continue
+		}
 		//150161
 		//150198
 		//150198

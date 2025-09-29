@@ -9,22 +9,27 @@ import (
 )
 
 func GetAlterData(c *gin.Context) {
-	platform := c.Param("platform")
+	platform := c.Param("name")
 	ctl := controller.NewController(platform)
 	ctl.Cac()
 
 	c.JSON(http.StatusOK, ctl.ReturnData())
 }
 
-func AddConifg(c *gin.Context) {
+func AddConfig(c *gin.Context) {
 	cfg := config.Config{}
 	c.ShouldBindJSON(&cfg)
 	config.AddConfig(cfg)
 	c.JSON(http.StatusOK, "success")
 }
 
-func RemoveConifg(c *gin.Context) {
+func RemoveConfig(c *gin.Context) {
 	name := c.Param("name")
 	config.RemoveConfig(name)
 	c.JSON(http.StatusOK, "success")
+}
+
+func GetAllConfig(c *gin.Context) {
+	configs := config.GetAllConfig()
+	c.JSON(http.StatusOK, configs)
 }

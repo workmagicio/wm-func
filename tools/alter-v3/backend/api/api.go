@@ -6,13 +6,27 @@ func SetupRouter() *gin.Engine {
 	// 创建gin引擎
 	r := gin.Default()
 
+	// 设置CORS中间件
+	r.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
+
 	api := r.Group("/api")
 	{
-		api.GET("/alter-data/:platform", GetAlterData)
+		api.GET("/alter-data/:name", GetAlterData)
+		api.POST("/config", AddConfig)
+		api.DELETE("/config/:name", RemoveConfig)
+		api.GET("/config", GetAllConfig)
 	}
-
-	api.POST("/api/config", AddConifg)
-	api.DELETE("/api/config/:name", RemoveConifg)
 
 	return r
 }

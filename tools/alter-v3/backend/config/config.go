@@ -15,6 +15,7 @@ type Config struct {
 	BasePlatform   string `json:"base_platform"`
 	ApiSql         string `json:"api_data_query"`
 	WmSql          string `json:"wm_data_query"`
+	Icon           string `json:"icon"`
 	TotalDataCount int    `json:"total_data_count"`
 }
 
@@ -157,7 +158,21 @@ func AddConfig(cfg Config) {
 		panic(err)
 	}
 
-	configs = append(configs, cfg)
+	// 查找是否存在相同name的配置
+	found := false
+	for i, config := range configs {
+		if config.Name == cfg.Name {
+			// 如果找到相同name，替换原配置
+			configs[i] = cfg
+			found = true
+			break
+		}
+	}
+
+	// 如果没有找到相同name，追加新配置
+	if !found {
+		configs = append(configs, cfg)
+	}
 
 	configs = filterSafeConfigs(configs)
 
@@ -195,4 +210,18 @@ func RemoveConfig(name string) {
 	}
 
 	os.WriteFile(config_path, bt, os.ModePerm)
+}
+
+func GetAllConfig() []Config {
+	b, err := os.ReadFile(config_path)
+	if err != nil {
+		panic(err)
+	}
+
+	configs := []Config{}
+	if err = json.Unmarshal(b, &configs); err != nil {
+		panic(err)
+	}
+
+	return configs
 }
