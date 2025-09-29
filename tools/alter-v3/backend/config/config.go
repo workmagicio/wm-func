@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var config_path = "/Users/xukai/workspace/workmagic/wm-func/tools/alter-v3/config.json"
+
 type Config struct {
 	Name           string `json:"name"`
 	BasePlatform   string `json:"base_platform"`
@@ -17,7 +19,7 @@ type Config struct {
 }
 
 func GetConfit() map[string]Config {
-	b, err := os.ReadFile("/Users/xukai/workspace/workmagic/wm-func/tools/alter-v3/config.json")
+	b, err := os.ReadFile(config_path)
 	if err != nil {
 		panic(err)
 	}
@@ -142,4 +144,55 @@ func isSelectStatement(sql string) bool {
 
 	// 检查是否以SELECT开头（可能前面有WITH子句）
 	return regexp.MustCompile(`^(WITH\s+.*?\s+)?SELECT\s+`).MatchString(sql)
+}
+
+func AddConfig(cfg Config) {
+	b, err := os.ReadFile(config_path)
+	if err != nil {
+		panic(err)
+	}
+
+	configs := []Config{}
+	if err = json.Unmarshal(b, &configs); err != nil {
+		panic(err)
+	}
+
+	configs = append(configs, cfg)
+
+	configs = filterSafeConfigs(configs)
+
+	bt, err := json.Marshal(configs)
+	if err != nil {
+		panic(err)
+	}
+
+	os.WriteFile(config_path, bt, os.ModePerm)
+}
+
+// RemoveConfig 根据配置名称移除配置项
+func RemoveConfig(name string) {
+	b, err := os.ReadFile(config_path)
+	if err != nil {
+		panic(err)
+	}
+
+	configs := []Config{}
+	if err = json.Unmarshal(b, &configs); err != nil {
+		panic(err)
+	}
+
+	// 过滤掉指定名称的配置
+	var filteredConfigs []Config
+	for _, config := range configs {
+		if config.Name != name {
+			filteredConfigs = append(filteredConfigs, config)
+		}
+	}
+
+	bt, err := json.Marshal(filteredConfigs)
+	if err != nil {
+		panic(err)
+	}
+
+	os.WriteFile(config_path, bt, os.ModePerm)
 }

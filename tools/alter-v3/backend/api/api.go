@@ -10,5 +10,9 @@ func SetupRouter() *gin.Engine {
 	{
 		api.GET("/alter-data/:platform", GetAlterData)
 	}
+
+	api.POST("/api/config", AddConifg)
+	api.DELETE("/api/config/:name", RemoveConifg)
+
 	return r
 }
