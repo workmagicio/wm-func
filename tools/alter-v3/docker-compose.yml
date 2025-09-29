@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  alter-v3:
+    image: nginx:alpine
+    container_name: alter-v3-app
+    ports:
+      - "8090:80"
+    volumes:
+      # 挂载前端静态文件
+      - ./dist:/usr/share/nginx/html
+      # 挂载自定义nginx配置（如果需要）
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    restart: unless-stopped
+    networks:
+      - alter-network
+
+  alter-v3-backend:
+    image: alpine:latest
+    container_name: alter-v3-backend
+    ports:
+      - "8081:8081"
+    volumes:
+      # 挂载Go二进制文件
+      - ./bin/alter-v3:/app/alter-v3
+      # 挂载配置文件
+      - ./config.json:/app/config.json
+    working_dir: /app
+    command: ["./alter-v3"]
+    restart: unless-stopped
+    networks:
+      - alter-network
+
+networks:
+  alter-network:
+    driver: bridge

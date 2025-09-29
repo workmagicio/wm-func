@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var config_path = "/Users/xukai/workspace/workmagic/wm-func/tools/alter-v3/config.json"
+var config_path = "./config.json"
 
 type Config struct {
 	Name           string `json:"name"`
