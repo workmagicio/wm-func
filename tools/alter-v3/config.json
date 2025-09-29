@@ -22,5 +22,13 @@
     "wm_data_query": "select tenant_id, cast(stat_date as varchar) as raw_date, sum(shipped_units) as data from platform_offline.amazon_vendor_zip_code_daily_report where stat_date \u003e utc_date() - interval 90 day group by 1, 2;",
     "icon": "📦",
     "total_data_count": 90
+  },
+  {
+    "name": "metaAds",
+    "base_platform": "facebookMarketing",
+    "api_data_query": "select tenant_id, cast(raw_date as varchar) as raw_date, cast(sum( AD_SPEND ) as bigint) as data from platform_offline.integration_api_data_view where RAW_PLATFORM = 'facebookMarketing' and RAW_DATE \u003e utc_date() - interval 75 day group by 1, 2",
+    "wm_data_query": "select tenant_id, cast(event_date as varchar) as raw_date, cast(sum(ad_spend) as bigint) as data from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest where event_date \u003e utc_date() - interval 75 day and json_overlaps(attr_model_array, json_array(0, 3)) and attr_enhanced in (1, 4) and ADS_PLATFORM = 'Meta' group by 1, 2 ; select ADS_PLATFORM from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest group by 1",
+    "icon": "ⓕ",
+    "total_data_count": 75
   }
 ]
