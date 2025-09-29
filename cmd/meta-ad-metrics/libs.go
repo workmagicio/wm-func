@@ -163,7 +163,7 @@ func updateSyncState(account wm_account.Account, syncState SyncState) error {
 }
 
 // syncAdMetrics 同步广告数据 - 使用stream slice按天拉取
-func syncAdMetrics(account wm_account.Account, syncState SyncState) error {
+func syncAdMetrics(account wm_account.Account, _ SyncState) error {
 	log.Printf("[%s] 开始同步广告数据", account.GetTraceId())
 
 	// 生成日期切片，按天处理
@@ -189,18 +189,18 @@ func syncAdMetrics(account wm_account.Account, syncState SyncState) error {
 	}
 
 	// 更新同步状态
-	if successCount == totalSlices {
-		syncState.Status = STATUS_SUCCESS
-		syncState.Message = fmt.Sprintf("同步成功，处理了 %d 天的数据", successCount)
-	} else {
-		syncState.Status = STATUS_SUCCESS // 部分成功也认为是成功状态
-		syncState.Message = fmt.Sprintf("部分同步成功，成功处理 %d/%d 天的数据", successCount, totalSlices)
-	}
+	//if successCount == totalSlices {
+	//	syncState.Status = STATUS_SUCCESS
+	//	syncState.Message = fmt.Sprintf("同步成功，处理了 %d 天的数据", successCount)
+	//} else {
+	//	syncState.Status = STATUS_SUCCESS // 部分成功也认为是成功状态
+	//	syncState.Message = fmt.Sprintf("部分同步成功，成功处理 %d/%d 天的数据", successCount, totalSlices)
+	//}
 
-	err := updateSyncState(account, syncState)
-	if err != nil {
-		log.Printf("[%s] 更新同步状态失败: %v", account.GetTraceId(), err)
-	}
+	//err := updateSyncState(account, syncState)
+	//if err != nil {
+	//	log.Printf("[%s] 更新同步状态失败: %v", account.GetTraceId(), err)
+	//}
 
 	log.Printf("[%s] 广告数据同步完成，成功处理 %d/%d 天的数据", account.GetTraceId(), successCount, totalSlices)
 	return nil

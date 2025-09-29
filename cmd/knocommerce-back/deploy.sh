@@ -4,7 +4,7 @@ set -e # 任何命令失败则立即退出
 # --- 配置区 ---
 PROJECT_ID="glass-ranger-446609-p9"
 REGION="us-east1"
-JOB_NAME="fairing-v2-can-delete"
+JOB_NAME="knocommerce"
 
 IMAGE_TAG=$(date +%Y%m%d-%H%M%S)
 FULL_IMAGE_NAME="us-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${JOB_NAME}:${IMAGE_TAG}"
@@ -13,7 +13,7 @@ FULL_IMAGE_NAME="us-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/$
 echo "STEP 1: 本地交叉编译 Go 程序..."
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 PROJECT_ROOT=$(cd "${SCRIPT_DIR}/../.." && pwd)
-(cd "${PROJECT_ROOT}" && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -v -o "${SCRIPT_DIR}/server" ./cmd/fairing-v2)
+(cd "${PROJECT_ROOT}" && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -v -o "${SCRIPT_DIR}/server" ./cmd/knocommerce)
 echo "编译完成, 可执行文件 'server' 已生成。"
 
 echo "STEP 2: 本地构建 Docker 镜像 (强制为 linux/amd64)..."

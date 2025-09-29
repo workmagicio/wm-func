@@ -16,7 +16,7 @@ func RequestQuestion(account FAccount) {
 
 func RequestResponse(account FAccount) {
 
-	start := time.Now().UTC().Add(time.Hour * 24 * 30 * -1)
+	start := time.Now().UTC().Add(time.Hour * 24 * 60 * -1)
 	//now := time.Now().UTC()
 
 	//for start.Before(now) {

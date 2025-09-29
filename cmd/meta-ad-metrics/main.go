@@ -9,7 +9,7 @@ import (
 const (
 	Platform   = "facebookMarketing"
 	SubType    = "ad_metrics"
-	MaxWorkers = 1
+	MaxWorkers = 10
 )
 
 func main() {
@@ -31,16 +31,16 @@ func run() {
 	pool.Run()
 	defer pool.Close()
 
-	var tenants = map[int64]bool{
-		150208: true,
-		//150161: true,
-		//150198: true,
-	}
+	//var tenants = map[int64]bool{
+	//	150208: true,
+	//	//150161: true,
+	//	//150198: true,
+	//}
 
 	for _, account := range accounts {
-		if !tenants[account.TenantId] {
-			continue
-		}
+		//if !tenants[account.TenantId] {
+		//	continue
+		//}
 		//150161
 		//150198
 		//150198
@@ -62,11 +62,11 @@ func run() {
 
 func exec(account wm_account.Account) error {
 	// 1. 获取同步状态
-	syncState, err := getState(account)
-	if err != nil {
-		log.Printf("[%s] 获取同步状态失败: %v", account.GetTraceId(), err)
-		return err
-	}
+	//syncState, err := getState(account)
+	//if err != nil {
+	//	log.Printf("[%s] 获取同步状态失败: %v", account.GetTraceId(), err)
+	//	return err
+	//}
 
 	// 2. 检查是否需要同步（这里可以根据你的业务逻辑调整）
 	//if syncState.UpdatedAt.Add(time.Hour).After(time.Now().UTC()) &&
@@ -76,11 +76,12 @@ func exec(account wm_account.Account) error {
 	//}
 
 	// 3. 同步广告数据（这里你可以添加自己的逻辑）
-	err = syncAdMetrics(account, syncState)
+	err := syncAdMetrics(account, SyncState{})
 	if err != nil {
-		syncState.Status = STATUS_FAILED
-		syncState.Message = err.Error()
-		_ = updateSyncState(account, syncState)
+		//syncState.Status = STATUS_FAILED
+		//syncState.Message = err.Error()
+		//_ = updateSyncState(account, syncState)
+
 	}
 	return err
 }
