@@ -12,6 +12,7 @@ type Analytics struct {
 	Data         []DataSlice
 	RegisterTime string
 	Tags         []string
+	ErrTags      []string
 	avg          int64
 	zeroData     int64
 	HaveApiData  bool

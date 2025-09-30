@@ -24,7 +24,8 @@ function App() {
     api_data_query: '',
     wm_data_query: '',
     icon: '',
-    total_data_count: 90
+    total_data_count: 90,
+    tenants: 'all'
   });
 
   useEffect(() => {
@@ -85,7 +86,8 @@ function App() {
       api_data_query: '',
       wm_data_query: '',
       icon: '',
-      total_data_count: 90
+      total_data_count: 90,
+      tenants: 'all'
     });
     setShowAddForm(false);
     setIsEditing(false);
@@ -99,7 +101,8 @@ function App() {
       api_data_query: config.api_data_query,
       wm_data_query: config.wm_data_query,
       icon: config.icon,
-      total_data_count: config.total_data_count
+      total_data_count: config.total_data_count,
+      tenants: config.tenants || 'all'
     });
     setIsEditing(true);
     setEditingConfigName(config.name);
@@ -250,6 +253,12 @@ function App() {
                     value={newConfig.total_data_count}
                     onChange={(e) => setNewConfig({...newConfig, total_data_count: parseInt(e.target.value)})}
                   />
+                  <input
+                    type="text"
+                    placeholder="Tenants (comma-separated IDs or 'all')"
+                    value={newConfig.tenants}
+                    onChange={(e) => setNewConfig({...newConfig, tenants: e.target.value})}
+                  />
                 </div>
                 <textarea
                   placeholder="API Data Query (SQL)"
@@ -281,6 +290,7 @@ function App() {
                     <th>Name</th>
                     <th>Icon</th>
                     <th>Base Platform</th>
+                    <th>Tenants</th>
                     <th>API Data Query</th>
                     <th>WM Data Query</th>
                     <th>Total Data Count</th>
@@ -293,6 +303,7 @@ function App() {
                       <td>{item.name}</td>
                       <td>{item.icon}</td>
                       <td>{item.base_platform}</td>
+                      <td>{item.tenants || 'all'}</td>
                       <td className="query-cell">
                         {item.api_data_query ? (
                           <div 

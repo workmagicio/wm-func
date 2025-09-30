@@ -43,7 +43,7 @@ func last7dLossDataCheck(platform string, analytics *data.Analytics) {
 	}
 
 	if hasErr {
-		analytics.Tags = append(analytics.Tags, "last_7d_no_data")
+		analytics.Tags = append(analytics.Tags, "err_last_7d_no_data")
 	}
 
 	analytics.LastSyncDate = lastSyncDate
@@ -65,7 +65,7 @@ func last30dDataDiff(analytics *data.Analytics) {
 	}
 
 	if hasErr {
-		analytics.Tags = append(analytics.Tags, "last_30d_no_data")
+		analytics.Tags = append(analytics.Tags, "err_last_30d_no_data")
 	}
 }
 

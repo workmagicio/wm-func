@@ -452,6 +452,13 @@
   border-color: #91d5ff;
 }
 
+.error-tag {
+  background-color: #fff1f0 !important;
+  color: #cf1322 !important;
+  border-color: #ffa39e !important;
+  font-weight: 500;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .charts-grid {

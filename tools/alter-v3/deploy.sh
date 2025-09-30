@@ -97,14 +97,14 @@ else
     exit 1
 fi
 
-# 上传配置文件
-if [ -f ${PROJECT_ROOT}/config.json ]; then
-    gcloud compute scp ${PROJECT_ROOT}/config.json ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
-    echo "✅ 配置文件上传完成"
-else
-    echo "❌ config.json 不存在"
-    exit 1
-fi
+## 上传配置文件
+#if [ -f ${PROJECT_ROOT}/config.json ]; then
+#    gcloud compute scp ${PROJECT_ROOT}/config.json ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
+#    echo "✅ 配置文件上传完成"
+#else
+#    echo "❌ config.json 不存在"
+#    exit 1
+#fi
 
 # 上传 docker-compose 文件
 if [ -f ${PROJECT_ROOT}/docker-compose.yml ]; then

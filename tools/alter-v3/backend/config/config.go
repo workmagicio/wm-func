@@ -17,6 +17,7 @@ type Config struct {
 	WmSql          string `json:"wm_data_query"`
 	Icon           string `json:"icon"`
 	TotalDataCount int    `json:"total_data_count"`
+	Tenants        string `json:"tenants"`
 }
 
 func GetConfit() map[string]Config {
@@ -36,6 +37,11 @@ func GetConfit() map[string]Config {
 	for _, config := range configs {
 		if config.TotalDataCount < 45 {
 			config.TotalDataCount = 75
+		}
+
+		// 设置默认的 tenants 值
+		if config.Tenants == "" {
+			config.Tenants = "all"
 		}
 
 		result[config.Name] = config

@@ -3,10 +3,12 @@ package controller
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"wm-func/tools/alter-v3/backend/alter_common"
 	"wm-func/tools/alter-v3/backend/cac"
 	"wm-func/tools/alter-v3/backend/config"
 	"wm-func/tools/alter-v3/backend/data"
+	"wm-func/tools/alter-v3/backend/tags"
 )
 
 type Controller struct {
@@ -45,8 +47,22 @@ func (c *Controller) Cac() {
 	}
 }
 
+// AttachUserTags 将用户自定义标签附加到租户数据
+func (c *Controller) AttachUserTags() {
+	for _, analytics := range c.allData {
+		tenantIdStr := strconv.FormatInt(analytics.TenantId, 10)
+		userTags := tags.GetUserTagsByTenantAndPlatform(tenantIdStr, c.Cfg.BasePlatform)
+
+		// 将 UserTags 添加到 Tags 数组中
+		if len(userTags) > 0 {
+			analytics.Tags = append(analytics.Tags, userTags...)
+		}
+	}
+}
+
 type ReturnData struct {
 	NewTenantData []*data.Analytics
+	ErrTenantData []*data.Analytics
 	TenantData    []*data.Analytics
 }
 
@@ -61,23 +77,28 @@ func (c *Controller) ReturnData() ReturnData {
 			allTenant = append(allTenant, c.allData[i])
 		}
 	}
+	// 按照 ErrTags 数量优先排序，然后按 Tags 数量排序
 	sort.Slice(newTenant, func(i, j int) bool {
-		return len(newTenant[i].Tags) > len(newTenant[j].Tags)
+		return len(newTenant[i].ErrTags) > len(newTenant[j].ErrTags)
 	})
 
-	sort.Slice(allTenant, func(i, j int) bool {
-		return len(allTenant[i].Tags) > len(allTenant[j].Tags)
-	})
+	// sort.Slice(allTenant, func(i, j int) bool {
+	// 	return len(allTenant[i].ErrTags) > len(allTenant[j].ErrTags)
+	// })
 
 	allTenantErr := []*data.Analytics{}
 	allTenantTrue := []*data.Analytics{}
 	for i, v := range allTenant {
-		if len(v.Tags) > 0 {
+		if len(v.ErrTags) > 0 && len(v.Tags) == 0 {
 			allTenantErr = append(allTenantErr, allTenant[i])
 		} else {
 			allTenantTrue = append(allTenantTrue, allTenant[i])
 		}
 	}
+
+	sort.Slice(allTenantErr, func(i, j int) bool {
+		return len(allTenantErr[i].ErrTags) > len(allTenantErr[j].ErrTags)
+	})
 
 	sort.Slice(allTenantTrue, func(i, j int) bool {
 		return allTenantTrue[i].GetAvg() > allTenantTrue[j].GetAvg()
@@ -85,6 +106,7 @@ func (c *Controller) ReturnData() ReturnData {
 
 	return ReturnData{
 		NewTenantData: newTenant,
-		TenantData:    append(allTenantErr, allTenantTrue...),
+		ErrTenantData: allTenantErr,
+		TenantData:    allTenantTrue,
 	}
 }

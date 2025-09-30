@@ -419,7 +419,7 @@ func generateDateSlices() []string {
 	now := time.Now()
 
 	// 从30天前开始，到昨天结束
-	for i := 5; i >= 1; i-- {
+	for i := 5; i >= 0; i-- {
 		date := now.AddDate(0, 0, -i).Format("2006-01-02")
 		dates = append(dates, date)
 	}

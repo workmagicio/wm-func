@@ -17,8 +17,12 @@ const ChartView = ({ selectedTenant }) => {
       }
       const data = await response.json();
       
-      // 假设API返回的数据格式与demo数据一致
-      const allData = [...(data.NewTenantData || []), ...(data.TenantData || [])];
+      // 按照顺序拼接数据：ErrTenantData -> NewTenantData -> TenantData
+      const allData = [
+        ...(data.ErrTenantData || []), 
+        ...(data.NewTenantData || []), 
+        ...(data.TenantData || [])
+      ];
       setTenantData(allData);
     } catch (err) {
       setError(err.message);
@@ -112,8 +116,11 @@ const ChartView = ({ selectedTenant }) => {
             {tenant.IsNewTenant && <span className="new-tenant-badge">新租户</span>}
           </h3>
           <div className="tenant-tags">
+            {tenant.ErrTags && tenant.ErrTags.map((tag, tagIndex) => (
+              <span key={`err-${tagIndex}`} className="tag error-tag">{tag}</span>
+            ))}
             {tenant.Tags && tenant.Tags.map((tag, tagIndex) => (
-              <span key={tagIndex} className="tag">{tag}</span>
+              <span key={`tag-${tagIndex}`} className="tag">{tag}</span>
             ))}
           </div>
           

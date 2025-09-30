@@ -62,11 +62,11 @@ else
     exit 1
 fi
 
-# 上传配置文件（如果有更新）
-if [ -f ${PROJECT_ROOT}/config.json ]; then
-    gcloud compute scp ${PROJECT_ROOT}/config.json ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
-    echo "✅ 配置文件上传完成"
-fi
+## 上传配置文件（如果有更新）
+#if [ -f ${PROJECT_ROOT}/config.json ]; then
+#    gcloud compute scp ${PROJECT_ROOT}/config.json ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
+#    echo "✅ 配置文件上传完成"
+#fi
 
 echo ""
 echo "🚀 启动后端容器..."

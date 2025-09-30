@@ -26,6 +26,12 @@ func SetupRouter() *gin.Engine {
 		api.POST("/config", AddConfig)
 		api.DELETE("/config/:name", RemoveConfig)
 		api.GET("/config", GetAllConfig)
+
+		// UserTag 路由
+		api.POST("/user-tag", AddUserTag)
+		api.PUT("/user-tag", UpdateUserTag)
+		api.DELETE("/user-tag/:key", RemoveUserTag)
+		api.GET("/user-tags", GetAllUserTags)
 	}
 
 	return r

@@ -32,8 +32,8 @@ func run() {
 	defer pool.Close()
 
 	var tenants = map[int64]bool{
-		//150133: true,
-		150110: true,
+		150208: true,
+		//150110: true,
 		//150198: true,
 	}
 

@@ -5,7 +5,8 @@
     "api_data_query": "select     tenant_id,     cast(raw_date as varchar) as raw_date,     cast(sum(ORDERS) as bigint) as data from platform_offline.integration_api_data_view where RAW_PLATFORM = 'shopify'   and RAW_DATE \u003e utc_date() - interval 90 day group by 1, 2",
     "wm_data_query": "select     tenant_id,     cast(date(order_create_time) as varchar) as raw_date,     count(order_id) as data from platform_offline.dwd_view_portrait_order_dim_shopify_latest where order_create_time \u003e utc_date() - interval 90 day group by 1, 2",
     "icon": "🛍️",
-    "total_data_count": 90
+    "total_data_count": 90,
+    "tenants": "all"
   },
   {
     "name": "googleAds",
@@ -13,7 +14,8 @@
     "api_data_query": "select tenant_id, cast(raw_date as varchar) as raw_date, cast(sum( AD_SPEND ) as bigint) as data from platform_offline.integration_api_data_view where RAW_PLATFORM = 'googleAds' and RAW_DATE \u003e utc_date() - interval 75 day group by 1, 2",
     "wm_data_query": "select tenant_id, cast(event_date as varchar) as raw_date, cast(sum(ad_spend) as bigint) as data from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest where event_date \u003e utc_date() - interval 75 day and json_overlaps(attr_model_array, json_array(0, 3)) and attr_enhanced in (1, 4) and ADS_PLATFORM = 'Google' group by 1, 2",
     "icon": "🇬",
-    "total_data_count": 75
+    "total_data_count": 75,
+    "tenants": "all"
   },
   {
     "name": "amazonVendorPartner",
@@ -21,7 +23,8 @@
     "api_data_query": "",
     "wm_data_query": "select tenant_id, cast(stat_date as varchar) as raw_date, sum(shipped_units) as data from platform_offline.amazon_vendor_zip_code_daily_report where stat_date \u003e utc_date() - interval 90 day group by 1, 2;",
     "icon": "📦",
-    "total_data_count": 90
+    "total_data_count": 90,
+    "tenants": "all"
   },
   {
     "name": "metaAds",
@@ -29,6 +32,7 @@
     "api_data_query": "select tenant_id, cast(raw_date as varchar) as raw_date, cast(sum( AD_SPEND ) as bigint) as data from platform_offline.integration_api_data_view where RAW_PLATFORM = 'facebookMarketing' and RAW_DATE \u003e utc_date() - interval 75 day group by 1, 2",
     "wm_data_query": "select tenant_id, cast(event_date as varchar) as raw_date, cast(sum(ad_spend) as bigint) as data from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest where event_date \u003e utc_date() - interval 75 day and json_overlaps(attr_model_array, json_array(0, 3)) and attr_enhanced in (1, 4) and ADS_PLATFORM = 'Meta' group by 1, 2 ; select ADS_PLATFORM from platform_offline.dws_view_analytics_ads_ad_level_metrics_attrs_latest group by 1",
     "icon": "ⓕ",
-    "total_data_count": 75
+    "total_data_count": 75,
+    "tenants": "all"
   }
 ]
