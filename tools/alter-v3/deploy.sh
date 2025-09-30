@@ -106,22 +106,22 @@ fi
 #    exit 1
 #fi
 
-# 上传 docker-compose 文件
-if [ -f ${PROJECT_ROOT}/docker-compose.yml ]; then
-    gcloud compute scp ${PROJECT_ROOT}/docker-compose.yml ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
-    echo "✅ docker-compose.yml 上传完成"
-else
-    echo "❌ docker-compose.yml 不存在"
-    exit 1
-fi
-
-# 上传 nginx 配置文件
-if [ -f ${PROJECT_ROOT}/nginx.conf ]; then
-    gcloud compute scp ${PROJECT_ROOT}/nginx.conf ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
-    echo "✅ nginx.conf 上传完成"
-else
-    echo "⚠️ nginx.conf 不存在，将使用默认配置"
-fi
+## 上传 docker-compose 文件
+#if [ -f ${PROJECT_ROOT}/docker-compose.yml ]; then
+#    gcloud compute scp ${PROJECT_ROOT}/docker-compose.yml ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
+#    echo "✅ docker-compose.yml 上传完成"
+#else
+#    echo "❌ docker-compose.yml 不存在"
+#    exit 1
+#fi
+#
+## 上传 nginx 配置文件
+#if [ -f ${PROJECT_ROOT}/nginx.conf ]; then
+#    gcloud compute scp ${PROJECT_ROOT}/nginx.conf ${INSTANCE_NAME}:${REMOTE_DIR}/ --zone=${ZONE}
+#    echo "✅ nginx.conf 上传完成"
+#else
+#    echo "⚠️ nginx.conf 不存在，将使用默认配置"
+#fi
 
 echo ""
 echo "🚀 启动服务..."

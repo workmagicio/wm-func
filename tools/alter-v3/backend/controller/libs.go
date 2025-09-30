@@ -55,7 +55,7 @@ func (c *Controller) getDataWithSql(exec string) map[int64]map[string]alter_comm
 }
 
 func (c *Controller) getStreamSlice() []string {
-	now := time.Now().Add(time.Hour * 6 * -1).UTC()
+	now := time.Now().Add(time.Hour * 10 * -1).UTC()
 	res := []string{}
 	for i := 0; i < c.Cfg.TotalDataCount; i++ {
 		res = append(res, now.Format("2006-01-02"))

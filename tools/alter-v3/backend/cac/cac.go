@@ -74,13 +74,13 @@ func last30DayZeroData(analytics *data.Analytics) int64 {
 
 	for i := 0; i < 30; i++ {
 		if analytics.HaveApiData {
-			total = analytics.Data[i].APiData
+			total += analytics.Data[i].APiData
 		} else {
-			total = analytics.Data[i].WMData
+			total += analytics.Data[i].WMData
 		}
 	}
 
-	return total / 30 * 5 / 100
+	return total * 30 / 30 / 100
 
 }
 
