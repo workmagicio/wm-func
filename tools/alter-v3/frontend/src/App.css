@@ -396,7 +396,7 @@
 }
 
 .new-tenant-badge {
-  background-color: #e74c3c;
+  background-color: #52c41a;
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
@@ -457,6 +457,26 @@
   color: #cf1322 !important;
   border-color: #ffa39e !important;
   font-weight: 500;
+}
+
+.critical-error-tag {
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
+  border-color: #ff4d4f !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 10px !important;
+  animation: pulse 2s infinite;
+  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.4);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 77, 79, 0.4);
+  }
+  50% {
+    box-shadow: 0 2px 12px rgba(255, 77, 79, 0.8);
+  }
 }
 
 /* Responsive adjustments */

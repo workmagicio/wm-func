@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { getApiUrl } from './config';
+import './ChartView.css';
 
 const ChartView = ({ selectedTenant }) => {
   const [tenantData, setTenantData] = useState([]);
@@ -61,9 +62,9 @@ const ChartView = ({ selectedTenant }) => {
         <circle 
           cx={cx} 
           cy={cy} 
-          r={3} 
+          r={4} 
           fill="transparent" 
-          stroke="#82ca9d" 
+          stroke="#f87171" 
           strokeWidth={2}
         />
       );
@@ -76,6 +77,75 @@ const ChartView = ({ selectedTenant }) => {
     const date = new Date(lastSyncDate);
     date.setDate(date.getDate() - 30);
     return date.toISOString().split('T')[0];
+  };
+
+  // 格式化数值为k/M格式
+  const formatValue = (value) => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}k`;
+    }
+    return value.toLocaleString();
+  };
+
+  // 自定义 Tooltip
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={{
+          position: 'relative',
+          display: 'block',
+          borderStyle: 'solid',
+          whiteSpace: 'nowrap',
+          zIndex: 9999999,
+          boxShadow: 'rgba(0, 0, 0, 0.2) 1px 2px 10px',
+          backgroundColor: 'rgb(255, 255, 255)',
+          borderWidth: '1px',
+          borderRadius: '4px',
+          color: 'rgb(102, 102, 102)',
+          font: '14px/21px sans-serif',
+          padding: '10px',
+          borderColor: 'rgb(255, 255, 255)',
+          pointerEvents: 'none',
+          minWidth: '160px'
+        }}>
+          <div style={{ 
+            marginBottom: '4px',
+            color: 'rgb(51, 51, 51)',
+            fontSize: '14px',
+            lineHeight: '21px',
+            fontWeight: 'bold'
+          }}>
+            日期: {label}
+          </div>
+          {payload.map((entry, index) => (
+            <div key={index} style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: index === payload.length - 1 ? '0' : '2px',
+              fontSize: '14px',
+              lineHeight: '21px',
+              color: 'rgb(102, 102, 102)'
+            }}>
+              <div style={{
+                display: 'inline-block',
+                marginRight: '4px',
+                borderRadius: '10px',
+                width: '10px',
+                height: '10px',
+                flexShrink: 0,
+                backgroundColor: entry.color
+              }} />
+              <span style={{ whiteSpace: 'nowrap' }}>
+                {entry.name}: {formatValue(entry.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
 
   if (loading) {
@@ -117,7 +187,12 @@ const ChartView = ({ selectedTenant }) => {
           </h3>
           <div className="tenant-tags">
             {tenant.ErrTags && tenant.ErrTags.map((tag, tagIndex) => (
-              <span key={`err-${tagIndex}`} className="tag error-tag">{tag}</span>
+              <span 
+                key={`err-${tagIndex}`} 
+                className="tag critical-error-tag"
+              >
+                {tag}
+              </span>
             ))}
             {tenant.Tags && tenant.Tags.map((tag, tagIndex) => (
               <span key={`tag-${tagIndex}`} className="tag">{tag}</span>
@@ -140,14 +215,11 @@ const ChartView = ({ selectedTenant }) => {
                 tick={{ fontSize: 12 }}
                 interval="preserveStartEnd"
               />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                formatter={(value, name) => [
-                  value.toLocaleString(), 
-                  name === 'apiData' ? 'API 数据' : 'WM 数据'
-                ]}
-                labelFormatter={(label) => `日期: ${label}`}
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickFormatter={formatValue}
               />
+              <Tooltip content={<CustomTooltip />} />
               <Legend 
                 formatter={(value) => {
                   if (value === 'apiData') return 'API 数据';
@@ -159,19 +231,21 @@ const ChartView = ({ selectedTenant }) => {
                 <Line 
                   type="monotone" 
                   dataKey="apiData" 
-                  stroke="#8884d8" 
-                  strokeWidth={2}
+                  stroke="#3498db" 
+                  strokeWidth={3}
                   dot={false}
-                  activeDot={{ r: 5 }}
+                  activeDot={{ r: 6, fill: '#3498db', strokeWidth: 2, stroke: '#fff' }}
+                  strokeDasharray="0"
                 />
               )}
               <Line 
                 type="monotone" 
                 dataKey="wmData" 
-                stroke="#82ca9d" 
-                strokeWidth={2}
+                stroke="#f87171" 
+                strokeWidth={3}
                 dot={(props) => customWmDot(props, tenant)}
-                activeDot={{ r: 5 }}
+                activeDot={{ r: 6, fill: '#f87171', strokeWidth: 2, stroke: '#fff' }}
+                strokeDasharray="0"
               />
               <ReferenceLine 
                 x={tenant.LastSyncDate} 
